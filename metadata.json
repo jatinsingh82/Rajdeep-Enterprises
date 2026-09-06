@@ -1,0 +1,7 @@
+{
+  "name": "Rajdeep Enterprises - Industrial Safety & Material Supplies",
+  "description": "Trusted supplier of industrial safety PPE, welding consumables, Champion gaskets, site registers, stationery, tools, and material supplies based in Mathura, UP.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+

@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+  }
+}
+
+/* Custom industrial safety stripes pattern for subtle accents */
+.hazard-stripe-light {
+  background: repeating-linear-gradient(
+    -45deg,
+    #f97316,
+    #f97316 12px,
+    #0f172a 12px,
+    #0f172a 24px
+  );
+}
+
+.hazard-stripe-yellow {
+  background: repeating-linear-gradient(
+    -45deg,
+    #facc15,
+    #facc15 10px,
+    #1e293b 10px,
+    #1e293b 20px
+  );
+}
+
+.industrial-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+}
+
+.industrial-grid-dark {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
