@@ -77,11 +77,22 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header className="sticky top-0 z-40 w-full transition-all duration-200">
-      {/* Top Bar for B2B Direct Contact in Deep Dark Blue */}
-      <div className="bg-[#0B192C] text-slate-200 text-xs py-2 px-4 border-b border-[#1E3E62]">
-        <div className="max-w-7xl mx-auto flex flex-wrap justify-between items-center gap-3">
-          {/* Left: Location & Pan-India info */}
-          <div className="flex flex-wrap items-center gap-3">
+      {/* Top Bar - Responsive layout: Sleek 1-line on mobile, full detail on desktop */}
+      <div className="bg-[#0B192C] text-slate-200 text-xs py-1.5 md:py-2 px-3 sm:px-4 border-b border-[#1E3E62]">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-2">
+          
+          {/* Mobile Top View (< md): Compact location & pan-india */}
+          <div className="flex md:hidden items-center gap-2 min-w-0">
+            <div className="flex items-center gap-1 text-[11px] font-bold text-sky-300 truncate">
+              <MapPin className="w-3 h-3 text-sky-400 shrink-0" />
+              <span>Refinery Gate, Mathura</span>
+            </div>
+            <span className="text-slate-600">•</span>
+            <span className="text-[10px] text-emerald-400 font-bold shrink-0">🇮🇳 Pan-India</span>
+          </div>
+
+          {/* Desktop Top View (>= md): Full rich details */}
+          <div className="hidden md:flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-slate-300">
               <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
               <span className="font-medium">Refinery Main Gate, UP SIDC Complex, Mathura</span>
@@ -95,49 +106,53 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Right: Language, Phone, Visiting Card, and Tools & Guides (after Visiting Card) */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          {/* Right Action Controls: Language, Phone, Visiting Card, and Tools & Guides */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Language Switcher */}
             <button
               onClick={onToggleLang}
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#1E3E62]/80 hover:bg-[#1E3E62] text-sky-300 font-bold border border-sky-500/30 transition shadow-xs"
+              className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#1E3E62]/80 hover:bg-[#1E3E62] text-sky-300 font-bold border border-sky-500/30 transition shadow-xs text-[11px]"
               title="Switch Language / भाषा बदलें"
             >
-              <Languages className="w-3.5 h-3.5 text-sky-400" />
-              <span className="text-[11px]">{lang === 'en' ? 'हिन्दी' : 'English'}</span>
+              <Languages className="w-3 h-3 text-sky-400" />
+              <span>{lang === 'en' ? 'हिन्दी' : 'EN'}</span>
             </button>
 
             {/* Direct Phone Call */}
             <a
               id="topbar-phone-link"
               href={`tel:${COMPANY_INFO.phone}`}
-              className="flex items-center gap-1 text-sky-300 hover:text-white font-semibold transition-colors px-1"
+              className="flex items-center gap-1 text-sky-300 hover:text-white font-semibold transition-colors px-1.5 py-0.5 rounded hover:bg-[#1E3E62] text-xs"
+              title="Call Proprietor Directly"
             >
               <Phone className="w-3 h-3 text-sky-400" />
-              <span className="hidden sm:inline">{COMPANY_INFO.displayPhone}</span>
+              <span className="hidden sm:inline font-mono">{COMPANY_INFO.displayPhone}</span>
+              <span className="sm:hidden text-[11px] font-bold">Call</span>
             </a>
 
             {/* Visiting Card modal button */}
             <button
               id="topbar-visiting-card-btn"
               onClick={onOpenVisitingCard}
-              className="flex items-center gap-1.5 bg-[#1E3E62] hover:bg-sky-700 text-white px-2.5 py-1 rounded-md text-xs font-semibold border border-sky-400/40 shadow-xs transition"
+              className="flex items-center gap-1 bg-[#1E3E62] hover:bg-sky-700 text-white px-2 sm:px-2.5 py-1 rounded-md text-[11px] sm:text-xs font-semibold border border-sky-400/40 shadow-xs transition"
               title="View Business Visiting Card"
             >
               <FileText className="w-3 h-3 text-sky-300" />
-              <span className="font-medium">Visiting Card</span>
+              <span className="font-medium hidden sm:inline">Visiting Card</span>
+              <span className="font-medium sm:hidden">Card</span>
             </button>
 
-            {/* Tools & Guides Dropdown - Kept AFTER Visiting Card in the top */}
+            {/* Tools & Guides Dropdown - Kept AFTER Visiting Card */}
             <div className="relative" ref={toolsMenuRef}>
               <button
                 id="topbar-tools-guides-btn"
                 onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
-                className="flex items-center gap-1 text-xs text-white bg-blue-600 hover:bg-blue-500 px-2.5 py-1 rounded-md font-semibold border border-sky-400/50 shadow-xs transition"
+                className="flex items-center gap-1 text-[11px] sm:text-xs text-white bg-blue-600 hover:bg-blue-500 px-2 sm:px-2.5 py-1 rounded-md font-semibold border border-sky-400/50 shadow-xs transition"
                 title="Procurement Tools, Technical Guides & Compliance"
               >
                 <Wrench className="w-3 h-3 text-sky-200" />
-                <span className="font-medium">Tools & Guides</span>
+                <span className="font-medium hidden sm:inline">Tools & Guides</span>
+                <span className="font-medium sm:hidden">Guides</span>
                 <ChevronDown className={`w-3 h-3 text-sky-200 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 

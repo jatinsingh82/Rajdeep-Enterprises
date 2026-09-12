@@ -10,12 +10,44 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
   onOpenQuoteModal
 }) => {
   return (
-    <div className="bg-gradient-to-r from-red-950 via-slate-900 to-blue-950 border-y border-red-800/40 text-white py-3 px-4 shadow-inner relative overflow-hidden">
-      {/* Visual pulse indicator */}
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
+    <div className="bg-gradient-to-r from-red-950 via-slate-900 to-blue-950 border-y border-red-800/40 text-white py-2 sm:py-3 px-3 sm:px-4 shadow-inner relative overflow-hidden">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs sm:text-sm">
         
-        {/* Left side: Alert indicator and headline */}
-        <div className="flex items-center gap-3 text-left">
+        {/* Mobile View: Compact single-row emergency alert */}
+        <div className="flex md:hidden items-center justify-between w-full gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shrink-0" />
+            <div className="min-w-0">
+              <span className="font-black text-red-400 uppercase tracking-wider text-[10px] block">
+                24/7 Refinery Emergency
+              </span>
+              <span className="text-slate-200 text-xs font-semibold truncate block">
+                30–60 Min Rapid Dispatch
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0">
+            <a
+              href={`tel:${COMPANY_INFO.phone}`}
+              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-600 active:bg-red-700 text-white font-black text-xs shadow transition"
+              title="Call 24/7 Emergency Hotline"
+            >
+              <Phone className="w-3.5 h-3.5" />
+              <span>Call Now</span>
+            </a>
+            <button
+              onClick={() => onOpenQuoteModal("Urgent Emergency Breakdown PPE Supply")}
+              className="inline-flex items-center px-2 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-bold"
+              title="Request Dispatch"
+            >
+              <Zap className="w-3 h-3 text-amber-400" />
+            </button>
+          </div>
+        </div>
+
+        {/* Desktop View: Full rich emergency bar */}
+        <div className="hidden md:flex items-center gap-3 text-left">
           <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-600/30 border border-red-500/60 text-red-400 shrink-0">
             <Zap className="w-4 h-4 fill-red-400 text-red-400 animate-pulse" />
           </div>
@@ -34,8 +66,8 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
           </div>
         </div>
 
-        {/* Right side: Direct actions */}
-        <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+        {/* Desktop Right side: Direct actions */}
+        <div className="hidden md:flex items-center gap-2.5 shrink-0 flex-wrap">
           <a
             href={`tel:${COMPANY_INFO.phone}`}
             className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-black text-xs transition shadow-md active:scale-95"

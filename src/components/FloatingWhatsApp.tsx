@@ -13,9 +13,9 @@ export const FloatingWhatsApp: React.FC = () => {
 
   return (
     <div className="fixed bottom-5 right-5 z-40 flex flex-col items-end">
-      {/* Speech bubble tooltip */}
+      {/* Speech bubble tooltip - shown on sm+ screens */}
       {showTooltip && (
-        <div className="mb-2 relative bg-white text-slate-800 text-xs py-2 px-3.5 rounded-xl shadow-xl border border-slate-200 flex items-center gap-2 max-w-xs animate-bounce">
+        <div className="hidden sm:flex mb-2 relative bg-white text-slate-800 text-xs py-2 px-3.5 rounded-xl shadow-xl border border-slate-200 items-center gap-2 max-w-xs">
           <div className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></div>
           <span className="font-medium text-[11px] leading-tight">
             Need fast quotes for safety gear? Chat on WhatsApp!
