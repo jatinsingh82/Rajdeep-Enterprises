@@ -27,7 +27,7 @@ import paperCutterImg from '../assets/images/paper_cutter_1788722440209.jpg';
 import printoutPhotocopyImg from '../assets/images/printout_photocopy_1788722455127.jpg';
 import siteCopiesImg from '../assets/images/site_copies_1788722489396.jpg';
 import sitePensImg from '../assets/images/site_pens_1788722506236.jpg';
-import shopOwnerImg from '../assets/images/shop_owner_front_1789206987715.jpg';
+import shopOwnerImg from '../assets/images/real_father_shop_1789213228977.jpg';
 
 export const COMPANY_INFO = {
   name: "Rajdeep Enterprises",
