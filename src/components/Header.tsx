@@ -59,14 +59,21 @@ export const Header: React.FC<HeaderProps> = ({
   // Strictly sequential top-to-bottom scroll order matching page layout
   const navLinks = [
     { name: lang === 'en' ? 'Our Products' : 'हमारे उत्पाद', href: '#products' },
-    { name: lang === 'en' ? 'Trade Kits' : 'ट्रेड किट्स', href: '#trade-kits' },
     { name: lang === 'en' ? 'Whole India' : 'पूरे भारत में', href: '#pan-india' },
-    { name: lang === 'en' ? 'GST & HSN' : 'जीएसटी और दरें', href: '#gst-compliance' },
+    { name: lang === 'en' ? 'Tools & Guides' : 'टूल्स एवं गाइड्स', href: '#tools-and-guides' },
     { name: lang === 'en' ? 'Core Principles' : 'मूल सिद्धांत', href: '#principles' },
     { name: lang === 'en' ? 'About Us' : 'हमारे बारे में', href: '#about' },
-    { name: lang === 'en' ? 'FAQs' : 'सवाल-जवाब', href: '#faqs' },
     { name: lang === 'en' ? 'Where To Find & Contact' : 'स्थान व संपर्क', href: '#location' },
   ];
+
+  const handleOpenGuideDropdown = (anchorId: string) => {
+    setToolsDropdownOpen(false);
+    window.location.hash = '#' + anchorId;
+    const el = document.getElementById(anchorId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 w-full transition-all duration-200">
@@ -88,7 +95,7 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Right: Quick Tools, Language, Phone & Card */}
+          {/* Right: Language, Phone, Visiting Card, and Tools & Guides (after Visiting Card) */}
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Language Switcher */}
             <button
@@ -99,77 +106,6 @@ export const Header: React.FC<HeaderProps> = ({
               <Languages className="w-3.5 h-3.5 text-sky-400" />
               <span className="text-[11px]">{lang === 'en' ? 'हिन्दी' : 'English'}</span>
             </button>
-
-            {/* Procurement Tools Clean Dropdown */}
-            <div className="relative" ref={toolsMenuRef}>
-              <button
-                onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
-                className="flex items-center gap-1 text-xs text-slate-200 hover:text-white bg-[#1E3E62]/60 hover:bg-[#1E3E62] px-2.5 py-1 rounded-md border border-slate-700 transition"
-                title="Procurement & Contractor Tools"
-              >
-                <Wrench className="w-3 h-3 text-sky-400" />
-                <span className="hidden sm:inline font-medium">Tools & Guides</span>
-                <ChevronDown className={`w-3 h-3 text-slate-400 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {toolsDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-1.5 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
-                  <button
-                    onClick={() => { onOpenBrandingModal(); setToolsDropdownOpen(false); }}
-                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
-                  >
-                    <Printer className="w-4 h-4 text-sky-400" />
-                    <div>
-                      <div className="font-semibold text-white">Logo Printing Studio</div>
-                      <div className="text-[10px] text-slate-400">Custom branded helmets & vests</div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => { onOpenSizingModal(); setToolsDropdownOpen(false); }}
-                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
-                  >
-                    <Ruler className="w-4 h-4 text-sky-400" />
-                    <div>
-                      <div className="font-semibold text-white">Size Guide</div>
-                      <div className="text-[10px] text-slate-400">Shoe & glove sizing chart</div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => { onOpenHseAuditModal(); setToolsDropdownOpen(false); }}
-                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                    <div>
-                      <div className="font-semibold text-emerald-300">HSE Gate Audit</div>
-                      <div className="text-[10px] text-slate-400">Site entry pass inspection</div>
-                    </div>
-                  </button>
-
-                  <button
-                    onClick={() => { onOpenVendorDossierModal(); setToolsDropdownOpen(false); }}
-                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
-                  >
-                    <Building2 className="w-4 h-4 text-sky-400" />
-                    <div>
-                      <div className="font-semibold text-white">Vendor Dossier</div>
-                      <div className="text-[10px] text-slate-400">B2B vendor empanelment profile</div>
-                    </div>
-                  </button>
-
-                  <div className="my-1 border-t border-slate-800"></div>
-
-                  <button
-                    onClick={() => { onDownloadPdf(); setToolsDropdownOpen(false); }}
-                    className="w-full text-left px-3 py-2 text-xs text-sky-300 hover:bg-slate-800 flex items-center gap-2.5 transition"
-                  >
-                    <Download className="w-4 h-4 text-sky-400" />
-                    <span className="font-semibold">Download PDF Catalogue</span>
-                  </button>
-                </div>
-              )}
-            </div>
 
             {/* Direct Phone Call */}
             <a
@@ -191,6 +127,145 @@ export const Header: React.FC<HeaderProps> = ({
               <FileText className="w-3 h-3 text-sky-300" />
               <span className="font-medium">Visiting Card</span>
             </button>
+
+            {/* Tools & Guides Dropdown - Kept AFTER Visiting Card in the top */}
+            <div className="relative" ref={toolsMenuRef}>
+              <button
+                id="topbar-tools-guides-btn"
+                onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
+                className="flex items-center gap-1 text-xs text-white bg-blue-600 hover:bg-blue-500 px-2.5 py-1 rounded-md font-semibold border border-sky-400/50 shadow-xs transition"
+                title="Procurement Tools, Technical Guides & Compliance"
+              >
+                <Wrench className="w-3 h-3 text-sky-200" />
+                <span className="font-medium">Tools & Guides</span>
+                <ChevronDown className={`w-3 h-3 text-sky-200 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {toolsDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[85vh] overflow-y-auto">
+                  
+                  {/* Category 1: Collapsible Dropdown Guides */}
+                  <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-400 border-b border-slate-800 flex items-center justify-between">
+                    <span>Interactive Guides (Drop Down)</span>
+                    <span className="text-slate-500 font-normal">On-Page</span>
+                  </div>
+
+                  <button
+                    onClick={() => handleOpenGuideDropdown('trade-kits')}
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition group"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-orange-500 group-hover:scale-125 transition-transform shrink-0"></div>
+                    <div>
+                      <div className="font-semibold text-white group-hover:text-sky-300">Trade-Specific PPE Kits</div>
+                      <div className="text-[10px] text-slate-400">Refinery & contractor turnkeys</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleOpenGuideDropdown('gst-compliance')}
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition group"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-blue-500 group-hover:scale-125 transition-transform shrink-0"></div>
+                    <div>
+                      <div className="font-semibold text-white group-hover:text-sky-300">GST Rates & HSN Tax Calculator</div>
+                      <div className="text-[10px] text-slate-400">12 HSN categories (max ₹10 Lakhs)</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleOpenGuideDropdown('standards')}
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition group"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 group-hover:scale-125 transition-transform shrink-0"></div>
+                    <div>
+                      <div className="font-semibold text-white group-hover:text-sky-300">Industrial Standards & Safety Certifications</div>
+                      <div className="text-[10px] text-slate-400">BIS, IS:2925, IS:15298 & CE passes</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleOpenGuideDropdown('industries')}
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition group"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-indigo-500 group-hover:scale-125 transition-transform shrink-0"></div>
+                    <div>
+                      <div className="font-semibold text-white group-hover:text-sky-300">Industries We Serve</div>
+                      <div className="text-[10px] text-slate-400">Refinery, civil, pipeline & workshops</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => handleOpenGuideDropdown('faqs')}
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition group"
+                  >
+                    <div className="w-2 h-2 rounded-full bg-purple-500 group-hover:scale-125 transition-transform shrink-0"></div>
+                    <div>
+                      <div className="font-semibold text-white group-hover:text-sky-300">Frequently Asked Questions</div>
+                      <div className="text-[10px] text-slate-400">Gate passes, delivery, payment terms</div>
+                    </div>
+                  </button>
+
+                  {/* Category 2: Procurement Utility Modals */}
+                  <div className="mt-2 pt-2 px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-t border-slate-800">
+                    Procurement Tools & Dossiers
+                  </div>
+
+                  <button
+                    onClick={() => { onOpenBrandingModal(); setToolsDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                  >
+                    <Printer className="w-4 h-4 text-sky-400 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-white">Logo Printing Studio</div>
+                      <div className="text-[10px] text-slate-400">Custom branded helmets & vests</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { onOpenSizingModal(); setToolsDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                  >
+                    <Ruler className="w-4 h-4 text-sky-400 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-white">Size Guide</div>
+                      <div className="text-[10px] text-slate-400">Shoe & glove sizing chart</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { onOpenHseAuditModal(); setToolsDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                  >
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-emerald-300">HSE Gate Audit</div>
+                      <div className="text-[10px] text-slate-400">Site entry pass inspection</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => { onOpenVendorDossierModal(); setToolsDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2 text-xs text-slate-200 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                  >
+                    <Building2 className="w-4 h-4 text-sky-400 shrink-0" />
+                    <div>
+                      <div className="font-semibold text-white">Vendor Dossier</div>
+                      <div className="text-[10px] text-slate-400">B2B vendor empanelment profile</div>
+                    </div>
+                  </button>
+
+                  <div className="my-1 border-t border-slate-800"></div>
+
+                  <button
+                    onClick={() => { onDownloadPdf(); setToolsDropdownOpen(false); }}
+                    className="w-full text-left px-3 py-2 text-xs text-sky-300 hover:bg-slate-800 flex items-center gap-2.5 transition"
+                  >
+                    <Download className="w-4 h-4 text-sky-400 shrink-0" />
+                    <span className="font-semibold">Download PDF Catalogue</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

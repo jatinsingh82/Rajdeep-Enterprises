@@ -73,25 +73,16 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
                 <a href="#products" className="hover:text-sky-400 transition-colors">Our Products</a>
               </li>
               <li>
-                <a href="#trade-kits" className="hover:text-sky-400 transition-colors">Safety Trade Kits</a>
-              </li>
-              <li>
-                <a href="#safety-signages" className="hover:text-sky-400 transition-colors">Safety Signages</a>
-              </li>
-              <li>
                 <a href="#pan-india" className="text-sky-300 font-bold hover:text-sky-200 transition-colors">🇮🇳 Whole India Supply</a>
               </li>
               <li>
-                <a href="#gst-compliance" className="hover:text-sky-400 transition-colors">GST & HSN Guide</a>
+                <a href="#tools-and-guides" className="hover:text-sky-400 transition-colors">Tools & Guides (Dropdown Hub)</a>
               </li>
               <li>
                 <a href="#principles" className="hover:text-sky-400 transition-colors">Core Principles</a>
               </li>
               <li>
                 <a href="#about" className="hover:text-sky-400 transition-colors">About Us</a>
-              </li>
-              <li>
-                <a href="#faqs" className="hover:text-sky-400 transition-colors">Frequently Asked Questions</a>
               </li>
               <li>
                 <a href="#location" className="hover:text-sky-400 transition-colors">Where Can You Find Us</a>

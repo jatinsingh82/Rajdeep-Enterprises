@@ -2,15 +2,12 @@ import React, { useState } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { EmergencyHotlineBanner } from './components/EmergencyHotlineBanner';
-import { TradeKitsSection } from './components/TradeKitsSection';
 import { AboutSection } from './components/AboutSection';
 import { ProductsSection } from './components/ProductsSection';
 import { PanIndiaSupplySection } from './components/PanIndiaSupplySection';
-import { GstGuideSection } from './components/GstGuideSection';
-import { StandardsSection } from './components/StandardsSection';
+import { ToolsAndGuidesHub } from './components/ToolsAndGuidesHub';
 import { MapSection } from './components/MapSection';
 import { WhyChooseUs } from './components/WhyChooseUs';
-import { IndustriesSection } from './components/IndustriesSection';
 import { CtaBanner } from './components/CtaBanner';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
@@ -21,7 +18,6 @@ import { EnquiryModal } from './components/EnquiryModal';
 import { RfqModal } from './components/RfqModal';
 import { BrandingPreviewModal } from './components/BrandingPreviewModal';
 import { SizingGuideModal } from './components/SizingGuideModal';
-import { FaqSection } from './components/FaqSection';
 import { HseAuditModal } from './components/HseAuditModal';
 import { VendorDossierModal } from './components/VendorDossierModal';
 import { Product, RfqItem, Language } from './types';
@@ -152,50 +148,28 @@ export default function App() {
           lang={lang}
         />
 
-        {/* 3. Turnkey Trade-Specific PPE Kits Configurator */}
-        <TradeKitsSection
-          onAddProductToRfq={handleAddToRfq}
-          onOpenQuoteModal={handleOpenQuoteModal}
-          lang={lang}
-        />
-
-        {/* 4. Whole India Supply & Any Quantity Logistics Section */}
+        {/* 3. Whole India Supply & Any Quantity Logistics Section */}
         <PanIndiaSupplySection
           lang={lang}
           onEnquire={handleOpenQuoteModal}
         />
 
-        {/* 6. GST Rates, HSN Codes & B2B Tax Calculator (Clamped to 10 Lakh) */}
-        <GstGuideSection
+        {/* 4. Tools, Compliance & Technical Guides in Compact Expandable Dropdown Form */}
+        <ToolsAndGuidesHub
+          onAddProductToRfq={handleAddToRfq}
           onOpenQuoteModal={handleOpenQuoteModal}
-        />
-
-        {/* 7. Standards & Certification Guide (IS / EN / CE / ANSI) */}
-        <StandardsSection
           lang={lang}
-          onEnquire={handleOpenQuoteModal}
         />
 
-        {/* 8. Industries We Serve */}
-        <IndustriesSection
-          onEnquire={(req) => handleOpenQuoteModal(req)}
-        />
-
-        {/* 9. Core Principles Guiding Our Supply (Placed in the end) */}
+        {/* 5. Core Principles Guiding Our Supply (Placed towards the end) */}
         <WhyChooseUs
           onOpenQuoteModal={() => handleOpenQuoteModal('Industrial Partnership / Supplies')}
         />
 
-        {/* 10. About Section (Placed in the end) */}
+        {/* 6. About Section (Placed towards the end) */}
         <AboutSection
           onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
           onOpenQuoteModal={() => handleOpenQuoteModal('General Company Quotation')}
-        />
-
-        {/* 11. Frequently Asked Questions (Placed in the end) */}
-        <FaqSection
-          onOpenQuoteModal={handleOpenQuoteModal}
-          lang={lang}
         />
 
         {/* 12. Strong Call-To-Action Banner */}
