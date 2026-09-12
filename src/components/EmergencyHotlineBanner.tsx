@@ -10,7 +10,7 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
   onOpenQuoteModal
 }) => {
   return (
-    <div className="bg-gradient-to-r from-red-950 via-slate-900 to-amber-950 border-y border-red-800/40 text-white py-3 px-4 shadow-inner relative overflow-hidden">
+    <div className="bg-gradient-to-r from-red-950 via-slate-900 to-blue-950 border-y border-red-800/40 text-white py-3 px-4 shadow-inner relative overflow-hidden">
       {/* Visual pulse indicator */}
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 text-xs sm:text-sm">
         
@@ -29,7 +29,7 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
               </span>
             </div>
             <p className="text-slate-300 text-xs mt-0.5">
-              Facing immediate gate safety inspection shortfall or plant breakdown? <strong className="text-amber-300">30–60 Min Rapid Dispatch</strong> to Mathura Refinery gates & adjacent industrial yards.
+              Facing immediate gate safety inspection shortfall or plant breakdown? <strong className="text-sky-300">30–60 Min Rapid Dispatch</strong> to Mathura Refinery gates & adjacent industrial yards.
             </p>
           </div>
         </div>
@@ -46,9 +46,9 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
 
           <button
             onClick={() => onOpenQuoteModal("Urgent Emergency Breakdown PPE Supply")}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-bold transition active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-bold transition active:scale-95"
           >
-            <Clock className="w-3.5 h-3.5 text-amber-400" />
+            <Clock className="w-3.5 h-3.5 text-sky-400" />
             <span>Request Immediate Dispatch</span>
           </button>
         </div>

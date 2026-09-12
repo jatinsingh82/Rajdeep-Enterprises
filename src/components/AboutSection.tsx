@@ -1,6 +1,7 @@
 import React from 'react';
-import { ShieldCheck, Truck, ThumbsUp, Flame, MapPin, User, Check, Phone, ArrowUpRight } from 'lucide-react';
+import { MapPin, User, Check, Phone, ArrowUpRight } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
+import { useOwnerPhoto } from '../hooks/useOwnerPhoto';
 
 interface AboutSectionProps {
   onOpenVisitingCard: () => void;
@@ -8,40 +9,7 @@ interface AboutSectionProps {
 }
 
 export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenVisitingCard, onOpenQuoteModal }) => {
-  const pillars = [
-    {
-      title: "Quality Products",
-      desc: "All safety equipment and personal protective gear are thoroughly checked for industrial durability and standard compliance (ISI/EN).",
-      icon: ShieldCheck,
-      color: "text-orange-500",
-      bgColor: "bg-orange-500/10",
-      borderColor: "border-orange-200"
-    },
-    {
-      title: "Reliable Service",
-      desc: "Prompt order processing, transparent dispatch schedules, and dependable supply continuity for routine orders or urgent shutdowns.",
-      icon: Truck,
-      color: "text-blue-600",
-      bgColor: "bg-blue-500/10",
-      borderColor: "border-blue-200"
-    },
-    {
-      title: "Customer Satisfaction",
-      desc: "Direct communication with proprietor Raj Singh Tarkar ensures tailored recommendations and personalized support for every client.",
-      icon: ThumbsUp,
-      color: "text-emerald-600",
-      bgColor: "bg-emerald-500/10",
-      borderColor: "border-emerald-200"
-    },
-    {
-      title: "Industrial Safety Focus",
-      desc: "Specialized knowledge in workplace hazards, height safety, personal PPE, and industrial material supply for refinery and engineering works.",
-      icon: Flame,
-      color: "text-red-600",
-      bgColor: "bg-red-500/10",
-      borderColor: "border-red-200"
-    }
-  ];
+  const { photoUrl } = useOwnerPhoto();
 
   return (
     <section id="about" className="py-16 md:py-24 bg-white relative">
@@ -132,19 +100,30 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenVisitingCard, 
               
               {/* Card Header */}
               <div className="flex justify-between items-start border-b border-slate-700/80 pb-4 mb-5">
-                <div>
-                  <div className="text-xs text-orange-400 font-bold uppercase tracking-widest">
-                    Proprietor
-                  </div>
-                  <div className="text-xl font-black text-white tracking-tight">
-                    {COMPANY_INFO.contactPerson}
+                <div className="flex items-center gap-3">
+                  <img
+                    src={photoUrl}
+                    alt={COMPANY_INFO.contactPerson}
+                    className="w-13 h-13 rounded-xl object-cover object-top border-2 border-sky-400 shadow-md shrink-0"
+                    referrerPolicy="no-referrer"
+                  />
+                  <div>
+                    <div className="text-xs text-sky-400 font-bold uppercase tracking-widest">
+                      Proprietor & Shop Owner
+                    </div>
+                    <div className="text-xl font-black text-white tracking-tight">
+                      {COMPANY_INFO.contactPerson}
+                    </div>
+                    <div className="text-xs text-slate-300">
+                      Rajdeep Enterprises Store
+                    </div>
                   </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-slate-400 font-mono">Contact Number</div>
+                  <div className="text-xs text-slate-400 font-mono">Direct Contact</div>
                   <a
                     href={`tel:${COMPANY_INFO.phone}`}
-                    className="text-base font-black text-amber-400 hover:text-amber-300 transition"
+                    className="text-base font-black text-sky-400 hover:text-sky-300 transition"
                   >
                     {COMPANY_INFO.phone}
                   </a>
@@ -156,7 +135,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenVisitingCard, 
                 <div className="text-2xl sm:text-3xl font-black tracking-tight text-white drop-shadow">
                   <span className="text-orange-500">Rajdeep</span> Enterprises
                 </div>
-                <div className="text-xs sm:text-sm font-medium text-amber-300 mt-1">
+                <div className="text-xs sm:text-sm font-medium text-sky-200 mt-1">
                   All Kinds of Safety Accessories & All Types of Material Suppliers
                 </div>
               </div>
@@ -165,7 +144,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenVisitingCard, 
               <div className="space-y-2 text-xs sm:text-sm text-slate-300 pt-2">
                 <div className="flex items-center gap-2">
                   <span className="text-slate-400 font-semibold">Email:</span>
-                  <a href={`mailto:${COMPANY_INFO.email}`} className="text-orange-400 hover:underline">
+                  <a href={`mailto:${COMPANY_INFO.email}`} className="text-sky-400 hover:underline">
                     {COMPANY_INFO.email}
                   </a>
                 </div>
@@ -181,7 +160,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenVisitingCard, 
                 <span className="text-slate-400">Authentic Business Record</span>
                 <button
                   onClick={onOpenVisitingCard}
-                  className="text-orange-400 hover:text-orange-300 font-semibold flex items-center gap-1"
+                  className="text-sky-400 hover:text-sky-300 font-semibold flex items-center gap-1"
                 >
                   Inspect Full Card &rarr;
                 </button>
@@ -189,36 +168,6 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ onOpenVisitingCard, 
             </div>
           </div>
 
-        </div>
-
-        {/* 4 Pillars Section */}
-        <div className="pt-4">
-          <div className="text-center mb-8">
-            <h3 className="text-xl font-extrabold text-slate-900 uppercase tracking-wider">
-              Core Principles Guiding Our Supply
-            </h3>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {pillars.map((pillar) => {
-              const IconComp = pillar.icon;
-              return (
-                <div
-                  key={pillar.title}
-                  className={`p-6 rounded-xl bg-slate-50/80 border ${pillar.borderColor} hover:shadow-md transition-all group`}
-                >
-                  <div className={`w-12 h-12 rounded-xl ${pillar.bgColor} flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <IconComp className={`w-6 h-6 ${pillar.color}`} />
-                  </div>
-                  <h4 className="text-lg font-bold text-slate-900 mb-2">
-                    {pillar.title}
-                  </h4>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                    {pillar.desc}
-                  </p>
-                </div>
-              );
-            })}
-          </div>
         </div>
 
       </div>

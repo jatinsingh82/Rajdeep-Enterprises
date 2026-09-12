@@ -27,6 +27,7 @@ import paperCutterImg from '../assets/images/paper_cutter_1788722440209.jpg';
 import printoutPhotocopyImg from '../assets/images/printout_photocopy_1788722455127.jpg';
 import siteCopiesImg from '../assets/images/site_copies_1788722489396.jpg';
 import sitePensImg from '../assets/images/site_pens_1788722506236.jpg';
+import shopOwnerImg from '../assets/images/shop_owner_front_1789206987715.jpg';
 
 export const COMPANY_INFO = {
   name: "Rajdeep Enterprises",
@@ -36,6 +37,7 @@ export const COMPANY_INFO = {
   heroSubheading: "Supplying safety accessories, welding consumables, Champion gaskets, site registers, stationery, power tools, and heavy crane rental to refineries and construction sites nationwide.",
   contactPerson: "Raj Singh Tarkar",
   designation: "Proprietor & Supply Lead",
+  ownerImage: shopOwnerImg,
   phone: "09997993895",
   displayPhone: "+91 99979 93895",
   secondaryPhone: "08923993895",
@@ -61,6 +63,7 @@ export const COMPANY_INFO = {
 
 export const PRODUCT_CATEGORIES = [
   "All Products",
+  "Featured Safety",
   "Personal Protective Equipment (PPE)",
   "Site Stationery & Documentation",
   "Welding & NDT Testing",

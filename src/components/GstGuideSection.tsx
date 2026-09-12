@@ -26,7 +26,16 @@ export const GstGuideSection: React.FC<GstGuideSectionProps> = ({
 
   const activeRateObj = HSN_TAX_RATES.find(h => h.hsnCode === selectedHsn) || HSN_TAX_RATES[0];
   
-  // Rate calculation (standard 18% or 12% based on HSN)
+  const MAX_TAXABLE_LIMIT = 1000000; // 10 Lakhs max limit requested
+
+  const handleValueChange = (val: number) => {
+    if (isNaN(val)) {
+      setEstimatedValue(0);
+      return;
+    }
+    const clamped = Math.min(MAX_TAXABLE_LIMIT, Math.max(0, val));
+    setEstimatedValue(clamped);
+  };
   const effectiveGstPercent = selectedHsn.includes('6307') ? 12 : 18;
   const isEwayBillRequired = estimatedValue >= 50000;
 
@@ -72,29 +81,44 @@ export const GstGuideSection: React.FC<GstGuideSectionProps> = ({
             {/* Input Controls */}
             <div className="space-y-4 text-xs">
               <div>
-                <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5">
-                  1. Order Taxable Material Value (₹)
-                </label>
+                <div className="flex items-center justify-between mb-1.5">
+                  <label className="block text-slate-300 font-bold uppercase tracking-wider">
+                    1. Order Taxable Material Value (₹)
+                  </label>
+                  <span className="text-[10px] text-sky-400 font-semibold bg-sky-950/80 border border-sky-800/60 px-2 py-0.5 rounded">
+                    Max Limit: ₹10 Lakhs
+                  </span>
+                </div>
                 <div className="relative">
                   <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">₹</span>
                   <input
                     type="number"
                     min="1000"
+                    max={MAX_TAXABLE_LIMIT}
                     step="5000"
                     value={estimatedValue}
-                    onChange={(e) => setEstimatedValue(Math.max(0, Number(e.target.value)))}
-                    className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono font-bold text-base focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 outline-none"
+                    onChange={(e) => handleValueChange(Number(e.target.value))}
+                    className="w-full pl-8 pr-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white font-mono font-bold text-base focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
                   />
                 </div>
-                <div className="flex gap-2 mt-2">
-                  {[25000, 50000, 100000, 250000].map((preset) => (
+                {estimatedValue >= MAX_TAXABLE_LIMIT && (
+                  <p className="text-[11px] text-sky-300 bg-sky-950/70 border border-sky-800/80 px-2.5 py-1.5 rounded-lg mt-1.5">
+                    💡 <strong>Online Calculator Cap (₹10,00,000):</strong> For refinery/turnkey contracts exceeding ₹10 Lakhs, please contact proprietor <strong>Raj Singh Tarkar</strong> directly for custom volume rates & commercial credit terms.
+                  </p>
+                )}
+                <div className="flex flex-wrap gap-2 mt-2">
+                  {[50000, 100000, 250000, 500000, 1000000].map((preset) => (
                     <button
                       key={preset}
                       type="button"
-                      onClick={() => setEstimatedValue(preset)}
-                      className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-[10px] font-mono text-slate-300 transition"
+                      onClick={() => handleValueChange(preset)}
+                      className={`px-2 py-1 rounded text-[10px] font-mono transition border ${
+                        estimatedValue === preset
+                          ? 'bg-sky-600 text-white border-sky-400 font-bold'
+                          : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border-slate-700'
+                      }`}
                     >
-                      ₹{(preset / 1000)}k
+                      {preset === 1000000 ? '₹10 Lakh (Max)' : `₹${(preset / 1000)}k`}
                     </button>
                   ))}
                 </div>

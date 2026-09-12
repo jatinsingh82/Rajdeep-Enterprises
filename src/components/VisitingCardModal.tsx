@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Phone, Mail, MapPin, Copy, Check, Share2, Download, Shield } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
+import { useOwnerPhoto } from '../hooks/useOwnerPhoto';
 
 interface VisitingCardModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface VisitingCardModalProps {
 
 export const VisitingCardModal: React.FC<VisitingCardModalProps> = ({ isOpen, onClose }) => {
   const [copied, setCopied] = useState(false);
+  const { photoUrl } = useOwnerPhoto();
 
   if (!isOpen) return null;
 
@@ -72,10 +74,23 @@ END:VCARD`;
           <div className="relative rounded-xl bg-gradient-to-br from-[#fefce8] via-[#fef08a] to-[#fde047] p-6 sm:p-8 text-slate-900 shadow-lg border-2 border-amber-300 overflow-hidden font-sans">
             
             {/* Top row: Contact Person & Phone */}
-            <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-slate-800/20 pb-3 mb-4">
-              <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900">
-                {COMPANY_INFO.contactPerson}
-              </h3>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/20 pb-3 mb-4">
+              <div className="flex items-center gap-3">
+                <img
+                  src={photoUrl}
+                  alt={COMPANY_INFO.contactPerson}
+                  className="w-12 h-12 rounded-full object-cover object-top border-2 border-amber-600 shadow shrink-0"
+                  referrerPolicy="no-referrer"
+                />
+                <div>
+                  <h3 className="text-xl sm:text-2xl font-black tracking-tight text-slate-900 leading-tight">
+                    {COMPANY_INFO.contactPerson}
+                  </h3>
+                  <div className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
+                    Proprietor • Rajdeep Enterprises
+                  </div>
+                </div>
+              </div>
               <div className="flex flex-wrap items-center gap-2 font-mono text-sm sm:text-base font-black text-emerald-800">
                 <a
                   href={`tel:${COMPANY_INFO.phone}`}

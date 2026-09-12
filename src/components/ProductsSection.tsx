@@ -29,7 +29,8 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
   const filteredProducts = useMemo(() => {
     return PRODUCTS.filter((product) => {
       const matchesCategory =
-        selectedCategory === "All Products" || product.category === selectedCategory;
+        selectedCategory === "All Products" ||
+        (selectedCategory === "Featured Safety" ? product.isFeatured : product.category === selectedCategory);
       const matchesSearch =
         product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         product.shortDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -155,6 +156,11 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                     {product.badge && (
                       <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-orange-600 text-white shadow-xs">
                         {product.badge}
+                      </span>
+                    )}
+                    {product.isFeatured && !product.badge && (
+                      <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider bg-amber-500 text-slate-950 shadow-xs">
+                        Featured Safety
                       </span>
                     )}
                   </div>

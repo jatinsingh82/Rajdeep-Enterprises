@@ -89,13 +89,13 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-bold uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-900 text-xs font-bold uppercase tracking-wider mb-3">
             Get In Touch
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Contact Rajdeep Enterprises
           </h2>
-          <div className="w-16 h-1 bg-orange-500 mx-auto mt-4 rounded-full"></div>
+          <div className="w-16 h-1 bg-blue-600 mx-auto mt-4 rounded-full"></div>
           <p className="mt-4 text-base text-slate-600">
             Reach out to us for immediate quotations, product samples, custom material requests, or industrial supply inquiries in Mathura and surrounding industrial belts.
           </p>
@@ -105,15 +105,15 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
           
           {/* Left Column: Direct Business Contact Info & Map */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="p-6 sm:p-8 rounded-2xl bg-slate-900 text-white shadow-xl border border-slate-800 space-y-6">
+            <div className="p-6 sm:p-8 rounded-2xl bg-[#0B192C] text-white shadow-xl border border-slate-800 space-y-6">
               <div>
-                <span className="text-xs font-bold text-orange-400 uppercase tracking-widest block mb-1">
+                <span className="text-xs font-bold text-sky-400 uppercase tracking-widest block mb-1">
                   Proprietor & Supply Lead
                 </span>
                 <h3 className="text-2xl font-black text-white">
                   {COMPANY_INFO.contactPerson}
                 </h3>
-                <p className="text-xs text-slate-400 mt-0.5">
+                <p className="text-xs text-slate-300 mt-0.5">
                   Rajdeep Enterprises • Safety & Material Supplies
                 </p>
               </div>
@@ -121,7 +121,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
               <div className="space-y-4 pt-2">
                 {/* Phone Numbers */}
                 <div className="flex items-start gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-orange-500/20 text-orange-400 flex items-center justify-center shrink-0 border border-orange-500/30">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/20 text-sky-400 flex items-center justify-center shrink-0 border border-blue-500/30">
                     <Phone className="w-5 h-5" />
                   </div>
                   <div>
@@ -130,7 +130,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                       <a
                         id="contact-phone-link-1"
                         href={`tel:${COMPANY_INFO.phone}`}
-                        className="text-base sm:text-lg font-bold text-amber-400 hover:text-amber-300 transition"
+                        className="text-base sm:text-lg font-bold text-sky-300 hover:text-sky-200 transition"
                       >
                         {COMPANY_INFO.phone}
                       </a>
@@ -138,7 +138,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                       <a
                         id="contact-phone-link-2"
                         href={`tel:${COMPANY_INFO.secondaryPhone}`}
-                        className="text-base sm:text-lg font-bold text-amber-400 hover:text-amber-300 transition"
+                        className="text-base sm:text-lg font-bold text-sky-300 hover:text-sky-200 transition"
                       >
                         {COMPANY_INFO.secondaryPhone}
                       </a>
@@ -157,7 +157,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                     <a
                       id="contact-email-link"
                       href={`mailto:${COMPANY_INFO.email}`}
-                      className="text-sm sm:text-base font-semibold text-white hover:text-orange-400 transition break-all block"
+                      className="text-sm sm:text-base font-semibold text-white hover:text-sky-300 transition break-all block"
                     >
                       {COMPANY_INFO.email}
                     </a>
@@ -175,7 +175,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                     <p className="text-sm font-semibold text-slate-200 leading-snug">
                       {COMPANY_INFO.address}
                     </p>
-                    <span className="text-[11px] text-orange-400 font-medium mt-1 block">
+                    <span className="text-[11px] text-sky-400 font-medium mt-1 block">
                       Landmark: Refinery Main Gate (Mathura)
                     </span>
                   </div>
@@ -211,27 +211,27 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
             </div>
 
             {/* Google Maps Location Card */}
-            <div className="p-6 rounded-2xl bg-slate-50 border border-slate-200">
+            <div className="p-6 rounded-2xl bg-blue-50/50 border border-blue-200">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
-                  <MapPin className="w-4 h-4 text-orange-600" />
+                  <MapPin className="w-4 h-4 text-blue-600" />
                   <span>Location Map • Mathura Refinery Gate</span>
                 </div>
-                <span className="text-[11px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded font-mono">
+                <span className="text-[11px] bg-white border border-blue-200 text-blue-900 px-2 py-0.5 rounded font-mono font-bold">
                   UP SIDC
                 </span>
               </div>
 
               <div className="relative rounded-xl overflow-hidden border border-slate-200 bg-slate-200 aspect-video flex items-center justify-center group">
                 {/* Styled static map preview representing Mathura Refinery Gate */}
-                <div className="absolute inset-0 bg-gradient-to-br from-slate-800 via-slate-700 to-slate-900 flex flex-col items-center justify-center p-4 text-center text-white">
-                  <div className="w-10 h-10 rounded-full bg-orange-600 flex items-center justify-center mb-2 shadow-lg animate-bounce">
+                <div className="absolute inset-0 bg-gradient-to-br from-slate-900 via-[#0B192C] to-slate-950 flex flex-col items-center justify-center p-4 text-center text-white">
+                  <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center mb-2 shadow-lg animate-bounce">
                     <MapPin className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-xs font-bold text-white">
                     15/1, U.P. S.I.D.C. Complex
                   </div>
-                  <div className="text-[11px] text-amber-300">
+                  <div className="text-[11px] text-sky-300">
                     Refinery Main Gate, Mathura, UP
                   </div>
                   <div className="text-[10px] text-slate-400 mt-2">
@@ -247,7 +247,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                   className="absolute bottom-3 right-3 bg-white/95 text-slate-900 hover:bg-white text-xs font-bold px-3 py-1.5 rounded-lg shadow flex items-center gap-1.5 transition"
                 >
                   <span>Open in Google Maps</span>
-                  <ExternalLink className="w-3.5 h-3.5 text-orange-600" />
+                  <ExternalLink className="w-3.5 h-3.5 text-blue-600" />
                 </a>
               </div>
             </div>
@@ -326,7 +326,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                         value={formData.fullName}
                         onChange={handleChange}
                         placeholder="e.g. Ramesh Kumar"
-                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition"
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
                         required
                       />
                     </div>
@@ -342,7 +342,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                         value={formData.companyName}
                         onChange={handleChange}
                         placeholder="e.g. Mathura Construction / Refinery Works"
-                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition"
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
                       />
                     </div>
                   </div>
@@ -360,7 +360,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                         value={formData.phoneNumber}
                         onChange={handleChange}
                         placeholder="e.g. 09997993895"
-                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition"
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
                         required
                       />
                     </div>
@@ -376,7 +376,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                         value={formData.emailAddress}
                         onChange={handleChange}
                         placeholder="e.g. contact@yourfirm.com"
-                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition"
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
                         required
                       />
                     </div>
@@ -393,7 +393,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                         name="productRequirement"
                         value={formData.productRequirement}
                         onChange={handleChange}
-                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition"
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
                       >
                         <option value="Safety Helmets">Industrial Safety Helmets</option>
                         <option value="Safety Shoes">Industrial Safety Shoes</option>
@@ -423,7 +423,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                         value={formData.quantity}
                         onChange={handleChange}
                         placeholder="e.g. 50 pairs, 100 pcs, Ongoing monthly"
-                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition"
+                        className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
                       />
                     </div>
                   </div>
@@ -440,7 +440,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                       value={formData.message}
                       onChange={handleChange}
                       placeholder="Please specify any specific certifications, required delivery timeline, brand preference, or sizes..."
-                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition"
+                      className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-lg border border-slate-300 bg-white focus:border-blue-600 focus:ring-1 focus:ring-blue-600 outline-none transition"
                     ></textarea>
                   </div>
 
@@ -450,7 +450,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                       id="contact-form-submit-btn"
                       type="submit"
                       disabled={isSubmitting}
-                      className="w-full sm:flex-1 py-3 px-6 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 shadow-md hover:shadow transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70"
+                      className="w-full sm:flex-1 py-3 px-6 rounded-xl font-bold text-sm text-white bg-blue-600 hover:bg-blue-500 shadow-md hover:shadow transition-all flex items-center justify-center gap-2 active:scale-95 disabled:opacity-70"
                     >
                       {isSubmitting ? (
                         <span>Submitting Enquiry...</span>

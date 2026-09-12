@@ -4,13 +4,10 @@ import { Hero } from './components/Hero';
 import { EmergencyHotlineBanner } from './components/EmergencyHotlineBanner';
 import { TradeKitsSection } from './components/TradeKitsSection';
 import { AboutSection } from './components/AboutSection';
-import { FeaturedProducts } from './components/FeaturedProducts';
 import { ProductsSection } from './components/ProductsSection';
 import { PanIndiaSupplySection } from './components/PanIndiaSupplySection';
 import { GstGuideSection } from './components/GstGuideSection';
 import { StandardsSection } from './components/StandardsSection';
-import { TestimonialsSection } from './components/TestimonialsSection';
-import { ProjectsSection } from './components/ProjectsSection';
 import { MapSection } from './components/MapSection';
 import { WhyChooseUs } from './components/WhyChooseUs';
 import { IndustriesSection } from './components/IndustriesSection';
@@ -24,7 +21,6 @@ import { EnquiryModal } from './components/EnquiryModal';
 import { RfqModal } from './components/RfqModal';
 import { BrandingPreviewModal } from './components/BrandingPreviewModal';
 import { SizingGuideModal } from './components/SizingGuideModal';
-import { SafetySignsSection } from './components/SafetySignsSection';
 import { FaqSection } from './components/FaqSection';
 import { HseAuditModal } from './components/HseAuditModal';
 import { VendorDossierModal } from './components/VendorDossierModal';
@@ -117,7 +113,7 @@ export default function App() {
   const rfqProductIds = rfqItems.map((item) => item.product.id);
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-orange-500 selection:text-white">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900 selection:bg-blue-600 selection:text-white">
       {/* Sticky Top Navigation */}
       <Header
         onOpenQuoteModal={handleOpenQuoteModal}
@@ -138,36 +134,15 @@ export default function App() {
         onOpenQuoteModal={handleOpenQuoteModal}
       />
 
-      {/* Main Page Sections */}
+      {/* Main Page Sections - Organized in Strict Top-to-Bottom Sequential Order */}
       <main className="flex-1">
-        {/* Hero Section */}
+        {/* 1. Hero Section with Real Shop Owner Front & Direct Contact */}
         <Hero
           onOpenQuoteModal={handleOpenQuoteModal}
           onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
         />
 
-        {/* Turnkey Trade-Specific PPE Kits Configurator */}
-        <TradeKitsSection
-          onAddProductToRfq={handleAddToRfq}
-          onOpenQuoteModal={handleOpenQuoteModal}
-          lang={lang}
-        />
-
-        {/* About Us Section */}
-        <AboutSection
-          onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
-          onOpenQuoteModal={() => handleOpenQuoteModal('General Company Quotation')}
-        />
-
-        {/* Featured Products Spotlight */}
-        <FeaturedProducts
-          onSelectProduct={handleSelectProduct}
-          onEnquire={handleEnquireFromProduct}
-          onAddToRfq={handleAddToRfq}
-          rfqProductIds={rfqProductIds}
-        />
-
-        {/* Full Products Catalogue */}
+        {/* 2. All Products Catalogue (Consolidated Safety, Gaskets, Stationery, Tools) */}
         <ProductsSection
           onSelectProduct={handleSelectProduct}
           onEnquire={handleEnquireFromProduct}
@@ -177,68 +152,63 @@ export default function App() {
           lang={lang}
         />
 
-        {/* Whole India Supply & Any Quantity Logistics Section */}
+        {/* 3. Turnkey Trade-Specific PPE Kits Configurator */}
+        <TradeKitsSection
+          onAddProductToRfq={handleAddToRfq}
+          onOpenQuoteModal={handleOpenQuoteModal}
+          lang={lang}
+        />
+
+        {/* 4. Whole India Supply & Any Quantity Logistics Section */}
         <PanIndiaSupplySection
           lang={lang}
           onEnquire={handleOpenQuoteModal}
         />
 
-        {/* GST Rates, HSN Codes & B2B Tax Calculator */}
+        {/* 6. GST Rates, HSN Codes & B2B Tax Calculator (Clamped to 10 Lakh) */}
         <GstGuideSection
           onOpenQuoteModal={handleOpenQuoteModal}
         />
 
-        {/* Standards & Certification Guide (IS / EN / CE / ANSI) */}
+        {/* 7. Standards & Certification Guide (IS / EN / CE / ANSI) */}
         <StandardsSection
           lang={lang}
           onEnquire={handleOpenQuoteModal}
         />
 
-        {/* IS:9457 & ISO 7010 Site Safety Signages & Barricade Boards */}
-        <SafetySignsSection
-          onAddProductToRfq={handleAddToRfq}
-          onOpenQuoteModal={handleOpenQuoteModal}
-          rfqProductIds={rfqProductIds}
+        {/* 8. Industries We Serve */}
+        <IndustriesSection
+          onEnquire={(req) => handleOpenQuoteModal(req)}
         />
 
-        {/* Verified Contractor & Project Testimonials */}
-        <TestimonialsSection
-          onOpenQuoteModal={handleOpenQuoteModal}
+        {/* 9. Core Principles Guiding Our Supply (Placed in the end) */}
+        <WhyChooseUs
+          onOpenQuoteModal={() => handleOpenQuoteModal('Industrial Partnership / Supplies')}
         />
 
-        {/* Client Reference & Past Projects Section */}
-        <ProjectsSection
-          lang={lang}
-          onEnquire={handleOpenQuoteModal}
+        {/* 10. About Section (Placed in the end) */}
+        <AboutSection
+          onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
+          onOpenQuoteModal={() => handleOpenQuoteModal('General Company Quotation')}
         />
 
-        {/* Refinery Gate Pass & Contractor FAQs Knowledgebase */}
+        {/* 11. Frequently Asked Questions (Placed in the end) */}
         <FaqSection
           onOpenQuoteModal={handleOpenQuoteModal}
           lang={lang}
         />
 
-        {/* Interactive Location & Directions Map */}
-        <MapSection
-          lang={lang}
-        />
-
-        {/* Why Choose Us */}
-        <WhyChooseUs
-          onOpenQuoteModal={() => handleOpenQuoteModal('Industrial Partnership / Supplies')}
-        />
-
-        {/* Industries We Serve */}
-        <IndustriesSection
-          onEnquire={(req) => handleOpenQuoteModal(req)}
-        />
-
-        {/* Strong Call-To-Action Banner */}
+        {/* 12. Strong Call-To-Action Banner */}
         <CtaBanner
           onOpenQuoteModal={() => handleOpenQuoteModal('Immediate Quotation Request')}
         />
 
-        {/* Contact Us & RFQ Form Section */}
+        {/* 13. Where Can You Find Us Section (Interactive Map & Directions) */}
+        <MapSection
+          lang={lang}
+        />
+
+        {/* 14. Contact Rajdeep Enterprises & Quotation Form */}
         <ContactSection
           initialRequirement={selectedQuoteProduct}
         />
