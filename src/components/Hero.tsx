@@ -1,5 +1,5 @@
-import React from 'react';
-import { ArrowRight, Phone, ShieldCheck, MapPin, CheckCircle, Building, HardHat, FileText, UserCheck, Store } from 'lucide-react';
+import React, { useRef, useState } from 'react';
+import { ArrowRight, Phone, ShieldCheck, MapPin, CheckCircle, Building, HardHat, FileText, UserCheck, Store, Camera, Upload, RefreshCw, Check } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
 import { useOwnerPhoto } from '../hooks/useOwnerPhoto';
 
@@ -9,10 +9,50 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard }) => {
-  const { photoUrl } = useOwnerPhoto();
+  const { photoUrl, photoFileName, isCustomRealPhoto, uploadPhoto, resetToDefault } = useOwnerPhoto();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadFeedback, setUploadFeedback] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleFile = async (file: File) => {
+    setIsUploading(true);
+    try {
+      await uploadPhoto(file);
+      setUploadFeedback('Real photo loaded successfully with 100% original quality!');
+      setTimeout(() => setUploadFeedback(null), 4000);
+    } catch {
+      setUploadFeedback('Could not load file. Please select a valid image.');
+      setTimeout(() => setUploadFeedback(null), 4000);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleFile(file);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  };
 
   return (
     <section id="home" className="relative overflow-hidden bg-[#071324] text-white pt-10 pb-16 md:py-20 lg:py-24">
+      {/* Hidden File Input for Real Photo Upload */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+        id="owner-photo-file-input"
+      />
+
       {/* Background industrial overlay & grid */}
       <div className="absolute inset-0 industrial-grid-dark opacity-30 pointer-events-none"></div>
       
@@ -29,7 +69,14 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
           {/* Storefront & Proprietor Card */}
           <div className="rounded-2xl overflow-hidden bg-slate-900/95 border border-sky-500/40 shadow-xl backdrop-blur-sm">
             {/* Real Shop Photo - Exact uploaded photo with zero modifications or overlays */}
-            <div className="w-full bg-slate-950 flex items-center justify-center overflow-hidden">
+            <div
+              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+              onDragLeave={() => setIsDragging(false)}
+              onDrop={handleDrop}
+              className={`w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden transition-all ${
+                isDragging ? 'ring-4 ring-emerald-400 bg-slate-900' : ''
+              }`}
+            >
               <img
                 src={photoUrl}
                 alt="Shop owner Raj Singh Tarkar at Rajdeep Enterprises store"
@@ -38,6 +85,55 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 referrerPolicy="no-referrer"
               />
             </div>
+
+            {/* Photo Banner / Upload Indicator for Mobile */}
+            {!isCustomRealPhoto ? (
+              <div className="p-3 bg-amber-500/15 border-t border-amber-500/30 flex flex-col gap-2">
+                <div className="text-left text-xs text-amber-200">
+                  <span className="font-bold text-amber-300 block">Use Your Real Photo (0% AI):</span>
+                  <span>Select your file <strong className="text-white">WhatsApp Image 2026-09-12 at 17.50.45.jpeg</strong> to display it with 100% original quality.</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                  className="w-full py-2.5 px-3 rounded-lg bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-xs flex items-center justify-center gap-2 shadow-lg transition"
+                >
+                  <Camera className="w-4 h-4" />
+                  <span>Choose Real Photo File</span>
+                </button>
+              </div>
+            ) : (
+              <div className="px-3.5 py-2.5 bg-emerald-950/80 border-t border-emerald-500/40 flex items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-xs truncate">
+                  <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="truncate">100% Real Photo Active {photoFileName ? `(${photoFileName})` : ''}</span>
+                </div>
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 text-[11px] font-bold border border-slate-700"
+                  >
+                    Change
+                  </button>
+                  <button
+                    type="button"
+                    onClick={resetToDefault}
+                    className="p-1 rounded text-slate-400 hover:text-red-400 text-[11px]"
+                    title="Reset to default"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {uploadFeedback && (
+              <div className="p-2 bg-emerald-600 text-white text-xs font-bold text-center animate-in fade-in">
+                {uploadFeedback}
+              </div>
+            )}
 
             {/* Shop Details & Direct Actions - Positioned cleanly beneath the photo */}
             <div className="p-4 space-y-3 bg-slate-900 border-t border-slate-800">
@@ -230,7 +326,16 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               {/* Main Storefront & Owner Image Card - Untouched real photo */}
               <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-sky-500/40 bg-slate-950 flex flex-col">
                 {/* 100% Original Photo with No Overlays, Filters or Crops */}
-                <div className="w-full flex items-center justify-center bg-slate-950 overflow-hidden">
+                <div
+                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                  onDragLeave={() => setIsDragging(false)}
+                  onDrop={handleDrop}
+                  className={`w-full flex flex-col items-center justify-center bg-slate-950 overflow-hidden cursor-pointer transition-all ${
+                    isDragging ? 'ring-4 ring-emerald-400 bg-slate-900' : ''
+                  }`}
+                  title="Click or drop your real WhatsApp photo here"
+                  onClick={() => fileInputRef.current?.click()}
+                >
                   <img
                     src={photoUrl}
                     alt="Shop owner Raj Singh Tarkar standing outside Rajdeep Enterprises store at UP SIDC Complex Refinery Main Gate Mathura"
@@ -239,6 +344,55 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                     referrerPolicy="no-referrer"
                   />
                 </div>
+
+                {/* Photo Action Bar / Upload Status */}
+                {!isCustomRealPhoto ? (
+                  <div className="p-3 bg-amber-500/15 border-t border-amber-500/30 flex items-center justify-between gap-3 text-xs">
+                    <div className="text-left text-amber-200">
+                      <span className="font-bold text-amber-300 block">Use Your Real Photo (0% AI):</span>
+                      <span>Select <strong className="text-white">WhatsApp Image 2026-09-12 at 17.50.45.jpeg</strong> to load your 100% original photo</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={isUploading}
+                      className="shrink-0 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-2 shadow-lg transition"
+                    >
+                      <Camera className="w-4 h-4" />
+                      <span>Choose Real Photo File</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="px-4 py-2.5 bg-emerald-950/80 border-t border-emerald-500/40 flex items-center justify-between gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-xs truncate">
+                      <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                      <span className="truncate">100% Real Original Photo Active {photoFileName ? `(${photoFileName})` : ''}</span>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 text-xs font-bold border border-slate-700"
+                      >
+                        Change
+                      </button>
+                      <button
+                        type="button"
+                        onClick={resetToDefault}
+                        className="px-2 py-1 rounded text-slate-400 hover:text-red-400 text-xs transition"
+                        title="Reset to default"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {uploadFeedback && (
+                  <div className="p-2 bg-emerald-600 text-white text-xs font-bold text-center animate-in fade-in">
+                    {uploadFeedback}
+                  </div>
+                )}
 
                 {/* Information Card - Cleanly beneath the photo */}
                 <div className="p-4 bg-slate-900 border-t border-slate-800 text-left">
