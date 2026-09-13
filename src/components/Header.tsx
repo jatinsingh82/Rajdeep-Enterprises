@@ -78,17 +78,15 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-40 w-full transition-all duration-200">
       {/* Top Bar - Responsive layout: Sleek 1-line on mobile, full detail on desktop */}
-      <div className="bg-[#0B192C] text-slate-200 text-xs py-1.5 md:py-2 px-3 sm:px-4 border-b border-[#1E3E62]">
-        <div className="max-w-7xl mx-auto flex justify-between items-center gap-2">
+      <div className="bg-[#0B192C] text-slate-200 text-xs py-1 sm:py-1.5 md:py-2 px-2 sm:px-4 border-b border-[#1E3E62] overflow-x-hidden">
+        <div className="max-w-7xl mx-auto flex justify-between items-center gap-1 sm:gap-2">
           
-          {/* Mobile Top View (< md): Compact location & pan-india */}
-          <div className="flex md:hidden items-center gap-2 min-w-0">
-            <div className="flex items-center gap-1 text-[11px] font-bold text-sky-300 truncate">
-              <MapPin className="w-3 h-3 text-sky-400 shrink-0" />
-              <span>Refinery Gate, Mathura</span>
+          {/* Mobile Top View (< md): Compact location */}
+          <div className="flex md:hidden items-center gap-1 min-w-0">
+            <div className="flex items-center gap-1 text-[10px] font-bold text-sky-300 truncate">
+              <MapPin className="w-2.5 h-2.5 text-sky-400 shrink-0" />
+              <span className="truncate">Refinery Gate, Mathura</span>
             </div>
-            <span className="text-slate-600">•</span>
-            <span className="text-[10px] text-emerald-400 font-bold shrink-0">🇮🇳 Pan-India</span>
           </div>
 
           {/* Desktop Top View (>= md): Full rich details */}
@@ -107,14 +105,14 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Right Action Controls: Language, Phone, Visiting Card, and Tools & Guides */}
-          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 shrink-0">
             {/* Language Switcher */}
             <button
               onClick={onToggleLang}
-              className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#1E3E62]/80 hover:bg-[#1E3E62] text-sky-300 font-bold border border-sky-500/30 transition shadow-xs text-[11px]"
+              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#1E3E62]/80 hover:bg-[#1E3E62] text-sky-300 font-bold border border-sky-500/30 transition text-[10px] sm:text-[11px]"
               title="Switch Language / भाषा बदलें"
             >
-              <Languages className="w-3 h-3 text-sky-400" />
+              <Languages className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-400" />
               <span>{lang === 'en' ? 'हिन्दी' : 'EN'}</span>
             </button>
 
@@ -122,24 +120,23 @@ export const Header: React.FC<HeaderProps> = ({
             <a
               id="topbar-phone-link"
               href={`tel:${COMPANY_INFO.phone}`}
-              className="flex items-center gap-1 text-sky-300 hover:text-white font-semibold transition-colors px-1.5 py-0.5 rounded hover:bg-[#1E3E62] text-xs"
+              className="flex items-center gap-0.5 text-sky-300 hover:text-white font-semibold transition-colors px-1 py-0.5 rounded hover:bg-[#1E3E62] text-[10px] sm:text-xs"
               title="Call Proprietor Directly"
             >
-              <Phone className="w-3 h-3 text-sky-400" />
+              <Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-400" />
               <span className="hidden sm:inline font-mono">{COMPANY_INFO.displayPhone}</span>
-              <span className="sm:hidden text-[11px] font-bold">Call</span>
+              <span className="sm:hidden text-[10px] font-bold">Call</span>
             </a>
 
             {/* Visiting Card modal button */}
             <button
               id="topbar-visiting-card-btn"
               onClick={onOpenVisitingCard}
-              className="flex items-center gap-1 bg-[#1E3E62] hover:bg-sky-700 text-white px-2 sm:px-2.5 py-1 rounded-md text-[11px] sm:text-xs font-semibold border border-sky-400/40 shadow-xs transition"
+              className="flex items-center gap-0.5 bg-[#1E3E62] hover:bg-sky-700 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-semibold border border-sky-400/40 shadow-xs transition"
               title="View Business Visiting Card"
             >
-              <FileText className="w-3 h-3 text-sky-300" />
-              <span className="font-medium hidden sm:inline">Visiting Card</span>
-              <span className="font-medium sm:hidden">Card</span>
+              <FileText className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-300" />
+              <span>Card</span>
             </button>
 
             {/* Tools & Guides Dropdown - Kept AFTER Visiting Card */}
@@ -147,13 +144,12 @@ export const Header: React.FC<HeaderProps> = ({
               <button
                 id="topbar-tools-guides-btn"
                 onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
-                className="flex items-center gap-1 text-[11px] sm:text-xs text-white bg-blue-600 hover:bg-blue-500 px-2 sm:px-2.5 py-1 rounded-md font-semibold border border-sky-400/50 shadow-xs transition"
+                className="flex items-center gap-0.5 text-[10px] sm:text-xs text-white bg-blue-600 hover:bg-blue-500 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded font-semibold border border-sky-400/50 shadow-xs transition"
                 title="Procurement Tools, Technical Guides & Compliance"
               >
-                <Wrench className="w-3 h-3 text-sky-200" />
-                <span className="font-medium hidden sm:inline">Tools & Guides</span>
-                <span className="font-medium sm:hidden">Guides</span>
-                <ChevronDown className={`w-3 h-3 text-sky-200 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
+                <Wrench className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-200" />
+                <span>Guides</span>
+                <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-200 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {toolsDropdownOpen && (
@@ -287,26 +283,26 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Main Navbar */}
       <nav
-        className={`w-full bg-white transition-shadow duration-300 ${
-          isScrolled ? 'shadow-md py-2.5' : 'shadow-sm py-3'
+        className={`w-full bg-white transition-shadow duration-300 overflow-x-hidden ${
+          isScrolled ? 'shadow-md py-1.5 sm:py-2.5' : 'shadow-sm py-2 sm:py-3'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-4">
           {/* Brand Logo */}
-          <a id="brand-logo-link" href="#home" className="flex items-center gap-3 group">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white border-2 border-orange-500 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
-              <Shield className="w-5 h-5 text-orange-500 fill-orange-500/20" />
+          <a id="brand-logo-link" href="#home" className="flex items-center gap-1.5 sm:gap-3 group min-w-0 shrink">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white border-2 border-orange-500 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 fill-orange-500/20" />
             </div>
-            <div>
-              <div className="flex items-center gap-1.5">
-                <span className="font-extrabold text-base sm:text-lg tracking-tight text-slate-900">
+            <div className="min-w-0">
+              <div className="flex items-center gap-1 leading-tight">
+                <span className="font-extrabold text-xs sm:text-base lg:text-lg tracking-tight text-slate-900 truncate">
                   RAJDEEP
                 </span>
-                <span className="font-bold text-base sm:text-lg tracking-tight text-orange-600">
+                <span className="font-bold text-xs sm:text-base lg:text-lg tracking-tight text-orange-600 truncate">
                   ENTERPRISES
                 </span>
               </div>
-              <p className="text-[10px] text-slate-500 font-medium tracking-wide uppercase hidden sm:block">
+              <p className="text-[9px] sm:text-[10px] text-slate-500 font-medium tracking-wide uppercase hidden md:block">
                 Safety Accessories & Material Supplies • Mathura
               </p>
             </div>
@@ -326,7 +322,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Desktop CTAs & RFQ Cart */}
-          <div className="hidden sm:flex items-center gap-2.5">
+          <div className="hidden sm:flex items-center gap-2.5 shrink-0">
             {/* RFQ Cart Floating Badge Button */}
             <button
               id="header-rfq-cart-btn"
@@ -363,17 +359,17 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Mobile Actions Button */}
-          <div className="flex items-center gap-2 xl:hidden">
+          <div className="flex items-center gap-1 sm:gap-2 xl:hidden shrink-0">
             {/* Mobile RFQ Cart Button */}
             <button
               id="mobile-rfq-cart-btn"
               onClick={onOpenRfqModal}
-              className="relative p-2 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200"
+              className="relative p-1.5 sm:p-2 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200"
               title="RFQ Cart"
             >
-              <ShoppingBag className="w-5 h-5 text-orange-600" />
+              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
               {rfqCount > 0 && (
-                <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-orange-600 text-white text-[10px] font-mono font-bold">
+                <span className="absolute -top-1 -right-1 px-1 sm:px-1.5 py-0.1 rounded-full bg-orange-600 text-white text-[9px] sm:text-[10px] font-mono font-bold">
                   {rfqCount}
                 </span>
               )}
@@ -382,17 +378,17 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="mobile-quote-header-btn"
               onClick={() => onOpenQuoteModal()}
-              className="sm:hidden px-2.5 py-1.5 text-xs font-bold text-white bg-orange-600 rounded-md"
+              className="sm:hidden px-2 py-1 text-[11px] font-bold text-white bg-orange-600 hover:bg-orange-500 rounded shadow-xs"
             >
               Quote
             </button>
             <button
               id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 focus:outline-none"
+              className="p-1 sm:p-2 text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 focus:outline-none"
               aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
             </button>
           </div>
         </div>
