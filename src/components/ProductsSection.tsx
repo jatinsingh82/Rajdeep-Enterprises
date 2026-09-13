@@ -23,8 +23,8 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>("All Products");
   const [searchQuery, setSearchQuery] = useState<string>("");
-  // Density switcher: 'mini' (3-4 in a row on mobile), 'compact' (2 in a row), or 'detailed'
-  const [density, setDensity] = useState<'mini' | 'compact' | 'detailed'>('mini');
+  // Density switcher: 'compact' (2-col default on mobile), 'detailed' (1-col mobile), or 'mini'
+  const [density, setDensity] = useState<'mini' | 'compact' | 'detailed'>('compact');
   const t = TRANSLATIONS[lang];
 
   // Filter products based on Category & Search
@@ -62,74 +62,76 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
         {/* Search, Density Switcher & Category Controls */}
         <div className="mb-6 sm:mb-10 space-y-3 sm:space-y-4">
           
-          {/* Search bar & Mobile Density Controls */}
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="relative w-full sm:w-80">
+          {/* Search bar & Mobile View Controls */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="relative w-full sm:w-96">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
                 id="products-search-input"
                 type="text"
-                placeholder="Search welding rods, DPT kit, gasket..."
+                placeholder="Search safety shoes, helmets, gloves, welding..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 text-xs sm:text-sm rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-slate-50 transition"
+                className="w-full min-h-[44px] pl-9.5 pr-10 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-slate-50 transition"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 font-bold"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-200 text-xs font-bold transition"
+                  aria-label="Clear search"
                 >
-                  Clear
+                  ✕
                 </button>
               )}
             </div>
 
-            {/* Density Selector & Catalogue Download */}
-            <div className="flex items-center justify-between w-full sm:w-auto gap-2">
-              {/* Density Toggle Pills */}
-              <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 border border-slate-200">
+            {/* Layout Density Selector & Catalogue Download */}
+            <div className="flex items-center justify-between gap-2">
+              <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200">
                 <button
-                  onClick={() => setDensity('mini')}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold transition ${
-                    density === 'mini'
+                  onClick={() => setDensity('detailed')}
+                  className={`min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    density === 'detailed'
                       ? 'bg-orange-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      : 'text-slate-700 hover:text-slate-900'
                   }`}
-                  title="3-4 in a row (Compact Mini - shows 3-4 rows on screen)"
+                  title="1 Column (Large detailed view)"
                 >
-                  <Grid3X3 className="w-3.5 h-3.5" />
-                  <span>3 in Row (Mini)</span>
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span>1 in Row</span>
                 </button>
+
                 <button
                   onClick={() => setDensity('compact')}
-                  className={`flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-bold transition ${
+                  className={`min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     density === 'compact'
                       ? 'bg-orange-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      : 'text-slate-700 hover:text-slate-900'
                   }`}
                   title="2 in a row (Compact grid)"
                 >
                   <Grid2X2 className="w-3.5 h-3.5" />
                   <span>2 in Row</span>
                 </button>
+
                 <button
-                  onClick={() => setDensity('detailed')}
-                  className={`hidden sm:flex items-center gap-1 px-2 py-1 rounded-md text-[11px] font-bold transition ${
-                    density === 'detailed'
+                  onClick={() => setDensity('mini')}
+                  className={`hidden sm:flex min-h-[36px] items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    density === 'mini'
                       ? 'bg-orange-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
+                      : 'text-slate-700 hover:text-slate-900'
                   }`}
-                  title="Full details view"
+                  title="Dense mini grid"
                 >
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                  <span>Detailed</span>
+                  <Grid3X3 className="w-3.5 h-3.5" />
+                  <span>Dense</span>
                 </button>
               </div>
 
               {onDownloadPdf && (
                 <button
                   onClick={onDownloadPdf}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-[11px] font-bold text-slate-800 shadow-2xs transition"
+                  className="min-h-[38px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 shadow-2xs transition"
                   title="Download complete printable catalogue"
                 >
                   <Download className="w-3.5 h-3.5 text-orange-600" />
@@ -140,17 +142,17 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
             </div>
           </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-2 scrollbar-none pt-1">
+          {/* Category Filter - Clean horizontal scrolling pills with subtle active states */}
+          <div className="flex items-center gap-2 overflow-x-auto pb-2 pt-1 scrollbar-none">
             {PRODUCT_CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 id={`category-btn-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all shrink-0 ${
+                className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 border ${
                   selectedCategory === cat
-                    ? 'bg-slate-900 text-white shadow-sm'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
+                    : 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200'
                 }`}
               >
                 {cat}
@@ -180,141 +182,155 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
               density === 'mini'
                 ? 'grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5'
                 : density === 'compact'
-                ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2.5 sm:gap-4'
+                ? 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5'
                 : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6'
             }`}
           >
-            {filteredProducts.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white rounded-xl overflow-hidden border border-slate-200 hover:border-orange-500/80 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col group justify-between"
-              >
-                {/* Product Image & Badges */}
+            {filteredProducts.map((product) => {
+              const waMessage = encodeURIComponent(
+                `Hello Rajdeep Enterprises, I am interested in ${product.name}. Please share the price and availability.`
+              );
+
+              return (
                 <div
-                  onClick={() => onSelectProduct(product)}
-                  className={`relative overflow-hidden bg-slate-100 cursor-pointer ${
-                    density === 'mini'
-                      ? 'h-24 sm:h-32'
-                      : density === 'compact'
-                      ? 'h-32 sm:h-44'
-                      : 'h-48 sm:h-52'
-                  }`}
+                  key={product.id}
+                  className="bg-white rounded-xl overflow-hidden border border-slate-200 hover:border-orange-500/80 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col group justify-between"
                 >
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    loading="lazy"
-                    referrerPolicy="no-referrer"
-                  />
+                  {/* Product Image & Badges */}
+                  <div
+                    onClick={() => onSelectProduct(product)}
+                    className={`relative overflow-hidden bg-slate-100 cursor-pointer ${
+                      density === 'mini'
+                        ? 'h-24 sm:h-32'
+                        : density === 'compact'
+                        ? 'h-36 sm:h-48'
+                        : 'h-48 sm:h-56'
+                    }`}
+                  >
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                      loading="lazy"
+                      referrerPolicy="no-referrer"
+                    />
 
-                  {/* Badges */}
-                  {product.badge && density !== 'mini' && (
-                    <div className="absolute top-1.5 left-1.5">
-                      <span className="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider bg-orange-600 text-white shadow-xs">
-                        {product.badge}
-                      </span>
+                    {/* Badges */}
+                    {product.badge && density !== 'mini' && (
+                      <div className="absolute top-2 left-2">
+                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-orange-600 text-white shadow-xs">
+                          {product.badge}
+                        </span>
+                      </div>
+                    )}
+
+                    {product.isCardPhotoItem && (
+                      <div className="absolute top-2 right-2 bg-slate-900/85 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs">
+                        Refinery Grade
+                      </div>
+                    )}
+
+                    {/* Quick Preview Specs Overlay trigger on desktop */}
+                    <div className="hidden sm:flex absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center text-white text-xs font-bold gap-1 backdrop-blur-[1px]">
+                      <Info className="w-3.5 h-3.5" />
+                      <span>View Specs</span>
                     </div>
-                  )}
-
-                  {product.isCardPhotoItem && (
-                    <div className="absolute top-1.5 right-1.5 bg-slate-900/85 text-amber-300 text-[9px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs">
-                      Photo Ref
-                    </div>
-                  )}
-
-                  {/* Quick Preview Specs Overlay trigger on desktop */}
-                  <div className="hidden sm:flex absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity items-center justify-center text-white text-xs font-bold gap-1 backdrop-blur-[1px]">
-                    <Info className="w-3.5 h-3.5" />
-                    <span>View Specs</span>
                   </div>
-                </div>
 
-                {/* Card Content */}
-                <div className={`flex flex-col justify-between flex-1 ${density === 'mini' ? 'p-2' : 'p-3 sm:p-4'}`}>
-                  <div>
-                    <span className="text-[9px] font-bold uppercase tracking-wider text-orange-600 block truncate">
-                      {product.category}
-                    </span>
-                    <h3
-                      onClick={() => onSelectProduct(product)}
-                      className={`font-bold text-slate-900 leading-tight group-hover:text-orange-600 transition-colors cursor-pointer mt-0.5 ${
-                        density === 'mini'
-                          ? 'text-[11px] sm:text-xs line-clamp-2 h-7 sm:h-8'
-                          : 'text-xs sm:text-sm line-clamp-2'
-                      }`}
-                      title={product.name}
-                    >
-                      {product.name}
-                    </h3>
+                  {/* Card Content */}
+                  <div className={`flex flex-col justify-between flex-1 ${density === 'mini' ? 'p-2' : 'p-3 sm:p-4'}`}>
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block truncate">
+                        {product.category}
+                      </span>
+                      <h3
+                        onClick={() => onSelectProduct(product)}
+                        className={`font-bold text-slate-900 leading-tight group-hover:text-orange-600 transition-colors cursor-pointer mt-0.5 ${
+                          density === 'mini'
+                            ? 'text-[11px] sm:text-xs line-clamp-2 h-7 sm:h-8'
+                            : density === 'compact'
+                            ? 'text-xs sm:text-sm line-clamp-2 min-h-[32px]'
+                            : 'text-sm sm:text-base line-clamp-2'
+                        }`}
+                        title={product.name}
+                      >
+                        {product.name}
+                      </h3>
 
-                    {density === 'detailed' && (
-                      <>
-                        <p className="mt-1.5 text-xs text-slate-600 line-clamp-2 leading-relaxed">
+                      {/* Description / Specifications */}
+                      {density !== 'mini' && (
+                        <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-snug">
                           {product.shortDescription}
                         </p>
-                        <div className="mt-2 space-y-1">
+                      )}
+
+                      {density === 'detailed' && (
+                        <div className="mt-2.5 space-y-1">
                           {product.specifications.slice(0, 2).map((spec, i) => (
-                            <div key={i} className="flex items-center gap-1 text-[11px] text-slate-600 truncate">
-                              <Check className="w-3 h-3 text-orange-500 shrink-0" />
+                            <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600 truncate">
+                              <Check className="w-3.5 h-3.5 text-orange-500 shrink-0" />
                               <span className="truncate">{spec}</span>
                             </div>
                           ))}
                         </div>
-                      </>
-                    )}
-                  </div>
+                      )}
+                    </div>
 
-                  {/* Action Bar */}
-                  <div className={`border-t border-slate-100 flex items-center gap-1 ${
-                    density === 'mini' ? 'mt-2 pt-1.5' : 'mt-3 pt-2.5'
-                  }`}>
-                    {onAddToRfq && (
-                      <button
-                        onClick={() => onAddToRfq(product)}
-                        title="Add to Bulk RFQ List"
-                        className={`p-1.5 rounded text-xs font-bold transition flex items-center justify-center shrink-0 ${
-                          rfqProductIds.includes(product.id)
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                            : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-200'
-                        }`}
-                      >
-                        {rfqProductIds.includes(product.id) ? (
-                          <Check className="w-3 h-3 text-emerald-600" />
-                        ) : (
-                          <Plus className="w-3 h-3 text-slate-700" />
-                        )}
-                        <span className="text-[10px] hidden sm:inline ml-0.5">RFQ</span>
-                      </button>
-                    )}
+                    {/* Action Bar: Two clear buttons [ Enquire ] & [ WhatsApp ] as requested in Section 10 */}
+                    <div className={`border-t border-slate-100 flex flex-col gap-1.5 ${
+                      density === 'mini' ? 'mt-2 pt-1.5' : 'mt-3 pt-2.5'
+                    }`}>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          id={`product-enquire-btn-${product.id}`}
+                          onClick={() => onEnquire(product.name)}
+                          className="min-h-[38px] rounded-lg font-bold text-white bg-orange-600 hover:bg-orange-500 active:bg-orange-700 transition flex items-center justify-center gap-1 text-[11px] sm:text-xs shadow-2xs"
+                          title={`Get Price for ${product.name}`}
+                        >
+                          <MessageCircle className="w-3 h-3 shrink-0" />
+                          <span>Enquire</span>
+                        </button>
 
-                    <button
-                      id={`product-enquire-btn-${product.id}`}
-                      onClick={() => onEnquire(product.name)}
-                      className={`flex-1 rounded font-bold text-white bg-orange-600 hover:bg-orange-500 active:scale-95 transition flex items-center justify-center gap-1 shadow-2xs ${
-                        density === 'mini'
-                          ? 'py-1 px-1.5 text-[10px]'
-                          : 'py-1.5 px-2 text-xs'
-                      }`}
-                    >
-                      <MessageCircle className="w-3 h-3 shrink-0" />
-                      <span>Enquire</span>
-                    </button>
+                        <a
+                          id={`product-whatsapp-btn-${product.id}`}
+                          href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${waMessage}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="min-h-[38px] rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 transition flex items-center justify-center gap-1 text-[11px] sm:text-xs shadow-2xs"
+                          title={`WhatsApp Rajdeep Enterprises for ${product.name}`}
+                        >
+                          <span className="text-xs">💬</span>
+                          <span>WhatsApp</span>
+                        </a>
+                      </div>
 
-                    {density !== 'mini' && (
-                      <button
-                        id={`product-specs-btn-${product.id}`}
-                        onClick={() => onSelectProduct(product)}
-                        className="p-1.5 rounded text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition"
-                        title="View Full Specifications"
-                      >
-                        <Info className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                      {density !== 'mini' && onAddToRfq && (
+                        <button
+                          onClick={() => onAddToRfq(product)}
+                          className={`w-full py-1 rounded-md text-[10px] sm:text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+                            rfqProductIds.includes(product.id)
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'text-slate-600 hover:bg-slate-100 border border-slate-200'
+                          }`}
+                        >
+                          {rfqProductIds.includes(product.id) ? (
+                            <>
+                              <Check className="w-3 h-3 text-emerald-600" />
+                              <span>Added to Bulk RFQ</span>
+                            </>
+                          ) : (
+                            <>
+                              <Plus className="w-3 h-3 text-slate-500" />
+                              <span>+ Add to Bulk RFQ</span>
+                            </>
+                          )}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

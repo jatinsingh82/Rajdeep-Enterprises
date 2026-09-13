@@ -27,6 +27,17 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
     }
   }, [productName]);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleWhatsAppInstant = () => {
@@ -146,23 +157,24 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
                   value={requirement}
                   onChange={(e) => setRequirement(e.target.value)}
                   placeholder="e.g. Safety Shoes, Road Cones, Belt Harness"
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-xs rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                   required
                 />
               </div>
 
               {/* Name & Phone */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Your Name <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
+                    autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Full name"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-xs rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                     required
                   />
                 </div>
@@ -172,27 +184,29 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
                   </label>
                   <input
                     type="tel"
+                    autoComplete="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="09997993895"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-xs rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                     required
                   />
                 </div>
               </div>
 
               {/* Company & Quantity */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
                     Company / Firm
                   </label>
                   <input
                     type="text"
+                    autoComplete="organization"
                     value={company}
                     onChange={(e) => setCompany(e.target.value)}
                     placeholder="Company name"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-xs rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                   />
                 </div>
                 <div>
@@ -204,7 +218,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
                     value={quantity}
                     onChange={(e) => setQuantity(e.target.value)}
                     placeholder="e.g. 5 pcs, 50 pairs, 1,000 units"
-                    className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-xs rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                   />
                 </div>
               </div>

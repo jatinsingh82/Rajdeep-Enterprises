@@ -64,158 +64,95 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
       <div className="absolute top-0 left-0 right-0 h-1 hazard-stripe-light opacity-90"></div>
 
       <div className="relative max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
-        {/* Mobile View: Authentic, untouched photo & storefront card (lg:hidden) */}
-        <div className="lg:hidden space-y-2 mb-2">
-          {/* Storefront & Proprietor Card */}
-          <div className="rounded-xl overflow-hidden bg-slate-900/95 border border-sky-500/40 shadow-lg backdrop-blur-sm">
-            {/* Real Shop Photo - Exact uploaded photo with zero modifications or overlays */}
+        {/* Mobile View: Specifically structured for mobile phones (lg:hidden) */}
+        <div className="lg:hidden space-y-4 mb-2 text-left">
+          
+          {/* 1. Small Badge / Tag */}
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-sky-400/40 text-sky-300 text-xs font-bold">
+            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span>Industrial Safety & Material Supplies</span>
+          </div>
+
+          {/* 2. Responsive Heading */}
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+            Industrial Safety & Material Supplies in Mathura
+          </h1>
+
+          {/* 3. Short Description */}
+          <p className="text-sm text-slate-300 leading-relaxed">
+            Safety PPE, welding materials, hardware, stationery and industrial supplies for factories, contractors, workshops and project sites across Mathura and whole India.
+          </p>
+
+          {/* 4. Primary CTA Buttons (Large enough to tap easily, min 44px height) */}
+          <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
+            {/* View Products Button */}
+            <a
+              id="mobile-hero-view-products-btn"
+              href="#products"
+              className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-blue-600 active:bg-blue-700 shadow-md transition text-center"
+            >
+              <span>📦 View Products</span>
+              <ArrowRight className="w-4 h-4" />
+            </a>
+
+            <div className="grid grid-cols-2 gap-2">
+              {/* WhatsApp Us Button */}
+              <a
+                id="mobile-hero-whatsapp-btn"
+                href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 active:bg-emerald-700 shadow transition text-center"
+              >
+                <span className="text-sm">💬</span>
+                <span>WhatsApp Us</span>
+              </a>
+
+              {/* Call Now Button */}
+              <a
+                id="mobile-hero-call-btn"
+                href={`tel:${COMPANY_INFO.phone}`}
+                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm text-slate-950 bg-amber-400 active:bg-amber-500 shadow transition text-center"
+              >
+                <Phone className="w-3.5 h-3.5 text-slate-950" />
+                <span>Call Now</span>
+              </a>
+            </div>
+          </div>
+
+          {/* 5. Authentic business/shop image with clean aspect ratio & controlled height */}
+          <div className="rounded-xl overflow-hidden bg-slate-900 border border-slate-800 shadow-lg mt-3">
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
-              className={`w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden transition-all ${
-                isDragging ? 'ring-4 ring-emerald-400 bg-slate-900' : ''
-              }`}
+              className="w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden"
             >
               <img
                 src={photoUrl}
-                alt="Shop owner Raj Singh Tarkar at Rajdeep Enterprises store"
-                className="w-full h-auto max-h-[220px] sm:max-h-[300px] object-contain block"
+                alt="Rajdeep Enterprises Storefront and Proprietor at Mathura Refinery Main Gate"
+                className="w-full h-auto max-h-[220px] sm:max-h-[260px] object-contain block mx-auto"
                 loading="eager"
                 referrerPolicy="no-referrer"
               />
             </div>
 
-            {/* Photo Banner / Upload Indicator for Mobile */}
-            {!isCustomRealPhoto ? (
-              <div className="p-2 bg-amber-500/15 border-t border-amber-500/30 flex items-center justify-between gap-2">
-                <div className="text-left text-[11px] text-amber-200 truncate">
-                  <span className="font-bold text-amber-300">Original Photo (0% AI)</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isUploading}
-                  className="py-1 px-2.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[10px] sm:text-xs flex items-center gap-1 shrink-0"
-                >
-                  <Camera className="w-3 h-3" />
-                  <span>Choose File</span>
-                </button>
+            {/* Caption below photo as requested in Section 5 */}
+            <div className="p-2.5 bg-slate-900/95 border-t border-slate-800 flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1.5 text-slate-300 font-medium truncate">
+                <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                <span className="truncate">Rajdeep Enterprises • Mathura Refinery Main Gate</span>
               </div>
-            ) : (
-              <div className="px-2.5 py-1.5 bg-emerald-950/80 border-t border-emerald-500/40 flex items-center justify-between gap-2 text-[11px]">
-                <div className="flex items-center gap-1 text-emerald-300 font-bold truncate">
-                  <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                  <span className="truncate">100% Real Photo Active</span>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 text-[10px] font-bold border border-slate-700"
-                  >
-                    Change
-                  </button>
-                  <button
-                    type="button"
-                    onClick={resetToDefault}
-                    className="p-1 rounded text-slate-400 hover:text-red-400"
-                    title="Reset to default"
-                  >
-                    <RefreshCw className="w-2.5 h-2.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {uploadFeedback && (
-              <div className="p-1.5 bg-emerald-600 text-white text-[10px] font-bold text-center animate-in fade-in">
-                {uploadFeedback}
-              </div>
-            )}
-
-            {/* Shop Details & Direct Actions - Positioned cleanly beneath the photo */}
-            <div className="p-2.5 sm:p-3.5 space-y-2 bg-slate-900 border-t border-slate-800">
-              <div className="flex items-start justify-between gap-1.5">
-                <div>
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-sky-400 uppercase tracking-wide">
-                    <ShieldCheck className="w-3 h-3 text-emerald-400 shrink-0" />
-                    <span>Proprietor & Store</span>
-                  </div>
-                  <h1 className="text-base sm:text-lg font-black text-white tracking-tight leading-tight mt-0.5">
-                    RAJDEEP ENTERPRISES
-                  </h1>
-                  <p className="text-[11px] text-slate-200 font-semibold mt-0.5 flex items-center gap-1">
-                    <UserCheck className="w-3 h-3 text-emerald-400 shrink-0" />
-                    <span>{COMPANY_INFO.contactPerson} (Proprietor)</span>
-                  </p>
-                  <p className="text-[10px] text-slate-400 mt-0.5 flex items-start gap-1">
-                    <MapPin className="w-2.5 h-2.5 text-sky-400 shrink-0 mt-0.5" />
-                    <span className="truncate">15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* 3 Direct Mobile Contact Buttons */}
-              <div className="grid grid-cols-3 gap-1.5 pt-1 border-t border-slate-800/80">
-                <a
-                  href={`tel:${COMPANY_INFO.phone}`}
-                  className="flex flex-col items-center justify-center py-1.5 px-1 rounded-lg bg-emerald-600 active:bg-emerald-700 text-white font-bold text-[10px] shadow transition text-center"
-                >
-                  <Phone className="w-3 h-3 mb-0.5" />
-                  <span>Call Owner</span>
-                </a>
-
-                <a
-                  href={`https://wa.me/91${COMPANY_INFO.phone}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex flex-col items-center justify-center py-1.5 px-1 rounded-lg bg-emerald-800 hover:bg-emerald-700 text-emerald-100 font-bold text-[10px] border border-emerald-600/50 shadow transition text-center"
-                >
-                  <span className="text-xs leading-none mb-0.5">💬</span>
-                  <span>WhatsApp</span>
-                </a>
-
-                <button
-                  onClick={onOpenVisitingCard}
-                  className="flex flex-col items-center justify-center py-1.5 px-1 rounded-lg bg-slate-800 active:bg-slate-700 text-sky-300 font-bold text-[10px] border border-sky-500/40 shadow transition text-center"
-                >
-                  <FileText className="w-3 h-3 mb-0.5 text-sky-400" />
-                  <span>Visiting Card</span>
-                </button>
-              </div>
-
-              {/* Mobile Quick Value Line */}
-              <div className="text-[10px] text-slate-300 flex items-center justify-between gap-1 font-medium bg-slate-950/60 py-1 px-2 rounded-md">
-                <span className="flex items-center gap-0.5 text-emerald-400 font-bold">
-                  <CheckCircle className="w-2.5 h-2.5" /> Any Quantity
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-0.5 text-sky-400 font-bold">
-                  <CheckCircle className="w-2.5 h-2.5" /> Zero Limit
-                </span>
-                <span>•</span>
-                <span className="text-slate-200">Refinery Grade</span>
-              </div>
-
-              {/* Mobile CTA to Jump to Products Grid */}
-              <div className="pt-0.5 flex gap-1.5">
-                <a
-                  href="#products"
-                  className="flex-1 py-1.5 px-2 rounded-lg font-bold text-[11px] text-white bg-blue-600 active:bg-blue-700 text-center flex items-center justify-center gap-1 shadow"
-                >
-                  <span>Explore Products</span>
-                  <ArrowRight className="w-3 h-3" />
-                </a>
-                <button
-                  onClick={() => onOpenQuoteModal()}
-                  className="py-1.5 px-2.5 rounded-lg font-bold text-[11px] text-slate-950 bg-sky-400 active:bg-sky-300 shadow text-center"
-                >
-                  Quick Quote
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="text-[10px] font-bold text-sky-400 hover:text-sky-300 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 shrink-0"
+              >
+                Photo
+              </button>
             </div>
           </div>
+
         </div>
 
         {/* Desktop View: Full 2-column layout (hidden on mobile, shown on lg+) */}

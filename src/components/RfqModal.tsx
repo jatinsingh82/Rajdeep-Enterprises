@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Trash2, Plus, Minus, Send, MessageCircle, FileText, Check, AlertCircle, ShoppingBag, ArrowRight } from 'lucide-react';
 import { RfqItem, Language } from '../types';
 import { COMPANY_INFO } from '../data/companyData';
@@ -34,6 +34,17 @@ export const RfqModal: React.FC<RfqModalProps> = ({
   const [requestMtc, setRequestMtc] = useState(true);
   const [copied, setCopied] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -367,15 +378,15 @@ export const RfqModal: React.FC<RfqModalProps> = ({
         {/* Footer Actions */}
         {rfqItems.length > 0 && (
           <div className="p-4 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <div className="text-xs text-slate-600">
+            <div className="text-xs text-slate-600 text-center sm:text-left">
               Direct Quotation dispatched to <strong className="text-slate-900">{COMPANY_INFO.contactPerson}</strong>
             </div>
 
-            <div className="flex items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleCopyBoq}
-                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition"
+                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition"
               >
                 {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <FileText className="w-3.5 h-3.5 text-slate-500" />}
                 <span>{copied ? 'Copied BOQ' : 'Copy BOQ'}</span>
@@ -384,10 +395,10 @@ export const RfqModal: React.FC<RfqModalProps> = ({
               <button
                 type="button"
                 onClick={handleSendWhatsApp}
-                className="flex-1 sm:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-sm transition"
+                className="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold shadow-sm transition"
               >
                 <MessageCircle className="w-4 h-4 fill-white/20" />
-                <span>Send via WhatsApp</span>
+                <span>Send RFQ on WhatsApp</span>
               </button>
             </div>
           </div>

@@ -12,6 +12,7 @@ import { CtaBanner } from './components/CtaBanner';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
+import { MobileBottomActionBar } from './components/MobileBottomActionBar';
 import { VisitingCardModal } from './components/VisitingCardModal';
 import { ProductDetailModal } from './components/ProductDetailModal';
 import { EnquiryModal } from './components/EnquiryModal';
@@ -131,7 +132,7 @@ export default function App() {
       />
 
       {/* Main Page Sections - Organized in Strict Top-to-Bottom Sequential Order */}
-      <main className="flex-1">
+      <main className="flex-1 pb-16 md:pb-0">
         {/* 1. Hero Section with Real Shop Owner Front & Direct Contact */}
         <Hero
           onOpenQuoteModal={handleOpenQuoteModal}
@@ -194,8 +195,11 @@ export default function App() {
         onOpenQuoteModal={() => handleOpenQuoteModal('General Inquiry')}
       />
 
-      {/* Floating WhatsApp Quick Action Button */}
+      {/* Floating WhatsApp Quick Action Button (shown on tablet/desktop) */}
       <FloatingWhatsApp />
+
+      {/* Mobile-Only Fixed Bottom Action Bar (Call, WhatsApp, Directions) */}
+      <MobileBottomActionBar />
 
       {/* Digital Visiting Card Replica Modal */}
       <VisitingCardModal

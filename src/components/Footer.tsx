@@ -17,7 +17,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
       {/* Top Hazard Accent Line */}
       <div className="h-1.5 hazard-stripe-light opacity-80"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-20 sm:pb-10">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80">
           
           {/* Col 1: Business Identity & Description */}
@@ -49,7 +49,36 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
               </span>
             </div>
 
-            <div className="pt-2">
+            {/* Quick Contact Action Buttons for Mobile */}
+            <div className="grid grid-cols-3 gap-2 pt-2 sm:hidden">
+              <a
+                href={`tel:${COMPANY_INFO.phone}`}
+                className="py-2.5 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
+              >
+                <Phone className="w-3.5 h-3.5" />
+                <span>Call</span>
+              </a>
+              <a
+                href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(COMPANY_INFO.whatsappDefaultMessage)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
+              >
+                <span className="text-xs">💬</span>
+                <span>WhatsApp</span>
+              </a>
+              <a
+                href={COMPANY_INFO.googleMapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition"
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Directions</span>
+              </a>
+            </div>
+
+            <div className="pt-1">
               <button
                 onClick={onOpenVisitingCard}
                 className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-bold text-sky-300 border border-slate-700 transition"
@@ -156,6 +185,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
               </div>
               <div className="pt-1 text-[11px] text-slate-400">
                 Contact Person: <strong className="text-white">{COMPANY_INFO.contactPerson}</strong>
+              </div>
+              <div className="text-[11px] text-emerald-400 font-medium">
+                GST Invoice & Official Tax Billing: <span className="text-slate-300">{COMPANY_INFO.gstStatus}</span>
               </div>
             </div>
 

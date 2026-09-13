@@ -45,6 +45,18 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // Lock background scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileMenuOpen]);
+
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -359,113 +371,155 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Mobile Actions Button */}
-          <div className="flex items-center gap-1 sm:gap-2 xl:hidden shrink-0">
+          <div className="flex items-center gap-1.5 xl:hidden shrink-0">
             {/* Mobile RFQ Cart Button */}
-            <button
-              id="mobile-rfq-cart-btn"
-              onClick={onOpenRfqModal}
-              className="relative p-1.5 sm:p-2 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200"
-              title="RFQ Cart"
-            >
-              <ShoppingBag className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-              {rfqCount > 0 && (
-                <span className="absolute -top-1 -right-1 px-1 sm:px-1.5 py-0.1 rounded-full bg-orange-600 text-white text-[9px] sm:text-[10px] font-mono font-bold">
+            {rfqCount > 0 && (
+              <button
+                id="mobile-rfq-cart-btn"
+                onClick={onOpenRfqModal}
+                className="relative p-2 rounded-lg text-slate-700 hover:bg-slate-100 border border-slate-200"
+                title="RFQ Cart"
+                aria-label="View RFQ Cart"
+              >
+                <ShoppingBag className="w-5 h-5 text-orange-600" />
+                <span className="absolute -top-1 -right-1 px-1.5 py-0.2 rounded-full bg-orange-600 text-white text-[10px] font-mono font-bold">
                   {rfqCount}
                 </span>
-              )}
-            </button>
+              </button>
+            )}
 
-            <button
-              id="mobile-quote-header-btn"
-              onClick={() => onOpenQuoteModal()}
-              className="sm:hidden px-2 py-1 text-[11px] font-bold text-white bg-orange-600 hover:bg-orange-500 rounded shadow-xs"
-            >
-              Quote
-            </button>
             <button
               id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-1 sm:p-2 text-slate-700 hover:text-slate-900 rounded-lg hover:bg-slate-100 focus:outline-none"
-              aria-label="Toggle navigation menu"
+              className="w-11 h-11 flex items-center justify-center text-slate-800 hover:text-orange-600 rounded-xl hover:bg-slate-100 focus:outline-none transition-colors"
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6" />}
+              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Dropdown Menu */}
+        {/* Clean Mobile Drawer Navigation Menu */}
         {mobileMenuOpen && (
-          <div className="xl:hidden bg-white border-b border-slate-200 px-4 pt-3 pb-6 shadow-xl animate-in slide-in-from-top-2">
-            <div className="flex flex-col space-y-2">
-              {navLinks.map((link) => (
-                <a
-                  key={link.name}
-                  href={link.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="px-3 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 hover:text-orange-600 rounded-md transition"
-                >
-                  {link.name}
-                </a>
-              ))}
-              
-              <div className="pt-3 border-t border-slate-200 flex flex-col gap-2">
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      onOpenHseAuditModal();
-                    }}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-900 border border-emerald-300"
-                  >
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                    <span>HSE Gate Audit</span>
-                  </button>
+          <div className="fixed inset-0 z-50 xl:hidden">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+              onClick={() => setMobileMenuOpen(false)}
+              aria-hidden="true"
+            />
 
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      onOpenVendorDossierModal();
-                    }}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold bg-amber-50 text-amber-900 border border-amber-300"
-                  >
-                    <Building2 className="w-3.5 h-3.5 text-amber-600" />
-                    <span>Vendor Dossier</span>
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      onOpenBrandingModal();
-                    }}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300"
-                  >
-                    <Printer className="w-3.5 h-3.5 text-orange-600" />
-                    <span>Logo Branding</span>
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      onOpenSizingModal();
-                    }}
-                    className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300"
-                  >
-                    <Ruler className="w-3.5 h-3.5 text-orange-600" />
-                    <span>Size Guide</span>
-                  </button>
-                </div>
-
+            {/* Slide-out Drawer Panel */}
+            <div
+              className="fixed inset-y-0 right-0 w-full max-w-xs sm:max-w-sm bg-white shadow-2xl flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-200 z-10"
+              role="dialog"
+              aria-modal="true"
+              aria-label="Mobile Navigation Menu"
+            >
+              {/* Drawer Header */}
+              <div className="p-4 border-b border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white border border-orange-500">
+                    <Shield className="w-4 h-4 text-orange-500 fill-orange-500/20" />
+                  </div>
+                  <div>
+                    <span className="font-black text-xs text-slate-900">RAJDEEP ENTERPRISES</span>
+                    <span className="block text-[10px] text-slate-500">Mathura Refinery Main Gate</span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="w-10 h-10 flex items-center justify-center text-slate-600 hover:text-slate-900 rounded-lg hover:bg-slate-100"
+                  aria-label="Close menu"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Navigation Links with min 44px touch targets */}
+              <div className="p-4 space-y-1 flex-1">
+                <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-2">
+                  Navigation
+                </div>
+
+                {[
+                  { name: lang === 'en' ? 'Home' : 'मुख्य पृष्ठ', href: '#home' },
+                  { name: lang === 'en' ? 'Products' : 'हमारे उत्पाद', href: '#products' },
+                  { name: lang === 'en' ? 'Services / Supply' : 'सप्लाई व कस्टम सोर्सिंग', href: '#pan-india' },
+                  { name: lang === 'en' ? 'About Us' : 'हमारे बारे में', href: '#about' },
+                  { name: lang === 'en' ? 'Tools & Guides' : 'टूल्स एवं गाइड्स', href: '#tools-and-guides' },
+                  { name: lang === 'en' ? 'Contact' : 'संपर्क करें', href: '#contact' },
+                ].map((link) => (
+                  <a
+                    key={link.name}
+                    href={link.href}
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      const el = document.getElementById(link.href.replace('#', ''));
+                      if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="w-full text-left min-h-[44px] px-3.5 py-2.5 rounded-xl text-sm font-bold text-slate-800 hover:bg-orange-50 hover:text-orange-600 active:bg-orange-100 transition flex items-center justify-between"
+                  >
+                    <span>{link.name}</span>
+                    <ArrowRight className="w-4 h-4 text-slate-400" />
+                  </a>
+                ))}
+
+                {/* Important Actions Inside Mobile Menu as explicitly requested in Section 3 */}
+                <div className="pt-4 mt-2 border-t border-slate-200 space-y-2">
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-3 mb-1">
+                    Direct Actions
+                  </div>
+
+                  {/* Call Now Button */}
+                  <a
+                    id="mobile-drawer-call-btn"
+                    href={`tel:${COMPANY_INFO.phone}`}
+                    className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-slate-950 bg-amber-400 active:bg-amber-500 shadow transition text-center"
+                  >
+                    <Phone className="w-4 h-4 text-slate-950" />
+                    <span>Call Now ({COMPANY_INFO.phone})</span>
+                  </a>
+
+                  {/* WhatsApp Button */}
+                  <a
+                    id="mobile-drawer-whatsapp-btn"
+                    href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-emerald-600 active:bg-emerald-700 shadow transition text-center"
+                  >
+                    <span className="text-base">💬</span>
+                    <span>WhatsApp Us</span>
+                  </a>
+
+                  {/* Request Quote Button */}
+                  <button
+                    id="mobile-drawer-quote-btn"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenQuoteModal();
+                    }}
+                    className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-blue-600 active:bg-blue-700 shadow transition"
+                  >
+                    <FileText className="w-4 h-4" />
+                    <span>Request Quote</span>
+                  </button>
+                </div>
+
+                {/* Quick Secondary Utilities */}
+                <div className="pt-4 border-t border-slate-200 grid grid-cols-2 gap-2">
                   <button
                     onClick={() => {
-                      onToggleLang();
+                      setMobileMenuOpen(false);
+                      onOpenVisitingCard();
                     }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300"
+                    className="min-h-[40px] flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 active:bg-slate-200"
                   >
-                    <Languages className="w-3.5 h-3.5 text-orange-600" />
-                    <span>{lang === 'en' ? 'हिन्दी में देखें' : 'View in English'}</span>
+                    <FileText className="w-3.5 h-3.5 text-blue-600" />
+                    <span>Visiting Card</span>
                   </button>
 
                   <button
@@ -473,57 +527,18 @@ export const Header: React.FC<HeaderProps> = ({
                       setMobileMenuOpen(false);
                       onDownloadPdf();
                     }}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-300"
+                    className="min-h-[40px] flex items-center justify-center gap-1.5 p-2 rounded-lg text-xs font-bold bg-slate-100 text-slate-800 border border-slate-200 active:bg-slate-200"
                   >
                     <Download className="w-3.5 h-3.5 text-orange-600" />
-                    <span>Download PDF</span>
+                    <span>PDF Catalog</span>
                   </button>
                 </div>
+              </div>
 
-                <button
-                  id="mobile-rfq-cart-full-btn"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenRfqModal();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md text-xs font-bold text-slate-800 bg-orange-50 border border-orange-200"
-                >
-                  <ShoppingBag className="w-4 h-4 text-orange-600" />
-                  <span>Open Bulk Quotation Cart ({rfqCount} items)</span>
-                </button>
-
-                <button
-                  id="mobile-visiting-card-btn"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenVisitingCard();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md text-xs font-bold text-slate-800 bg-slate-100 border border-slate-300"
-                >
-                  <FileText className="w-4 h-4 text-orange-600" />
-                  <span>View Official Business Card</span>
-                </button>
-
-                <a
-                  id="mobile-call-btn"
-                  href={`tel:${COMPANY_INFO.phone}`}
-                  className="w-full flex items-center justify-center gap-2 py-2 px-4 rounded-md text-xs font-bold text-slate-900 bg-amber-400 hover:bg-amber-300"
-                >
-                  <Phone className="w-4 h-4" />
-                  <span>Call {COMPANY_INFO.phone}</span>
-                </a>
-
-                <button
-                  id="mobile-quote-full-btn"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    onOpenQuoteModal();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-md text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 shadow"
-                >
-                  <span>{t.requestQuote}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
+              {/* Drawer Footer */}
+              <div className="p-4 bg-slate-50 border-t border-slate-200 text-center text-xs text-slate-500">
+                <div className="font-semibold text-slate-700">Proprietor: {COMPANY_INFO.contactPerson}</div>
+                <div>15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura</div>
               </div>
             </div>
           </div>
