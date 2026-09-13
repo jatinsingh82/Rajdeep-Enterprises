@@ -91,8 +91,8 @@ export const FaqSection: React.FC<FaqSectionProps> = ({
   };
 
   return (
-    <section id="faqs" className="py-20 bg-slate-50 relative">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div id="faqs" className="py-4 sm:py-6 px-1 sm:px-4 w-full bg-slate-50 relative overflow-x-hidden">
+      <div className="max-w-4xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 bg-orange-100 text-orange-800 border border-orange-200 px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-3">
@@ -196,6 +196,6 @@ export const FaqSection: React.FC<FaqSectionProps> = ({
           </div>
         </div>
       </div>
-    </section>
+    </div>
   );
 };

@@ -11,7 +11,9 @@ import {
   Eye, 
   EyeOff, 
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  CheckCircle2,
+  FileCheck
 } from 'lucide-react';
 import { Product, Language } from '../types';
 import { TradeKitsSection } from './TradeKitsSection';
@@ -19,6 +21,7 @@ import { GstGuideSection } from './GstGuideSection';
 import { StandardsSection } from './StandardsSection';
 import { IndustriesSection } from './IndustriesSection';
 import { FaqSection } from './FaqSection';
+import industrialSafetyVisual from '../assets/images/industrial_safety_ppe_1789311870723.jpg';
 
 interface ToolsAndGuidesHubProps {
   onAddProductToRfq: (product: Product, quantity?: number) => void;
@@ -197,52 +200,143 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
   return (
     <section 
       id="tools-and-guides" 
-      className="py-14 md:py-20 bg-slate-100/90 relative border-t border-b border-slate-200"
+      className="py-12 sm:py-16 md:py-20 bg-slate-100/95 relative border-t border-b border-slate-200 overflow-x-hidden"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Hub Header with Summary & Compact Controls */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-slate-300 mb-10">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#1E3E62]/10 border border-[#1E3E62]/20 text-[#0B192C] text-xs font-bold uppercase tracking-wider mb-3">
-              <Layers className="w-3.5 h-3.5 text-blue-600" />
-              <span>Compact Interactive Dropdown Hub</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
-              {lang === 'en' ? 'Tools, Compliance & Industrial Guides' : 'टूल्स, कंप्लायंस एवं तकनीकी गाइड्स'}
-            </h2>
-            <p className="mt-2 text-sm sm:text-base text-slate-600 max-w-2xl">
-              {lang === 'en' 
-                ? 'To keep the page lightweight and easy to navigate, all trade kit calculators, tax tables, safety standards, and FAQs are grouped into expandable dropdown panels below. Drop down only what you need.' 
-                : 'साइट को सरल और व्यवस्थित रखने के लिए, सभी ट्रेड किट, टैक्स कैलकुलेटर, सुरक्षा मानक और अक्सर पूछे जाने वाले सवाल नीचे ड्रॉप-डाउन में संकलित हैं। जो आवश्यकता हो उसे खोलें।'}
-            </p>
-          </div>
+        {/* HERO / SECTION VISUAL: Two-Column on Desktop, Stacked & Contained on Mobile */}
+        <div className="bg-slate-900 text-white rounded-2xl sm:rounded-3xl border border-slate-800 shadow-xl overflow-hidden mb-8 sm:mb-12">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 items-center p-5 sm:p-7 lg:p-9">
+            
+            {/* Left Column: Heading, Subtitle, Highlights & Quick Controls (lg:col-span-7) */}
+            <div className="lg:col-span-7 space-y-4 sm:space-y-5">
+              
+              {/* Category Eyebrow Badge */}
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-sky-300 text-xs font-bold uppercase tracking-wider">
+                <Layers className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+                <span className="truncate">Industrial Compliance & Technical Hub</span>
+              </div>
 
-          {/* Quick Toggle Controls */}
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="text-xs font-semibold text-slate-500 hidden sm:block">
-              {totalOpen} of 5 Open
+              {/* Main Responsive Heading with clamp() */}
+              <h2 
+                className="font-black text-white tracking-tight leading-tight"
+                style={{ fontSize: 'clamp(1.5rem, 2.5vw + 0.6rem, 2.4rem)' }}
+              >
+                {lang === 'en' 
+                  ? 'Tools, Compliance & Industrial Guides' 
+                  : 'टूल्स, कंप्लायंस एवं तकनीकी गाइड्स'}
+              </h2>
+
+              {/* Description */}
+              <p className="text-xs sm:text-sm md:text-base text-slate-300 leading-relaxed max-w-2xl">
+                {lang === 'en' 
+                  ? 'Engineered for plant HSE safety officers, EPC project engineers, and maintenance contractors. Access turnkey trade PPE bundles, CBIC-approved GST & HSN calculators, and BIS gate-clearance compliance specifications to ensure zero inspection holdups across refinery complexes and project sites.' 
+                  : 'प्लांट सेफ्टी इंजीनियरों, ईपीसी खरीद प्रमुखों और मेंटेनेंस ठेकेदारों के लिए विशेष रूप से डिज़ाइन किया गया। ट्रेड पीपीई किट्स, आधिकारिक जीएसटी व एचएसएन कैलकुलेटर और बीआईएस रिफाइनरी गेट-पास मानकों को सीधे नीचे देखें।'}
+              </p>
+
+              {/* 3 Value Highlight Micro-Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5 pt-1 text-xs">
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-200">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                  <span className="font-semibold truncate">Refinery Gate Pass Ready</span>
+                </div>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-200">
+                  <Calculator className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span className="font-semibold truncate">18% & 12% GST ITC Verified</span>
+                </div>
+                <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-200">
+                  <Wrench className="w-4 h-4 text-orange-400 shrink-0" />
+                  <span className="font-semibold truncate">Pre-Configured Turnkey Kits</span>
+                </div>
+              </div>
+
+              {/* Expand / Collapse Controls Strip */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
+                <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span>{totalOpen} of 5 Guides Currently Expanded</span>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={expandAll}
+                    className="min-h-[40px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 border border-blue-500 shadow-sm transition active:scale-95"
+                    title="Expand all 5 technical dropdown guides"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-sky-200 shrink-0" />
+                    <span>Expand All</span>
+                  </button>
+                  <button
+                    onClick={collapseAll}
+                    className="min-h-[40px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 transition active:scale-95"
+                    title="Collapse all guides into compact overview"
+                  >
+                    <EyeOff className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>Collapse All</span>
+                  </button>
+                </div>
+              </div>
+
             </div>
-            <button
-              onClick={expandAll}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 shadow-xs transition active:scale-95"
-              title="Open all 5 dropdown guides"
-            >
-              <Eye className="w-3.5 h-3.5 text-blue-600" />
-              <span>Expand All</span>
-            </button>
-            <button
-              onClick={collapseAll}
-              className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 shadow-xs transition active:scale-95"
-              title="Close all dropdown guides to minimize page height"
-            >
-              <EyeOff className="w-3.5 h-3.5 text-slate-500" />
-              <span>Collapse All</span>
-            </button>
+
+            {/* Right Column: Realistic Industrial Visual Area (lg:col-span-5) */}
+            <div className="lg:col-span-5 w-full">
+              <div className="relative rounded-2xl overflow-hidden border border-slate-700/90 shadow-2xl bg-slate-950 group">
+                
+                {/* Responsive Image Frame: 16:10 on mobile, 4:3 on desktop */}
+                <div className="relative w-full aspect-[16/10] sm:aspect-[4/3] overflow-hidden bg-slate-900">
+                  <img
+                    src={industrialSafetyVisual}
+                    alt="Rajdeep Enterprises industrial safety PPE, IS-certified helmets, welding gear, and workplace compliance inspection equipment"
+                    className="w-full max-w-full h-full object-cover group-hover:scale-103 transition-transform duration-500"
+                    loading="lazy"
+                    referrerPolicy="no-referrer"
+                    width={800}
+                    height={600}
+                  />
+                  {/* Subtle vignette/contrast overlay for text legibility */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent pointer-events-none"></div>
+
+                  {/* Floating Verification Badge */}
+                  <div className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/90 backdrop-blur-sm border border-slate-700 text-amber-300 text-[11px] font-bold shadow-md">
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                    <span>BIS & OSHA Compliance Certified</span>
+                  </div>
+
+                  {/* Mathura Refinery Depot Badge */}
+                  <div className="absolute top-3 right-3 px-2.5 py-1 rounded-md bg-orange-600/90 text-white text-[10px] font-bold uppercase tracking-wider shadow-sm">
+                    Mathura Depot Stock
+                  </div>
+
+                  {/* Bottom Overlay Details */}
+                  <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-slate-300">
+                    <span className="font-semibold text-white truncate">Refinery & Site Safety Standards</span>
+                    <span className="text-sky-300 font-mono shrink-0 ml-2">Mathura IOCL Gate</span>
+                  </div>
+                </div>
+
+                {/* Caption / Consultation Strip below image */}
+                <div className="p-3 bg-slate-900/95 border-t border-slate-800 flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 text-slate-300 min-w-0">
+                    <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></div>
+                    <span className="text-[11px] text-slate-300 truncate">Inspection-Passed PPE & Consumables</span>
+                  </div>
+                  <button
+                    onClick={() => onOpenQuoteModal('Industrial Safety Compliance Consultation')}
+                    className="text-[11px] text-sky-400 hover:text-sky-300 font-bold transition flex items-center gap-1 shrink-0 ml-2"
+                  >
+                    <span>Consult Specs</span>
+                    <ArrowRight className="w-3 h-3" />
+                  </button>
+                </div>
+
+              </div>
+            </div>
+
           </div>
         </div>
 
-        {/* 5 Collapsible Accordion Dropdown Cards */}
+        {/* 5 Collapsible Accordion Guide Cards */}
         <div className="space-y-4">
           {sectionsConfig.map((sec, idx) => {
             const isOpen = openSections[sec.id];
@@ -252,10 +346,10 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
               <div 
                 key={sec.id}
                 id={sec.anchorId}
-                className={`rounded-2xl transition-all duration-300 overflow-hidden border shadow-sm ${
+                className={`w-full max-w-full rounded-2xl transition-all duration-300 overflow-hidden border shadow-xs ${
                   isOpen 
-                    ? 'bg-white border-blue-500/50 ring-2 ring-blue-500/10 shadow-md' 
-                    : 'bg-white hover:bg-slate-50 border-slate-200 hover:border-slate-300'
+                    ? 'bg-white border-blue-500/60 ring-2 ring-blue-500/10 shadow-md' 
+                    : 'bg-white hover:bg-slate-50/80 border-slate-200 hover:border-slate-300'
                 }`}
               >
                 {/* Dropdown Header Trigger Banner */}
@@ -272,51 +366,53 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                     }
                   }}
                 >
-                  {/* Left: Icon, Number & Title */}
-                  <div className="flex items-start gap-3.5">
+                  {/* Left: Icon, Badge, Title, Subtitle, & Tag Chips */}
+                  <div className="flex items-start gap-3.5 min-w-0 flex-1">
                     <div className={`p-2.5 rounded-xl ${sec.bgAccent} ${sec.accentColor} border ${sec.borderAccent} shrink-0 mt-0.5 sm:mt-0 shadow-xs`}>
                       <Icon className="w-5 h-5" />
                     </div>
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <div className="min-w-0 flex-1">
+                      
+                      {/* Top Category & Part Badges */}
+                      <div className="flex flex-wrap items-center gap-2 mb-1.5">
                         <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200">
-                          Part {idx + 1}
+                          Guide {idx + 1}
                         </span>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${sec.bgAccent} ${sec.accentColor}`}>
+                        <span className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-md ${sec.bgAccent} ${sec.accentColor}`}>
                           {lang === 'en' ? sec.badgeEn : sec.badgeHi}
                         </span>
                       </div>
-                      <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
+
+                      {/* Clear Responsive Title */}
+                      <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug break-words">
                         {lang === 'en' ? sec.titleEn : sec.titleHi}
                       </h3>
-                      <p className="text-xs text-slate-500 mt-0.5 line-clamp-1 max-w-2xl">
+
+                      {/* Short Description */}
+                      <p className="text-xs sm:text-sm text-slate-600 mt-1 leading-relaxed max-w-3xl">
                         {lang === 'en' ? sec.subtitleEn : sec.subtitleHi}
                       </p>
 
-                      {/* Summary Tags (visible when collapsed) */}
-                      {!isOpen && (
-                        <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
-                          {(lang === 'en' ? sec.summaryTagsEn : sec.summaryTagsHi).map((tag, tIdx) => (
-                            <span 
-                              key={tIdx} 
-                              className="text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200/80"
-                            >
-                              {tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
+                      {/* Summary Tags (Always visible for quick scanning) */}
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2.5">
+                        {(lang === 'en' ? sec.summaryTagsEn : sec.summaryTagsHi).map((tag, tIdx) => (
+                          <span 
+                            key={tIdx} 
+                            className="text-[11px] font-semibold text-slate-700 bg-slate-100/90 px-2.5 py-0.5 rounded-md border border-slate-200/80"
+                          >
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+
                     </div>
                   </div>
 
-                  {/* Right: Dropdown Action Button */}
-                  <div className="flex items-center gap-3 shrink-0 self-end sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto justify-between sm:justify-end">
-                    <span className="text-xs font-bold text-slate-500 sm:hidden">
-                      {isOpen ? 'Currently Open' : 'Tap to expand'}
-                    </span>
+                  {/* Right / Mobile Action Button */}
+                  <div className="flex items-center gap-3 shrink-0 self-stretch sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto justify-end">
                     <button
                       type="button"
-                      className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-xs ${
+                      className={`w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs active:scale-98 ${
                         isOpen 
                           ? 'bg-blue-600 text-white hover:bg-blue-700' 
                           : 'bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300'
@@ -326,7 +422,7 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                         toggleSection(sec.id);
                       }}
                     >
-                      <span>{isOpen ? 'Collapse Section' : 'Drop Down & Open'}</span>
+                      <span>{isOpen ? 'Collapse Guide' : 'Open Guide'}</span>
                       <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180 text-white' : 'text-slate-600'}`} />
                     </button>
                   </div>
@@ -334,7 +430,7 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
 
                 {/* Expanded Component Body */}
                 {isOpen && (
-                  <div className="border-t border-slate-200 bg-slate-50/50 animate-in fade-in duration-200">
+                  <div className="border-t border-slate-200 bg-slate-50/50 animate-in fade-in duration-200 overflow-x-hidden">
                     <div className="py-2">
                       {sec.id === 'trade-kits' && (
                         <TradeKitsSection
@@ -371,17 +467,17 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                       )}
                     </div>
 
-                    {/* Bottom Collapse Bar inside open panel for quick close */}
-                    <div className="px-6 py-3 bg-slate-100 border-t border-slate-200 flex items-center justify-between text-xs">
-                      <span className="text-slate-500 font-medium">
-                        Finished reviewing this guide?
+                    {/* Bottom Collapse Bar inside open panel for effortless quick close */}
+                    <div className="px-4 sm:px-6 py-3 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+                      <span className="text-slate-500 font-medium text-center sm:text-left">
+                        Finished reviewing {lang === 'en' ? sec.titleEn : sec.titleHi}?
                       </span>
                       <button
                         onClick={() => toggleSection(sec.id)}
-                        className="inline-flex items-center gap-1.5 text-blue-700 hover:text-blue-900 font-bold px-3 py-1 rounded bg-white border border-slate-300 hover:border-slate-400 transition"
+                        className="w-full sm:w-auto min-h-[38px] inline-flex items-center justify-center gap-1.5 text-blue-700 hover:text-blue-900 font-bold px-3.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-slate-400 transition shadow-2xs"
                       >
                         <ChevronUp className="w-3.5 h-3.5" />
-                        <span>Collapse {lang === 'en' ? sec.titleEn : sec.titleHi}</span>
+                        <span>Collapse Guide</span>
                       </button>
                     </div>
                   </div>

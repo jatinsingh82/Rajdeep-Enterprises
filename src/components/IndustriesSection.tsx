@@ -20,8 +20,8 @@ export const IndustriesSection: React.FC<IndustriesSectionProps> = ({ onEnquire 
   };
 
   return (
-    <section id="industries" className="py-16 md:py-24 bg-slate-50 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div id="industries" className="py-4 sm:py-6 px-1 sm:px-4 w-full bg-slate-50 relative overflow-x-hidden">
+      <div className="w-full">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
@@ -114,6 +114,6 @@ export const IndustriesSection: React.FC<IndustriesSectionProps> = ({ onEnquire 
         </div>
 
       </div>
-    </section>
+    </div>
   );
 };

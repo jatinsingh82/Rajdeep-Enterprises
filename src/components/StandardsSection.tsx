@@ -20,8 +20,8 @@ export const StandardsSection: React.FC<StandardsSectionProps> = ({ lang, onEnqu
     : COMPLIANCE_STANDARDS.filter((s) => s.category === selectedCategory);
 
   return (
-    <section id="standards" className="py-16 md:py-20 bg-slate-900 text-white relative border-t border-b border-slate-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div id="standards" className="py-4 sm:py-6 px-1 sm:px-4 w-full bg-slate-900 text-white rounded-2xl overflow-x-hidden">
+      <div className="w-full">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
@@ -136,6 +136,6 @@ export const StandardsSection: React.FC<StandardsSectionProps> = ({ lang, onEnqu
         </div>
 
       </div>
-    </section>
+    </div>
   );
 };

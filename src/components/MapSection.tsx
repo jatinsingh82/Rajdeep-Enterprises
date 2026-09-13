@@ -29,29 +29,29 @@ export const MapSection: React.FC<MapSectionProps> = ({ lang }) => {
           </p>
         </div>
 
-        {/* Side-by-Side Container on both Mobile & Desktop */}
-        <div className="grid grid-cols-2 gap-2 sm:gap-4 items-stretch">
+        {/* Responsive Grid: Single-Column on Mobile, Side-by-Side on Tablet/Desktop */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 items-stretch">
           
-          {/* Left Column: Interactive Map */}
+          {/* Interactive Map */}
           <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-300 shadow-sm flex flex-col justify-between">
-            <div className="p-1.5 sm:p-2.5 bg-[#0B192C] text-white flex items-center justify-between border-b border-slate-800">
-              <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold truncate">
+            <div className="p-2 sm:p-2.5 bg-[#0B192C] text-white flex items-center justify-between border-b border-slate-800">
+              <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold truncate">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
-                <span className="truncate">Mathura Refinery Map</span>
+                <span className="truncate">Mathura Refinery Map Location</span>
               </div>
               <a
                 href={COMPANY_INFO.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[9px] sm:text-[11px] font-bold text-sky-400 hover:underline flex items-center gap-0.5 shrink-0 ml-1"
+                className="text-[10px] sm:text-xs font-bold text-sky-400 hover:underline flex items-center gap-1 shrink-0 ml-1"
               >
                 <span>Google Maps</span>
-                <ExternalLink className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                <ExternalLink className="w-3 h-3" />
               </a>
             </div>
 
-            {/* Map iframe */}
-            <div className="relative h-28 sm:h-40 md:h-52 w-full bg-slate-100">
+            {/* Map iframe with responsive height */}
+            <div className="relative h-48 sm:h-56 md:h-64 w-full bg-slate-100">
               <iframe
                 title="Rajdeep Enterprises Location Map"
                 width="100%"
@@ -63,65 +63,65 @@ export const MapSection: React.FC<MapSectionProps> = ({ lang }) => {
             </div>
 
             {/* Bottom Bar on Map */}
-            <div className="p-1.5 sm:p-2 bg-slate-950 text-white flex items-center justify-between gap-1 text-[9px] sm:text-[11px]">
-              <span className="text-slate-400 truncate hidden xs:inline">27.4239°N, 77.6974°E</span>
+            <div className="p-2 sm:p-2.5 bg-slate-950 text-white flex items-center justify-between gap-2 text-xs">
+              <span className="text-slate-400 truncate hidden xs:inline font-mono text-[11px]">27.4239°N, 77.6974°E</span>
               <a
                 href={COMPANY_INFO.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full xs:w-auto inline-flex items-center justify-center gap-1 px-2 py-1 rounded bg-blue-600 hover:bg-blue-500 text-white font-bold text-[9px] sm:text-xs transition text-center"
+                className="w-full xs:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition text-center min-h-[36px]"
               >
-                <Navigation className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                <span>GPS Navigation</span>
+                <Navigation className="w-3.5 h-3.5" />
+                <span>Open in GPS Navigation</span>
               </a>
             </div>
           </div>
 
-          {/* Right Column: Office & Depot Details */}
-          <div className="p-2 sm:p-3.5 rounded-xl bg-blue-50/90 border border-blue-200 text-left flex flex-col justify-between shadow-sm">
+          {/* Office & Depot Details */}
+          <div className="p-3 sm:p-5 rounded-xl bg-blue-50/90 border border-blue-200 text-left flex flex-col justify-between shadow-sm">
             <div>
-              <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
-                <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
-                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="font-extrabold text-slate-900 text-xs sm:text-sm truncate">
+                  <h4 className="font-extrabold text-slate-900 text-sm sm:text-base truncate">
                     Office & Supply Depot
                   </h4>
-                  <p className="text-[9px] sm:text-[10px] text-blue-950 font-semibold flex items-center gap-0.5 truncate">
-                    <Shield className="w-2.5 h-2.5 text-blue-600 shrink-0" />
+                  <p className="text-[10px] sm:text-xs text-blue-950 font-semibold flex items-center gap-1 truncate">
+                    <Shield className="w-3 h-3 text-blue-600 shrink-0" />
                     <span>Opposite Refinery Main Gate</span>
                   </p>
                 </div>
               </div>
 
-              <div className="text-[10px] sm:text-xs text-slate-800 font-medium leading-tight">
+              <div className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">
                 {COMPANY_INFO.address}
               </div>
 
-              <div className="mt-1.5 sm:mt-2 space-y-0.5 sm:space-y-1 text-[9px] sm:text-[11px] text-slate-600 border-t border-blue-200/80 pt-1 sm:pt-1.5">
-                <p className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0"></span>
-                  <span><strong>2 Min Walk</strong> from Refinery Gate</span>
+              <div className="mt-2 sm:mt-3 space-y-1 sm:space-y-1.5 text-xs text-slate-600 border-t border-blue-200/80 pt-2 sm:pt-2.5">
+                <p className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+                  <span><strong>2 Min Walk</strong> from Mathura Refinery Gate</span>
                 </p>
-                <p className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
-                  <span><strong>Truck loading bay</strong> for heavy lots</span>
+                <p className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0"></span>
+                  <span><strong>Truck loading bay</strong> for heavy lots & express pickups</span>
                 </p>
-                <p className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0"></span>
-                  <span><strong>18 Min</strong> from Mathura Junction</span>
+                <p className="flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                  <span><strong>18 Min</strong> from Mathura Junction railway station</span>
                 </p>
               </div>
             </div>
 
-            <div className="mt-2 pt-1.5 border-t border-blue-200/80">
+            <div className="mt-3 pt-2.5 border-t border-blue-200/80">
               <a
                 href={`tel:${COMPANY_INFO.phone}`}
-                className="w-full inline-flex items-center justify-center gap-1 py-1 sm:py-1.5 px-2 rounded bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] sm:text-xs font-bold transition shadow-xs"
+                className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-bold transition shadow-xs min-h-[44px]"
               >
-                <Phone className="w-3 h-3 text-white" />
-                <span className="truncate">Call: {COMPANY_INFO.displayPhone}</span>
+                <Phone className="w-4 h-4 text-white" />
+                <span className="truncate">Call Proprietor: {COMPANY_INFO.displayPhone}</span>
               </a>
             </div>
           </div>

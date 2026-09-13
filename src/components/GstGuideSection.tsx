@@ -45,8 +45,8 @@ export const GstGuideSection: React.FC<GstGuideSectionProps> = ({
   const sgstAmount = taxAmount / 2;
 
   return (
-    <section id="gst-compliance" className="py-16 md:py-20 bg-white border-b border-slate-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div id="gst-compliance" className="py-4 sm:py-6 px-1 sm:px-4 w-full overflow-x-hidden">
+      <div className="w-full">
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
@@ -145,7 +145,7 @@ export const GstGuideSection: React.FC<GstGuideSectionProps> = ({
                 <label className="block text-slate-300 font-bold uppercase tracking-wider mb-1.5">
                   3. Delivery Destination (Supply Jurisdiction)
                 </label>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setTaxType('intra')}
@@ -301,6 +301,6 @@ export const GstGuideSection: React.FC<GstGuideSectionProps> = ({
         </div>
 
       </div>
-    </section>
+    </div>
   );
 };
