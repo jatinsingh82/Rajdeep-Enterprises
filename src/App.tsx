@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { EmergencyHotlineBanner } from './components/EmergencyHotlineBanner';
@@ -28,6 +28,8 @@ export default function App() {
   const [lang, setLang] = useState<Language>('en');
   const [isQuoteModalOpen, setIsQuoteModalOpen] = useState(false);
   const [selectedQuoteProduct, setSelectedQuoteProduct] = useState<string>('');
+  const [selectedQuoteCategory, setSelectedQuoteCategory] = useState<string>('');
+  const [selectedQuoteQuantity, setSelectedQuoteQuantity] = useState<string>('');
   const [isVisitingCardOpen, setIsVisitingCardOpen] = useState(false);
   const [selectedDetailProduct, setSelectedDetailProduct] = useState<Product | null>(null);
   const [isRfqModalOpen, setIsRfqModalOpen] = useState(false);
@@ -35,7 +37,26 @@ export default function App() {
   const [isSizingModalOpen, setIsSizingModalOpen] = useState(false);
   const [isHseAuditOpen, setIsHseAuditOpen] = useState(false);
   const [isVendorDossierOpen, setIsVendorDossierOpen] = useState(false);
-  const [rfqItems, setRfqItems] = useState<RfqItem[]>([]);
+  const [rfqItems, setRfqItems] = useState<RfqItem[]>(() => {
+    try {
+      const saved = localStorage.getItem('rajdeep_rfq_cart');
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (e) {
+      console.error('Error loading saved RFQ cart', e);
+    }
+    return [];
+  });
+
+  // Persist RFQ cart whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem('rajdeep_rfq_cart', JSON.stringify(rfqItems));
+    } catch (e) {
+      console.error('Error storing RFQ cart', e);
+    }
+  }, [rfqItems]);
 
   // Toggle Language between English and Hindi
   const handleToggleLang = () => {
@@ -89,9 +110,11 @@ export default function App() {
     setRfqItems([]);
   };
 
-  // Trigger Quote modal with optional prefilled product name
-  const handleOpenQuoteModal = (productName?: string) => {
+  // Trigger Quote modal with optional prefilled product name, category, and quantity
+  const handleOpenQuoteModal = (productName?: string, category?: string, quantity?: string) => {
     setSelectedQuoteProduct(productName || 'General Industrial Safety Requirement');
+    setSelectedQuoteCategory(category || '');
+    setSelectedQuoteQuantity(quantity || '');
     setIsQuoteModalOpen(true);
   };
 
@@ -99,8 +122,8 @@ export default function App() {
     setSelectedDetailProduct(product);
   };
 
-  const handleEnquireFromProduct = (productName: string) => {
-    handleOpenQuoteModal(productName);
+  const handleEnquireFromProduct = (productName: string, category?: string, quantity?: string) => {
+    handleOpenQuoteModal(productName, category, quantity);
   };
 
   const handleDownloadPdf = () => {
@@ -214,6 +237,7 @@ export default function App() {
         onEnquire={handleEnquireFromProduct}
         onAddToRfq={handleAddToRfq}
         isInRfq={selectedDetailProduct ? rfqProductIds.includes(selectedDetailProduct.id) : false}
+        onSelectProduct={handleSelectProduct}
       />
 
       {/* Quick Quote / Enquiry Modal */}
@@ -221,6 +245,8 @@ export default function App() {
         isOpen={isQuoteModalOpen}
         onClose={() => setIsQuoteModalOpen(false)}
         productName={selectedQuoteProduct}
+        category={selectedQuoteCategory}
+        initialQuantity={selectedQuoteQuantity}
       />
 
       {/* Bulk RFQ Cart Modal */}

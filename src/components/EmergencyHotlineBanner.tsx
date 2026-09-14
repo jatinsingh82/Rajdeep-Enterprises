@@ -10,22 +10,19 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
   onOpenQuoteModal
 }) => {
   return (
-    <div className="bg-gradient-to-r from-red-950 via-slate-900 to-blue-950 border-y border-red-800/40 text-white py-2 sm:py-3 px-3 sm:px-4 shadow-inner relative overflow-hidden">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2.5 sm:gap-3 text-xs sm:text-sm">
+    <div className="bg-[#0B1523] border-b border-slate-800/80 text-white py-2 sm:py-2.5 px-3 sm:px-4 relative">
+      <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-2 text-xs">
         
-        {/* Mobile View: Compact single-row emergency alert */}
+        {/* Mobile View: Compact professional emergency capability notice */}
         <div className="flex md:hidden items-center justify-between w-full gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="relative flex h-2.5 w-2.5 shrink-0">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
-            </span>
+            <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0"></span>
             <div className="min-w-0">
-              <span className="font-extrabold text-red-400 uppercase tracking-wider text-[10px] block leading-tight truncate">
-                24/7 Refinery Emergency
+              <span className="font-bold text-slate-200 uppercase tracking-wider text-[10px] block leading-tight truncate">
+                24/7 Refinery & Plant Emergency
               </span>
-              <span className="text-slate-200 text-xs font-semibold block leading-tight truncate">
-                30–60 Min Rapid Dispatch
+              <span className="text-slate-400 text-[11px] block leading-tight truncate">
+                30–60 Min Rapid Gate Dispatch
               </span>
             </div>
           </div>
@@ -34,8 +31,8 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
             <a
               id="emergency-mobile-call-btn"
               href={`tel:${COMPANY_INFO.phone}`}
-              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 min-h-[38px] min-w-[90px] text-center"
-              title="Call 24/7 Emergency Hotline"
+              className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm transition active:scale-95 min-h-[38px] text-center"
+              title="Call Emergency Hotline"
               aria-label={`Call emergency hotline ${COMPANY_INFO.phone}`}
             >
               <Phone className="w-3.5 h-3.5 shrink-0" />
@@ -44,42 +41,43 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
           </div>
         </div>
 
-        {/* Desktop View: Full rich emergency bar */}
+        {/* Desktop View: Clean professional industrial capability bar */}
         <div className="hidden md:flex items-center gap-3 text-left">
-          <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-red-600/30 border border-red-500/60 text-red-400 shrink-0">
-            <Zap className="w-4 h-4 fill-red-400 text-red-400 animate-pulse" />
+          <div className="flex items-center justify-center w-7 h-7 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-400 shrink-0">
+            <Clock className="w-3.5 h-3.5" />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-black text-red-400 uppercase tracking-wider text-[11px] bg-red-950/80 px-2 py-0.5 rounded border border-red-700/50">
-                24/7 Site Emergency Hotline
+              <span className="font-extrabold text-amber-300 uppercase tracking-wider text-[11px] bg-amber-950/60 px-2 py-0.5 rounded border border-amber-800/40">
+                24/7 Site Emergency Supply
               </span>
               <span className="text-slate-300 font-semibold text-xs">
-                Turnaround & Emergency Shutdown Supplies
+                Refinery Turnarounds & Urgent Safety Replacements
               </span>
             </div>
-            <p className="text-slate-300 text-xs mt-0.5">
-              Facing immediate gate safety inspection shortfall or plant breakdown? <strong className="text-sky-300">30–60 Min Rapid Dispatch</strong> to Mathura Refinery gates & adjacent industrial yards.
+            <p className="text-slate-400 text-[11px] mt-0.5">
+              Facing gate safety inspection shortfall or plant maintenance emergency? <strong className="text-slate-200">30–60 min rapid dispatch</strong> to Mathura Refinery gates and adjacent project sites.
             </p>
           </div>
         </div>
 
         {/* Desktop Right side: Direct actions */}
-        <div className="hidden md:flex items-center gap-2.5 shrink-0 flex-wrap">
+        <div className="hidden md:flex items-center gap-2 shrink-0">
           <a
             href={`tel:${COMPANY_INFO.phone}`}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white font-black text-xs transition shadow-md active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition shadow-sm active:scale-95 min-h-[36px]"
           >
             <Phone className="w-3.5 h-3.5" />
-            <span>Emergency Call: {COMPANY_INFO.phone}</span>
+            <span>Emergency Call: {COMPANY_INFO.displayPhone}</span>
           </a>
 
           <button
+            type="button"
             onClick={() => onOpenQuoteModal("Urgent Emergency Breakdown PPE Supply")}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-200 text-xs font-bold transition active:scale-95"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold transition active:scale-95 min-h-[36px]"
           >
-            <Clock className="w-3.5 h-3.5 text-sky-400" />
-            <span>Request Immediate Dispatch</span>
+            <Zap className="w-3.5 h-3.5 text-sky-400" />
+            <span>Request Fast Dispatch</span>
           </button>
         </div>
 

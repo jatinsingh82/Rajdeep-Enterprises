@@ -30,7 +30,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
           {/* 1. Small Badge / Tag */}
           <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-sky-400/40 text-sky-300 text-xs font-bold">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-            <span>Industrial Safety & Material Supplies</span>
+            <span>Industrial Safety & Material Supplier • Mathura</span>
           </div>
 
           {/* 2. Responsive Heading with clamp() */}
@@ -40,7 +40,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
 
           {/* 3. Short Description (16px body) */}
           <p className="text-base text-slate-300 leading-relaxed">
-            Safety PPE, welding materials, hardware, stationery and industrial supplies for factories, contractors, workshops and project sites across Mathura and whole India.
+            Rajdeep Enterprises supplies certified safety PPE, welding consumables, Champion gaskets, hardware, and site materials. Direct counter pickup at Mathura Refinery Gate with reliable dispatch across all 28 states of India.
           </p>
 
           {/* 4. Primary CTA Buttons (Consistent min-h-[44px] touch targets & border radius) */}
@@ -49,13 +49,13 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
             <a
               id="mobile-hero-view-products-btn"
               href="#products"
-              className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-blue-600 active:bg-blue-700 shadow-md transition text-center"
+              className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-blue-600 hover:bg-blue-500 active:bg-blue-700 shadow-md transition text-center"
             >
-              <span>📦 View Products</span>
+              <span>View Products Catalogue</span>
               <ArrowRight className="w-4 h-4" />
             </a>
 
-            {/* Secondary CTAs: 2-Column Grid */}
+            {/* Secondary High-Intent CTAs: 2-Column Grid */}
             <div className="grid grid-cols-2 gap-2">
               {/* WhatsApp Us Button */}
               <a
@@ -63,7 +63,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 active:bg-emerald-700 shadow transition text-center"
+                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 shadow transition text-center"
               >
                 <span className="text-sm">💬</span>
                 <span className="whitespace-nowrap">WhatsApp Us</span>
@@ -73,11 +73,42 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <a
                 id="mobile-hero-call-btn"
                 href={`tel:${COMPANY_INFO.phone}`}
-                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-bold text-xs sm:text-sm text-slate-950 bg-amber-400 active:bg-amber-500 shadow transition text-center"
+                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-slate-950 bg-amber-400 hover:bg-amber-500 active:bg-amber-600 shadow transition text-center"
               >
                 <Phone className="w-3.5 h-3.5 text-slate-950 shrink-0" />
                 <span className="whitespace-nowrap">Call Now</span>
               </a>
+            </div>
+
+            {/* Request Quote Button */}
+            <button
+              type="button"
+              id="mobile-hero-quote-btn"
+              onClick={() => onOpenQuoteModal()}
+              className="min-h-[44px] w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs text-slate-200 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 transition text-center"
+            >
+              <FileText className="w-3.5 h-3.5 text-sky-400" />
+              <span>Request Custom Quotation</span>
+            </button>
+          </div>
+
+          {/* Quick Trust Badges on Mobile */}
+          <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-slate-300">
+            <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-900/70 border border-slate-800">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span className="font-semibold">Gate Pass Ready</span>
+            </div>
+            <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-900/70 border border-slate-800">
+              <CheckCircle className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+              <span className="font-semibold">100% GST Invoiced</span>
+            </div>
+            <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-900/70 border border-slate-800">
+              <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+              <span className="font-semibold">Mathura Gate Depot</span>
+            </div>
+            <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-900/70 border border-slate-800">
+              <Building className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+              <span className="font-semibold">Pan-India Dispatch</span>
             </div>
           </div>
 
@@ -162,33 +193,50 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3.5 pt-3">
+            {/* Action Buttons with clear CTA hierarchy */}
+            <div className="flex flex-wrap items-center gap-3 pt-3">
+              {/* Primary CTA */}
               <a
                 id="hero-explore-products-btn"
                 href="#products"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-lg font-bold text-xs sm:text-sm text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition-all transform active:scale-95"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition-all transform active:scale-95 min-h-[44px]"
               >
-                <span>Explore Products</span>
+                <span>View Products Catalogue</span>
                 <ArrowRight className="w-4 h-4" />
               </a>
 
+              {/* High Intent WhatsApp CTA */}
               <a
-                id="hero-pan-india-btn"
-                href="#pan-india"
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold text-xs sm:text-sm text-sky-300 bg-slate-900 hover:bg-slate-800 border border-sky-500/50 hover:border-sky-400 transition-all active:scale-95"
+                id="hero-whatsapp-btn"
+                href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-extrabold text-sm text-white bg-emerald-600 hover:bg-emerald-500 shadow-md transition-all active:scale-95 min-h-[44px]"
               >
-                <span>🇮🇳 Pan-India Supply & Extra Items</span>
+                <span className="text-base">💬</span>
+                <span>WhatsApp Us</span>
               </a>
 
+              {/* High Intent Call CTA */}
               <a
                 id="hero-call-now-btn"
                 href={`tel:${COMPANY_INFO.phone}`}
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg font-bold text-xs sm:text-sm text-slate-950 bg-sky-400 hover:bg-sky-300 transition-all shadow-md active:scale-95"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-extrabold text-sm text-slate-950 bg-amber-400 hover:bg-amber-300 transition-all shadow-md active:scale-95 min-h-[44px]"
               >
                 <Phone className="w-4 h-4 text-slate-950" />
                 <span>Call {COMPANY_INFO.displayPhone}</span>
               </a>
+
+              {/* Request Custom Quote CTA */}
+              <button
+                type="button"
+                id="hero-quote-modal-btn"
+                onClick={() => onOpenQuoteModal()}
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-500 transition-all active:scale-95 min-h-[44px]"
+              >
+                <FileText className="w-4 h-4 text-sky-400" />
+                <span>Request Custom Quote</span>
+              </button>
             </div>
 
             {/* Quick Visiting Card badge trigger */}

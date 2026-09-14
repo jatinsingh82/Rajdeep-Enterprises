@@ -13,9 +13,11 @@ import {
   Sparkles,
   ArrowRight,
   CheckCircle2,
-  FileCheck
+  FileCheck,
+  Send
 } from 'lucide-react';
 import { Product, Language } from '../types';
+import { COMPANY_INFO } from '../data/companyData';
 import { TradeKitsSection } from './TradeKitsSection';
 import { GstGuideSection } from './GstGuideSection';
 import { StandardsSection } from './StandardsSection';
@@ -470,16 +472,41 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                       )}
                     </div>
 
-                    {/* Bottom Collapse Bar inside open panel for effortless quick close */}
-                    <div className="px-4 sm:px-6 py-3 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
-                      <span className="text-slate-500 font-medium text-center sm:text-left">
-                        Finished reviewing {lang === 'en' ? sec.titleEn : sec.titleHi}?
-                      </span>
+                    {/* Bottom Action & Business Conversion Bar inside open panel */}
+                    <div className="px-4 sm:px-6 py-3.5 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                      <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+                        <button
+                          type="button"
+                          onClick={() => onOpenQuoteModal(`Inquiry from Guide: ${sec.titleEn}`)}
+                          className="min-h-[40px] w-full sm:w-auto inline-flex items-center justify-center gap-1.5 text-white bg-blue-600 hover:bg-blue-500 font-bold px-4 py-2 rounded-xl shadow-xs transition active:scale-95"
+                        >
+                          <Send className="w-3.5 h-3.5" />
+                          <span>
+                            {sec.id === 'trade-kits' && 'Request Quote for Recommended Kit'}
+                            {sec.id === 'gst-compliance' && 'Request Official GST Quotation'}
+                            {sec.id === 'standards' && 'Enquire for IOCL Gate Clearance Materials'}
+                            {sec.id === 'industries' && 'Request Quote for Industry Setup'}
+                            {sec.id === 'faqs' && 'Request Custom Quote'}
+                          </span>
+                        </button>
+
+                        <a
+                          href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(`Hello Rajdeep Enterprises, I was reviewing your ${sec.titleEn} guide and would like to consult specs.`)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="min-h-[40px] w-full sm:w-auto inline-flex items-center justify-center gap-1.5 text-white bg-emerald-600 hover:bg-emerald-500 font-bold px-3.5 py-2 rounded-xl shadow-xs transition active:scale-95"
+                        >
+                          <span className="text-sm">💬</span>
+                          <span>Consult Specs on WhatsApp</span>
+                        </a>
+                      </div>
+
                       <button
+                        type="button"
                         onClick={() => toggleSection(sec.id)}
-                        className="w-full sm:w-auto min-h-[38px] inline-flex items-center justify-center gap-1.5 text-blue-700 hover:text-blue-900 font-bold px-3.5 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-slate-400 transition shadow-2xs"
+                        className="w-full sm:w-auto min-h-[40px] inline-flex items-center justify-center gap-1.5 text-slate-700 hover:text-slate-900 font-bold px-3.5 py-2 rounded-xl bg-white border border-slate-300 hover:border-slate-400 transition shadow-2xs"
                       >
-                        <ChevronUp className="w-3.5 h-3.5" />
+                        <ChevronUp className="w-3.5 h-3.5 text-slate-500" />
                         <span>Collapse Guide</span>
                       </button>
                     </div>

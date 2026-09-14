@@ -7,36 +7,36 @@ interface WhyChooseUsProps {
 }
 
 export const WhyChooseUs: React.FC<WhyChooseUsProps> = ({ onOpenQuoteModal }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const points = [
     {
       id: "quality",
-      title: "Quality Products",
-      desc: "Tested safety PPE meeting BIS & IS standards for refinery inspection passes.",
+      title: "Gate Pass Ready PPE",
+      desc: "Conforming to strict BIS, IS & EN safety norms for hassle-free IOCL refinery gate passes.",
       icon: ShieldCheck,
       badge: "Tested Standards"
     },
     {
       id: "service",
-      title: "Direct Owner Support",
-      desc: "Consultation directly with Raj Singh Tarkar ensures accurate sizing & specs.",
+      title: "Direct Owner Accountability",
+      desc: "Direct guidance with proprietor Raj Singh Tarkar ensures exact specifications and sizing.",
       icon: Headphones,
       badge: "Direct Support"
     },
     {
       id: "local",
-      title: "Trusted Refinery Hub",
-      desc: "Located at UP SIDC Complex, Refinery Main Gate for 30–60 min rapid dispatch.",
+      title: "Refinery Main Gate Depot",
+      desc: "Located at UP SIDC Complex opposite Mathura Refinery Main Gate for 30–60 min rapid pickup.",
       icon: MapPin,
       badge: "Refinery Hub"
     },
     {
       id: "enquiries",
-      title: "Instant RFQ & Delivery",
-      desc: "Swift phone, WhatsApp, and form communication. No procurement bottlenecks.",
-      icon: MessageSquare,
-      badge: "Quick Response"
+      title: "100% GST & Pan-India Supply",
+      desc: "Genuine tax invoices for full ITC credit. Zero order minimums across all 28 states of India.",
+      icon: Truck,
+      badge: "GST Invoiced"
     }
   ];
 
