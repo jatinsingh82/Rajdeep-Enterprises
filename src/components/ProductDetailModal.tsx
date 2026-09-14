@@ -39,13 +39,55 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const [rfqFeedback, setRfqFeedback] = useState<string | null>(null);
   const qtyInputId = useId();
 
-  // Reset quantity and feedback whenever product changes
-  useEffect(() => {
-    if (product) {
-      setQuantity(10);
-      setRfqFeedback(null);
+  // Helper to extract brand if available in specifications or badge
+  const brandName = (() => {
+    if (!product) return null;
+    const foundBrand = product.specifications.find((s) => s.toLowerCase().startsWith('brand:'));
+    if (foundBrand) {
+      return foundBrand.split(':')[1]?.trim() || null;
     }
-  }, [product]);
+    return product.badge?.includes('Karam') ? 'Karam' : null;
+  })();
+
+  // Update document title, meta and inject Product JSON-LD schema dynamically
+  useEffect(() => {
+    if (!product) return;
+
+    const originalTitle = document.title;
+    document.title = `${product.name} | Industrial Safety Supplies | Rajdeep Enterprises Mathura`;
+
+    // Inject Product JSON-LD
+    const scriptId = 'product-jsonld-script';
+    let scriptEl = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (!scriptEl) {
+      scriptEl = document.createElement('script');
+      scriptEl.id = scriptId;
+      scriptEl.type = 'application/ld+json';
+      document.head.appendChild(scriptEl);
+    }
+
+    const productSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      description: product.shortDescription,
+      image: typeof product.image === 'string' ? product.image : undefined,
+      category: product.category,
+      brand: {
+        '@type': 'Brand',
+        name: brandName || 'Rajdeep Enterprises'
+      }
+    };
+    scriptEl.textContent = JSON.stringify(productSchema);
+
+    return () => {
+      document.title = originalTitle;
+      const el = document.getElementById(scriptId);
+      if (el) {
+        el.remove();
+      }
+    };
+  }, [product, brandName]);
 
   // Lock background scroll when open
   useEffect(() => {
@@ -123,7 +165,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
   // Extract brand if available in specifications or badge
   const brandSpec = parsedSpecs.find((s) => s.label.toLowerCase() === 'brand');
-  const brandName = brandSpec ? brandSpec.value : product.badge?.includes('Karam') ? 'Karam' : null;
+  const resolvedBrand = brandName || (brandSpec ? brandSpec.value : null);
 
   // Related products from same category or featured safety
   const relatedProducts = PRODUCTS.filter(
@@ -177,6 +219,17 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         {/* Scrollable Modal Body */}
         <div className="p-4 sm:p-6 overflow-y-auto space-y-5 sm:space-y-6 text-slate-800 flex-1">
           
+          {/* SEO & User-Friendly Product Breadcrumbs */}
+          <nav aria-label="Breadcrumb" className="text-xs text-slate-500 flex items-center gap-1.5 flex-wrap">
+            <a href="#home" onClick={onClose} className="hover:text-blue-600 transition-colors">Home</a>
+            <ChevronRight className="w-3 h-3 text-slate-400" />
+            <a href="#products" onClick={onClose} className="hover:text-blue-600 transition-colors">Products</a>
+            <ChevronRight className="w-3 h-3 text-slate-400" />
+            <span className="text-slate-600 font-medium">{product.category}</span>
+            <ChevronRight className="w-3 h-3 text-slate-400" />
+            <span className="text-slate-900 font-bold truncate max-w-[200px] sm:max-w-none">{product.name}</span>
+          </nav>
+
           {/* Main 2-Column Product Layout on Desktop */}
           <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 items-start">
             
@@ -186,6 +239,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 <img
                   src={product.image}
                   alt={`${product.name} industrial supply from Rajdeep Enterprises Mathura`}
+                  width="600"
+                  height="600"
                   className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
                   referrerPolicy="no-referrer"
                 />

@@ -17,7 +17,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
     quantity: 'Bulk Industrial Supply',
     message: ''
   });
-
+  const [honeypot, setHoneypot] = useState('');
+  const [enquiryReference, setEnquiryReference] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
@@ -27,21 +28,25 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
     if (errorMessage) setErrorMessage('');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
+    // Client-side Validation
     if (!formData.fullName.trim()) {
       setErrorMessage('Please enter your full name.');
       return;
     }
-    if (!formData.phoneNumber.trim() || formData.phoneNumber.length < 10) {
-      setErrorMessage('Please provide a valid 10-digit phone number so we can respond.');
+    const cleanPhone = formData.phoneNumber.replace(/[^0-9]/g, '');
+    if (!cleanPhone || cleanPhone.length < 10) {
+      setErrorMessage('Please provide a valid 10-digit mobile number so our team can respond.');
       return;
     }
-    if (!formData.emailAddress.trim() || !formData.emailAddress.includes('@')) {
-      setErrorMessage('Please enter a valid email address.');
-      return;
+    if (formData.emailAddress.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(formData.emailAddress.trim())) {
+        setErrorMessage('Please enter a valid email address or leave it blank.');
+        return;
+      }
     }
     if (!formData.productRequirement.trim()) {
       setErrorMessage('Please specify your product requirement.');
@@ -51,22 +56,61 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
     setIsSubmitting(true);
     setErrorMessage('');
 
-    // Simulate reliable dispatch & store inquiry locally
-    setTimeout(() => {
-      try {
-        const stored = JSON.parse(localStorage.getItem('rajdeep_enquiries') || '[]');
-        stored.push({
-          ...formData,
-          submittedAt: new Date().toISOString()
-        });
-        localStorage.setItem('rajdeep_enquiries', JSON.stringify(stored));
-      } catch (e) {
-        console.error(e);
-      }
+    // Always backup to local storage for zero data loss
+    try {
+      const stored = JSON.parse(localStorage.getItem('rajdeep_enquiries') || '[]');
+      stored.push({
+        ...formData,
+        submittedAt: new Date().toISOString()
+      });
+      localStorage.setItem('rajdeep_enquiries', JSON.stringify(stored));
+    } catch {
+      // ignore storage quota issues
+    }
 
-      setIsSubmitting(false);
+    // Call server API with timeout controller (8s)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const res = await fetch('/api/enquiry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          companyName: formData.companyName,
+          phoneNumber: formData.phoneNumber,
+          emailAddress: formData.emailAddress,
+          productRequirement: formData.productRequirement,
+          quantity: formData.quantity,
+          message: formData.message,
+          website_hp: honeypot // Anti-spam honeypot
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const data = await res.json();
+
+      if (res.ok && data.success) {
+        setEnquiryReference(data.enquiryId || '');
+        setSubmitSuccess(true);
+      } else {
+        // Fallback gracefully without showing internal stack traces
+        setErrorMessage(data.error || 'Unable to submit enquiry right now. Your requirement has been saved locally. Please connect on WhatsApp.');
+        setSubmitSuccess(true); // Allow user to proceed via WhatsApp
+      }
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      if (err.name === 'AbortError') {
+        setErrorMessage('Network timeout. Your requirement is saved locally. You can dispatch directly via WhatsApp.');
+      }
       setSubmitSuccess(true);
-    }, 800);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const sendDirectWhatsApp = () => {
@@ -288,6 +332,11 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                   <h4 className="text-lg font-bold text-emerald-900">
                     Enquiry Submitted Successfully!
                   </h4>
+                  {enquiryReference && (
+                    <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-900 rounded-lg text-xs font-mono font-bold">
+                      Ref ID: {enquiryReference}
+                    </div>
+                  )}
                   <p className="text-xs sm:text-sm text-emerald-800 max-w-md mx-auto">
                     Thank you, <strong className="font-semibold">{formData.fullName}</strong>. We have received your requirement for <strong className="font-semibold">{formData.productRequirement}</strong>. We will get in touch with you shortly at <strong className="font-semibold">{formData.phoneNumber}</strong>.
                   </p>
@@ -320,6 +369,18 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                 </div>
               ) : (
                 <form onSubmit={handleSubmit} className="space-y-4 text-left">
+                  {/* Anti-spam honeypot input (invisible to real users) */}
+                  <input
+                    type="text"
+                    name="website_hp"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    aria-hidden="true"
+                    value={honeypot}
+                    onChange={(e) => setHoneypot(e.target.value)}
+                    style={{ position: 'absolute', opacity: 0, zIndex: -1, pointerEvents: 'none', height: 0, width: 0 }}
+                  />
+
                   {errorMessage && (
                     <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
                       <AlertCircle className="w-4 h-4 shrink-0" />

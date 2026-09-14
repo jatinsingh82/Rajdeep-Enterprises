@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Disallow private and administrative assets
+Disallow: /api/
+Disallow: /private/
+
+# Sitemap location
+Sitemap: https://ais-pre-vzx65xo5tfk2j5f6z3tbec-761216421422.asia-southeast1.run.app/sitemap.xml

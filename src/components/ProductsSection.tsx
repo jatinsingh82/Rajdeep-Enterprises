@@ -209,7 +209,9 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                   >
                     <img
                       src={product.image}
-                      alt={product.name}
+                      alt={`${product.name} - ${product.category} supplied by Rajdeep Enterprises Mathura`}
+                      width="400"
+                      height="300"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       loading="lazy"
                       referrerPolicy="no-referrer"

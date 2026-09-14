@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { HelpCircle, ChevronDown, CheckCircle2, Shield, Phone, MessageSquare } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
 
@@ -89,6 +89,37 @@ export const FaqSection: React.FC<FaqSectionProps> = ({
   const toggleFaq = (id: string) => {
     setOpenFaqId(prev => (prev === id ? '' : id));
   };
+
+  // Inject valid FAQPage Schema.org structured data
+  useEffect(() => {
+    const scriptId = 'faq-jsonld-script';
+    let scriptEl = document.getElementById(scriptId) as HTMLScriptElement | null;
+    if (!scriptEl) {
+      scriptEl = document.createElement('script');
+      scriptEl.id = scriptId;
+      scriptEl.type = 'application/ld+json';
+      document.head.appendChild(scriptEl);
+    }
+
+    const faqSchema = {
+      '@context': 'https://schema.org',
+      '@type': 'FAQPage',
+      mainEntity: FAQ_DATA.map(faq => ({
+        '@type': 'Question',
+        name: lang === 'en' ? faq.questionEn : faq.questionHi,
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: lang === 'en' ? faq.answerEn : faq.answerHi
+        }
+      }))
+    };
+    scriptEl.textContent = JSON.stringify(faqSchema);
+
+    return () => {
+      const el = document.getElementById(scriptId);
+      if (el) el.remove();
+    };
+  }, [lang]);
 
   return (
     <div id="faqs" className="py-4 sm:py-6 px-1 sm:px-4 w-full bg-slate-50 relative overflow-x-hidden">

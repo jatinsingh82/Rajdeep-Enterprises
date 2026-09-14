@@ -34,9 +34,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
           </div>
 
           {/* 2. Responsive Heading with clamp() */}
-          <h1 className="text-[clamp(1.65rem,6.5vw,2.25rem)] font-black text-white tracking-tight leading-[1.2]">
+          <div className="text-[clamp(1.65rem,6.5vw,2.25rem)] font-black text-white tracking-tight leading-[1.2]">
             Industrial Safety & Material Supplies in Mathura
-          </h1>
+          </div>
 
           {/* 3. Short Description (16px body) */}
           <p className="text-base text-slate-300 leading-relaxed">
@@ -118,8 +118,11 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <img
                 src={photoUrl}
                 alt="Rajdeep Enterprises Storefront and Proprietor at Mathura Refinery Main Gate"
-                className="w-full h-auto max-h-[240px] sm:max-h-[280px] object-contain block mx-auto"
+                width="480"
+                height="320"
+                className="w-full h-auto max-h-[240px] sm:max-h-[280px] object-contain block mx-auto aspect-[3/2]"
                 loading="eager"
+                fetchPriority="high"
                 referrerPolicy="no-referrer"
               />
             </div>
@@ -265,8 +268,11 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                   <img
                     src={photoUrl}
                     alt="Shop owner Raj Singh Tarkar standing outside Rajdeep Enterprises store at UP SIDC Complex Refinery Main Gate Mathura"
-                    className="w-full h-auto max-h-[520px] object-contain block"
+                    width="600"
+                    height="700"
+                    className="w-full h-auto max-h-[520px] object-contain block aspect-[6/7]"
                     loading="eager"
+                    fetchPriority="high"
                     referrerPolicy="no-referrer"
                   />
                 </div>

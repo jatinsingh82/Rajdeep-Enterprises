@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { EmergencyHotlineBanner } from './components/EmergencyHotlineBanner';
@@ -13,16 +13,18 @@ import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { MobileBottomActionBar } from './components/MobileBottomActionBar';
-import { VisitingCardModal } from './components/VisitingCardModal';
-import { ProductDetailModal } from './components/ProductDetailModal';
-import { EnquiryModal } from './components/EnquiryModal';
-import { RfqModal } from './components/RfqModal';
-import { BrandingPreviewModal } from './components/BrandingPreviewModal';
-import { SizingGuideModal } from './components/SizingGuideModal';
-import { HseAuditModal } from './components/HseAuditModal';
-import { VendorDossierModal } from './components/VendorDossierModal';
 import { Product, RfqItem, Language } from './types';
 import { generateProductCataloguePdf } from './utils/pdfGenerator';
+
+// Code-split secondary modals to reduce initial JavaScript bundle and improve INP/LCP
+const VisitingCardModal = lazy(() => import('./components/VisitingCardModal').then(m => ({ default: m.VisitingCardModal })));
+const ProductDetailModal = lazy(() => import('./components/ProductDetailModal').then(m => ({ default: m.ProductDetailModal })));
+const EnquiryModal = lazy(() => import('./components/EnquiryModal').then(m => ({ default: m.EnquiryModal })));
+const RfqModal = lazy(() => import('./components/RfqModal').then(m => ({ default: m.RfqModal })));
+const BrandingPreviewModal = lazy(() => import('./components/BrandingPreviewModal').then(m => ({ default: m.BrandingPreviewModal })));
+const SizingGuideModal = lazy(() => import('./components/SizingGuideModal').then(m => ({ default: m.SizingGuideModal })));
+const HseAuditModal = lazy(() => import('./components/HseAuditModal').then(m => ({ default: m.HseAuditModal })));
+const VendorDossierModal = lazy(() => import('./components/VendorDossierModal').then(m => ({ default: m.VendorDossierModal })));
 
 export default function App() {
   const [lang, setLang] = useState<Language>('en');
@@ -224,71 +226,90 @@ export default function App() {
       {/* Mobile-Only Fixed Bottom Action Bar (Call, WhatsApp, Directions) */}
       <MobileBottomActionBar />
 
-      {/* Digital Visiting Card Replica Modal */}
-      <VisitingCardModal
-        isOpen={isVisitingCardOpen}
-        onClose={() => setIsVisitingCardOpen(false)}
-      />
+      {/* Code-split and lazily loaded secondary modals */}
+      <Suspense fallback={null}>
+        {/* Digital Visiting Card Replica Modal */}
+        {isVisitingCardOpen && (
+          <VisitingCardModal
+            isOpen={isVisitingCardOpen}
+            onClose={() => setIsVisitingCardOpen(false)}
+          />
+        )}
 
-      {/* Product Detail Specifications Modal */}
-      <ProductDetailModal
-        product={selectedDetailProduct}
-        onClose={() => setSelectedDetailProduct(null)}
-        onEnquire={handleEnquireFromProduct}
-        onAddToRfq={handleAddToRfq}
-        isInRfq={selectedDetailProduct ? rfqProductIds.includes(selectedDetailProduct.id) : false}
-        onSelectProduct={handleSelectProduct}
-      />
+        {/* Product Detail Specifications Modal */}
+        {selectedDetailProduct && (
+          <ProductDetailModal
+            product={selectedDetailProduct}
+            onClose={() => setSelectedDetailProduct(null)}
+            onEnquire={handleEnquireFromProduct}
+            onAddToRfq={handleAddToRfq}
+            isInRfq={selectedDetailProduct ? rfqProductIds.includes(selectedDetailProduct.id) : false}
+            onSelectProduct={handleSelectProduct}
+          />
+        )}
 
-      {/* Quick Quote / Enquiry Modal */}
-      <EnquiryModal
-        isOpen={isQuoteModalOpen}
-        onClose={() => setIsQuoteModalOpen(false)}
-        productName={selectedQuoteProduct}
-        category={selectedQuoteCategory}
-        initialQuantity={selectedQuoteQuantity}
-      />
+        {/* Quick Quote / Enquiry Modal */}
+        {isQuoteModalOpen && (
+          <EnquiryModal
+            isOpen={isQuoteModalOpen}
+            onClose={() => setIsQuoteModalOpen(false)}
+            productName={selectedQuoteProduct}
+            category={selectedQuoteCategory}
+            initialQuantity={selectedQuoteQuantity}
+          />
+        )}
 
-      {/* Bulk RFQ Cart Modal */}
-      <RfqModal
-        isOpen={isRfqModalOpen}
-        onClose={() => setIsRfqModalOpen(false)}
-        rfqItems={rfqItems}
-        onUpdateQuantity={handleUpdateRfqQuantity}
-        onSetExactQuantity={handleSetExactQuantity}
-        onRemoveItem={handleRemoveRfqItem}
-        onClearCart={handleClearRfqCart}
-        lang={lang}
-      />
+        {/* Bulk RFQ Cart Modal */}
+        {isRfqModalOpen && (
+          <RfqModal
+            isOpen={isRfqModalOpen}
+            onClose={() => setIsRfqModalOpen(false)}
+            rfqItems={rfqItems}
+            onUpdateQuantity={handleUpdateRfqQuantity}
+            onSetExactQuantity={handleSetExactQuantity}
+            onRemoveItem={handleRemoveRfqItem}
+            onClearCart={handleClearRfqCart}
+            lang={lang}
+          />
+        )}
 
-      {/* Custom PPE Branding & Logo Printing Studio Modal */}
-      <BrandingPreviewModal
-        isOpen={isBrandingModalOpen}
-        onClose={() => setIsBrandingModalOpen(false)}
-        onOpenQuoteModal={handleOpenQuoteModal}
-      />
+        {/* Custom PPE Branding & Logo Printing Studio Modal */}
+        {isBrandingModalOpen && (
+          <BrandingPreviewModal
+            isOpen={isBrandingModalOpen}
+            onClose={() => setIsBrandingModalOpen(false)}
+            onOpenQuoteModal={handleOpenQuoteModal}
+          />
+        )}
 
-      {/* Safety Shoe & Glove Sizing Guide Modal */}
-      <SizingGuideModal
-        isOpen={isSizingModalOpen}
-        onClose={() => setIsSizingModalOpen(false)}
-        onOpenQuoteModal={handleOpenQuoteModal}
-      />
+        {/* Safety Shoe & Glove Sizing Guide Modal */}
+        {isSizingModalOpen && (
+          <SizingGuideModal
+            isOpen={isSizingModalOpen}
+            onClose={() => setIsSizingModalOpen(false)}
+            onOpenQuoteModal={handleOpenQuoteModal}
+          />
+        )}
 
-      {/* HSE Site Gate Audit Checklist & PPE Shelf-Life Calculator Modal */}
-      <HseAuditModal
-        isOpen={isHseAuditOpen}
-        onClose={() => setIsHseAuditOpen(false)}
-        onOpenQuoteModal={handleOpenQuoteModal}
-        onAddProductToRfq={handleAddToRfq}
-      />
+        {/* HSE Site Gate Audit Checklist & PPE Shelf-Life Calculator Modal */}
+        {isHseAuditOpen && (
+          <HseAuditModal
+            isOpen={isHseAuditOpen}
+            onClose={() => setIsHseAuditOpen(false)}
+            onOpenQuoteModal={handleOpenQuoteModal}
+            onAddProductToRfq={handleAddToRfq}
+          />
+        )}
 
-      {/* Corporate Vendor Empanelment & Procurement Dossier Modal */}
-      <VendorDossierModal
-        isOpen={isVendorDossierOpen}
-        onClose={() => setIsVendorDossierOpen(false)}
-        onOpenQuoteModal={handleOpenQuoteModal}
-      />
+        {/* Corporate Vendor Empanelment & Procurement Dossier Modal */}
+        {isVendorDossierOpen && (
+          <VendorDossierModal
+            isOpen={isVendorDossierOpen}
+            onClose={() => setIsVendorDossierOpen(false)}
+            onOpenQuoteModal={handleOpenQuoteModal}
+          />
+        )}
+      </Suspense>
     </div>
   );
 }

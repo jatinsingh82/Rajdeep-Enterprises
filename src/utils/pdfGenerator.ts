@@ -1,8 +1,8 @@
-import { jsPDF } from 'jspdf';
 import { COMPANY_INFO, PRODUCTS } from '../data/companyData';
 import { COMPLIANCE_STANDARDS } from '../data/extraData';
 
-export const generateProductCataloguePdf = () => {
+export const generateProductCataloguePdf = async () => {
+  const { jsPDF } = await import('jspdf');
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',

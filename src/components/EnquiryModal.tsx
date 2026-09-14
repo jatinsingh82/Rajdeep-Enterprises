@@ -27,6 +27,8 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
   const [deliveryLocation, setDeliveryLocation] = useState('Mathura Refinery / Site Delivery');
   const [extraItems, setExtraItems] = useState('');
   const [notes, setNotes] = useState('');
+  const [honeypot, setHoneypot] = useState('');
+  const [enquiryRef, setEnquiryRef] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -49,6 +51,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
       document.body.style.overflow = 'hidden';
       setSubmitted(false);
       setErrors({});
+      setEnquiryRef('');
     } else {
       document.body.style.overflow = '';
     }
@@ -108,7 +111,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
     window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank');
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
       return;
@@ -116,6 +119,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
 
     setIsSubmitting(true);
 
+    // Save locally as reliable fallback
     try {
       const stored = JSON.parse(localStorage.getItem('rajdeep_enquiries') || '[]');
       stored.push({
@@ -132,14 +136,46 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
         submittedAt: new Date().toISOString()
       });
       localStorage.setItem('rajdeep_enquiries', JSON.stringify(stored));
-    } catch (err) {
-      console.error('Error saving enquiry to local storage', err);
+    } catch {
+      // ignore
     }
 
-    setTimeout(() => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const res = await fetch('/api/enquiry', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fullName: name,
+          companyName: company,
+          phoneNumber: phone,
+          emailAddress: email,
+          productRequirement: requirement,
+          category: productCategory,
+          quantity,
+          deliveryLocation,
+          message: notes,
+          website_hp: honeypot
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setEnquiryRef(data.enquiryId || '');
+      }
+    } catch {
+      clearTimeout(timeoutId);
+      // Fail gracefully: local backup is saved, user can dispatch to WhatsApp
+    } finally {
       setIsSubmitting(false);
       setSubmitted(true);
-    }, 400);
+    }
   };
 
   return (
@@ -185,6 +221,11 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
               <h3 className="text-lg sm:text-xl font-black text-slate-900">
                 Quotation Request Received!
               </h3>
+              {enquiryRef && (
+                <div className="inline-block px-3 py-1 bg-emerald-100 text-emerald-900 rounded-lg text-xs font-mono font-bold">
+                  Quotation Ref: {enquiryRef}
+                </div>
+              )}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 max-w-sm mx-auto text-left space-y-1.5">
                 <p>
                   <strong>Client:</strong> {name} {company && `(${company})`}
@@ -223,7 +264,18 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3.5 text-left text-xs" noValidate>
-              
+              {/* Anti-spam honeypot input */}
+              <input
+                type="text"
+                name="website_hp"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
+                style={{ position: 'absolute', opacity: 0, zIndex: -1, pointerEvents: 'none', height: 0, width: 0 }}
+              />
+
               {/* Product Info Card (carried automatically from product discovery) */}
               <div className="p-3 rounded-xl bg-orange-50/80 border border-orange-200">
                 <label className="block font-bold text-orange-950 uppercase tracking-wider text-[11px] mb-1 flex items-center justify-between">
