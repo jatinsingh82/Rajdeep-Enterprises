@@ -16,12 +16,15 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
         {/* Mobile View: Compact single-row emergency alert */}
         <div className="flex md:hidden items-center justify-between w-full gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="w-2.5 h-2.5 rounded-full bg-red-500 animate-ping shrink-0" />
+            <span className="relative flex h-2.5 w-2.5 shrink-0">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+            </span>
             <div className="min-w-0">
-              <span className="font-black text-red-400 uppercase tracking-wider text-[10px] block">
+              <span className="font-extrabold text-red-400 uppercase tracking-wider text-[10px] block leading-tight truncate">
                 24/7 Refinery Emergency
               </span>
-              <span className="text-slate-200 text-xs font-semibold truncate block">
+              <span className="text-slate-200 text-xs font-semibold block leading-tight truncate">
                 30–60 Min Rapid Dispatch
               </span>
             </div>
@@ -29,20 +32,15 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
 
           <div className="flex items-center gap-1.5 shrink-0">
             <a
+              id="emergency-mobile-call-btn"
               href={`tel:${COMPANY_INFO.phone}`}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-red-600 active:bg-red-700 text-white font-black text-xs shadow transition"
+              className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 hover:bg-red-500 active:bg-red-700 text-white font-extrabold text-xs shadow-md transition-all active:scale-95 min-h-[38px] min-w-[90px] text-center"
               title="Call 24/7 Emergency Hotline"
+              aria-label={`Call emergency hotline ${COMPANY_INFO.phone}`}
             >
-              <Phone className="w-3.5 h-3.5" />
+              <Phone className="w-3.5 h-3.5 shrink-0" />
               <span>Call Now</span>
             </a>
-            <button
-              onClick={() => onOpenQuoteModal("Urgent Emergency Breakdown PPE Supply")}
-              className="inline-flex items-center px-2 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[11px] font-bold"
-              title="Request Dispatch"
-            >
-              <Zap className="w-3 h-3 text-amber-400" />
-            </button>
           </div>
         </div>
 

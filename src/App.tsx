@@ -131,8 +131,8 @@ export default function App() {
         onOpenQuoteModal={handleOpenQuoteModal}
       />
 
-      {/* Main Page Sections - Organized in Strict Top-to-Bottom Sequential Order */}
-      <main className="flex-1 pb-16 md:pb-0">
+      {/* Main Page Sections - Organized in Strict Top-to-Bottom Sequential Order with ample bottom padding for mobile sticky CTA */}
+      <main className="flex-1 pb-24 sm:pb-28 md:pb-0">
         {/* 1. Hero Section with Real Shop Owner Front & Direct Contact */}
         <Hero
           onOpenQuoteModal={handleOpenQuoteModal}

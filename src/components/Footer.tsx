@@ -17,7 +17,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
       {/* Top Hazard Accent Line */}
       <div className="h-1.5 hazard-stripe-light opacity-80"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-20 sm:pb-10">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80">
           
           {/* Col 1: Business Identity & Description */}
@@ -105,7 +105,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
                 <a href="#pan-india" className="text-sky-300 font-bold hover:text-sky-200 transition-colors">🇮🇳 Whole India Supply</a>
               </li>
               <li>
-                <a href="#tools-and-guides" className="hover:text-sky-400 transition-colors">Tools & Guides (Dropdown Hub)</a>
+                <a href="#tools-and-guides" className="hover:text-sky-400 transition-colors">Tools, Compliance & Industrial Guides</a>
               </li>
               <li>
                 <a href="#principles" className="hover:text-sky-400 transition-colors">Core Principles</a>

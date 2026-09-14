@@ -89,10 +89,10 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden">
+      <div className="relative w-full max-w-lg max-h-[90vh] flex flex-col bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden">
         
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white">
+        <div className="flex items-center justify-between px-6 py-4 bg-slate-900 text-white shrink-0">
           <div>
             <span className="text-[10px] font-bold text-orange-400 uppercase tracking-wider block">
               Quick Quotation Request
@@ -110,7 +110,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
         </div>
 
         {/* Content */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           {submitted ? (
             <div className="text-center py-6 space-y-4">
               <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto">
@@ -234,15 +234,15 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
                   value={deliveryLocation}
                   onChange={(e) => setDeliveryLocation(e.target.value)}
                   placeholder="e.g. Surat, Mathura Refinery, Jamnagar, Paradip, Delhi NCR (Any City/Pin Code)"
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-xs rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                 />
               </div>
 
               {/* Extra Items / Custom Sourcing */}
-              <div className="bg-amber-50/80 p-3 rounded-lg border border-amber-200">
+              <div className="bg-amber-50/80 p-3 rounded-xl border border-amber-200">
                 <label className="block font-bold text-amber-950 uppercase tracking-wider text-[11px] mb-1 flex items-center justify-between">
                   <span>Need Anything Extra or Not Listed?</span>
-                  <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.2 rounded font-bold">Custom Sourcing</span>
+                  <span className="text-[10px] bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-bold">Custom Sourcing</span>
                 </label>
                 <p className="text-[11px] text-amber-800 mb-1.5">
                   Want anything extra added to this supply? Mention it here and we will supply it on demand:
@@ -252,7 +252,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
                   value={extraItems}
                   onChange={(e) => setExtraItems(e.target.value)}
                   placeholder="e.g. Custom logo printing, specialized chemical boots, emergency shower, tripod..."
-                  className="w-full px-3 py-1.5 text-xs rounded border border-amber-300 bg-white focus:border-orange-500 outline-none"
+                  className="w-full min-h-[44px] px-3.5 py-2.5 text-base sm:text-xs rounded-xl border border-amber-300 bg-white focus:border-orange-500 outline-none"
                 />
               </div>
 
@@ -266,7 +266,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Mention delivery urgency, certification needs, or sizes..."
-                  className="w-full px-3 py-2 text-xs rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
+                  className="w-full px-3.5 py-2.5 text-base sm:text-xs rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none"
                 ></textarea>
               </div>
 
@@ -274,7 +274,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
               <div className="pt-2 flex flex-col gap-2">
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-lg font-bold text-xs text-white bg-orange-600 hover:bg-orange-500 transition flex items-center justify-center gap-1.5 shadow-sm"
+                  className="w-full min-h-[44px] py-2.5 rounded-xl font-bold text-xs text-white bg-orange-600 hover:bg-orange-500 transition flex items-center justify-center gap-1.5 shadow-sm"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>Submit Quotation Request</span>
@@ -290,7 +290,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
                   <button
                     type="button"
                     onClick={handleWhatsAppInstant}
-                    className="py-2 px-3 rounded-lg font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 transition flex items-center justify-center gap-1.5"
+                    className="min-h-[44px] py-2 px-3 rounded-xl font-bold text-xs text-white bg-emerald-600 hover:bg-emerald-500 transition flex items-center justify-center gap-1.5"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
                     <span>WhatsApp</span>
@@ -298,7 +298,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({ isOpen, onClose, pro
 
                   <a
                     href={`tel:${COMPANY_INFO.phone}`}
-                    className="py-2 px-3 rounded-lg font-bold text-xs text-slate-900 bg-amber-400 hover:bg-amber-300 transition flex items-center justify-center gap-1.5"
+                    className="min-h-[44px] py-2 px-3 rounded-xl font-bold text-xs text-slate-900 bg-amber-400 hover:bg-amber-300 transition flex items-center justify-center gap-1.5"
                   >
                     <Phone className="w-3.5 h-3.5" />
                     <span>Call Direct</span>

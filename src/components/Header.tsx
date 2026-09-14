@@ -167,9 +167,9 @@ export const Header: React.FC<HeaderProps> = ({
               {toolsDropdownOpen && (
                 <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[85vh] overflow-y-auto">
                   
-                  {/* Category 1: Collapsible Dropdown Guides */}
+                  {/* Category 1: Collapsible Guides */}
                   <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-400 border-b border-slate-800 flex items-center justify-between">
-                    <span>Interactive Guides (Drop Down)</span>
+                    <span>Interactive Guides & Tools</span>
                     <span className="text-slate-500 font-normal">On-Page</span>
                   </div>
 
@@ -307,10 +307,10 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1 leading-tight">
-                <span className="font-extrabold text-xs sm:text-base lg:text-lg tracking-tight text-slate-900 truncate">
+                <span className="font-extrabold text-xs sm:text-base lg:text-lg tracking-tight text-slate-900 whitespace-nowrap">
                   RAJDEEP
                 </span>
-                <span className="font-bold text-xs sm:text-base lg:text-lg tracking-tight text-orange-600 truncate">
+                <span className="font-bold text-xs sm:text-base lg:text-lg tracking-tight text-orange-600 whitespace-nowrap">
                   ENTERPRISES
                 </span>
               </div>
@@ -391,7 +391,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-11 h-11 flex items-center justify-center text-slate-800 hover:text-orange-600 rounded-xl hover:bg-slate-100 focus:outline-none transition-colors"
+              className="w-11 h-11 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-800 hover:text-orange-600 rounded-xl hover:bg-slate-100 focus:outline-none transition-colors"
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
             >

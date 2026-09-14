@@ -286,7 +286,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                   placeholder="e.g. 50 nos. chemical splash suits, 10 nos. tripod winch, custom contractor logo printed on safety helmets, 200m lifeline..."
                   value={extraItems}
                   onChange={(e) => setExtraItems(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-orange-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-xs text-slate-900 placeholder:text-slate-400"
+                  className="w-full px-3 py-2 rounded-xl border border-orange-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-base sm:text-xs text-slate-900 placeholder:text-slate-400"
                 />
               </div>
 
@@ -304,7 +304,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                       placeholder="e.g. Ramesh Sharma"
                       value={contractorName}
                       onChange={(e) => setContractorName(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-slate-900"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-base sm:text-xs text-slate-900"
                     />
                   </div>
 
@@ -315,7 +315,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                       placeholder="e.g. Sharma Mechanical Works"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-slate-900"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-base sm:text-xs text-slate-900"
                     />
                   </div>
 
@@ -326,7 +326,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                       placeholder="e.g. 9876543210"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-slate-900"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-base sm:text-xs text-slate-900"
                     />
                   </div>
 
@@ -337,7 +337,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                       placeholder="e.g. Surat, Mathura Refinery, Jamnagar, Delhi NCR (Any City/Pin Code)"
                       value={siteLocation}
                       onChange={(e) => setSiteLocation(e.target.value)}
-                      className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-slate-900"
+                      className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-base sm:text-xs text-slate-900"
                     />
                   </div>
                 </div>
@@ -349,7 +349,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                     placeholder="e.g. Shoe sizes: UK 7 (20 prs), UK 8 (30 prs) / Urgent dispatch by Friday"
                     value={notes}
                     onChange={(e) => setNotes(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-xs text-slate-900"
+                    className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-base sm:text-xs text-slate-900"
                   />
                 </div>
 

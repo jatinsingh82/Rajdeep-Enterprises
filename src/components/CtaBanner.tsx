@@ -27,11 +27,11 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({ onOpenQuoteModal }) => {
         </p>
 
         {/* 3 Prominent Action Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 pt-2 max-w-md sm:max-w-none mx-auto">
           <a
             id="cta-call-now-btn"
             href={`tel:${COMPANY_INFO.phone}`}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-black text-sm text-slate-950 bg-sky-400 hover:bg-sky-300 shadow-lg hover:shadow-xl transition-all transform active:scale-95"
+            className="min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-black text-sm text-slate-950 bg-sky-400 hover:bg-sky-300 shadow-lg hover:shadow-xl transition-all transform active:scale-95"
           >
             <Phone className="w-4 h-4 text-slate-950" />
             <span>Call Now ({COMPANY_INFO.displayPhone})</span>
@@ -40,7 +40,7 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({ onOpenQuoteModal }) => {
           <a
             id="cta-send-email-btn"
             href={`mailto:${COMPANY_INFO.email}?subject=Industrial%20Safety%20Enquiry%20-%20Rajdeep%20Enterprises`}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 shadow-lg transition-all active:scale-95"
+            className="min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm text-white bg-slate-900 hover:bg-slate-800 border border-slate-700 shadow-lg transition-all active:scale-95"
           >
             <Mail className="w-4 h-4 text-sky-400" />
             <span>Send Email</span>
@@ -49,7 +49,7 @@ export const CtaBanner: React.FC<CtaBannerProps> = ({ onOpenQuoteModal }) => {
           <button
             id="cta-get-quote-btn"
             onClick={onOpenQuoteModal}
-            className="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-black text-sm text-white bg-blue-600 hover:bg-blue-500 border border-blue-400/50 shadow-lg transition-all active:scale-95"
+            className="min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-black text-sm text-white bg-blue-600 hover:bg-blue-500 border border-blue-400/50 shadow-lg transition-all active:scale-95"
           >
             <FileText className="w-4 h-4" />
             <span>Get a Quote</span>

@@ -214,7 +214,7 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
               {/* Category Eyebrow Badge */}
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 border border-blue-500/30 text-sky-300 text-xs font-bold uppercase tracking-wider">
                 <Layers className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                <span className="truncate">Industrial Compliance & Technical Hub</span>
+                <span>Industrial Compliance & Technical Hub</span>
               </div>
 
               {/* Main Responsive Heading with clamp() */}
@@ -238,15 +238,15 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-2.5 pt-1 text-xs">
                 <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-200">
                   <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span className="font-semibold truncate">Refinery Gate Pass Ready</span>
+                  <span className="font-semibold">Refinery Gate Pass Ready</span>
                 </div>
                 <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-200">
                   <Calculator className="w-4 h-4 text-sky-400 shrink-0" />
-                  <span className="font-semibold truncate">18% & 12% GST ITC Verified</span>
+                  <span className="font-semibold">18% & 12% GST ITC Verified</span>
                 </div>
                 <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-200">
                   <Wrench className="w-4 h-4 text-orange-400 shrink-0" />
-                  <span className="font-semibold truncate">Pre-Configured Turnkey Kits</span>
+                  <span className="font-semibold">Pre-Configured Turnkey Kits</span>
                 </div>
               </div>
 
@@ -261,7 +261,7 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                   <button
                     onClick={expandAll}
                     className="min-h-[40px] inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 border border-blue-500 shadow-sm transition active:scale-95"
-                    title="Expand all 5 technical dropdown guides"
+                    title="Expand all 5 technical guides"
                   >
                     <Eye className="w-3.5 h-3.5 text-sky-200 shrink-0" />
                     <span>Expand All</span>
@@ -310,7 +310,7 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
 
                   {/* Bottom Overlay Details */}
                   <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between text-[11px] text-slate-300">
-                    <span className="font-semibold text-white truncate">Refinery & Site Safety Standards</span>
+                    <span className="font-semibold text-white leading-tight">Refinery & Site Safety Standards</span>
                     <span className="text-sky-300 font-mono shrink-0 ml-2">Mathura IOCL Gate</span>
                   </div>
                 </div>
@@ -319,13 +319,13 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                 <div className="p-3 bg-slate-900/95 border-t border-slate-800 flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2 text-slate-300 min-w-0">
                     <div className="w-2 h-2 rounded-full bg-emerald-400 shrink-0"></div>
-                    <span className="text-[11px] text-slate-300 truncate">Inspection-Passed PPE & Consumables</span>
+                    <span className="text-[11px] text-slate-300 leading-tight">Inspection-Passed PPE & Consumables</span>
                   </div>
                   <button
                     onClick={() => onOpenQuoteModal('Industrial Safety Compliance Consultation')}
                     className="text-[11px] text-sky-400 hover:text-sky-300 font-bold transition flex items-center gap-1 shrink-0 ml-2"
                   >
-                    <span>Consult Specs</span>
+                    <span className="whitespace-nowrap">Consult Specs</span>
                     <ArrowRight className="w-3 h-3" />
                   </button>
                 </div>
@@ -352,12 +352,13 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                     : 'bg-white hover:bg-slate-50/80 border-slate-200 hover:border-slate-300'
                 }`}
               >
-                {/* Dropdown Header Trigger Banner */}
+                {/* Accordion Header Trigger Banner */}
                 <div 
                   onClick={() => toggleSection(sec.id)}
                   className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer select-none transition-colors"
                   role="button"
                   aria-expanded={isOpen}
+                  aria-controls={`guide-panel-${sec.id}`}
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -383,7 +384,7 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                         </span>
                       </div>
 
-                      {/* Clear Responsive Title */}
+                      {/* Clear Responsive Title - Natural Wrapping */}
                       <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight leading-snug break-words">
                         {lang === 'en' ? sec.titleEn : sec.titleHi}
                       </h3>
@@ -412,6 +413,8 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                   <div className="flex items-center gap-3 shrink-0 self-stretch sm:self-center pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 w-full sm:w-auto justify-end">
                     <button
                       type="button"
+                      aria-expanded={isOpen}
+                      aria-controls={`guide-panel-${sec.id}`}
                       className={`w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all shadow-xs active:scale-98 ${
                         isOpen 
                           ? 'bg-blue-600 text-white hover:bg-blue-700' 
@@ -422,15 +425,15 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                         toggleSection(sec.id);
                       }}
                     >
-                      <span>{isOpen ? 'Collapse Guide' : 'Open Guide'}</span>
-                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180 text-white' : 'text-slate-600'}`} />
+                      <span className="whitespace-nowrap">{isOpen ? 'Close Guide' : 'Open Guide'}</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 shrink-0 ${isOpen ? 'rotate-180 text-white' : 'text-slate-600'}`} />
                     </button>
                   </div>
                 </div>
 
                 {/* Expanded Component Body */}
                 {isOpen && (
-                  <div className="border-t border-slate-200 bg-slate-50/50 animate-in fade-in duration-200 overflow-x-hidden">
+                  <div id={`guide-panel-${sec.id}`} className="border-t border-slate-200 bg-slate-50/50 animate-in fade-in duration-200 overflow-x-hidden">
                     <div className="py-2">
                       {sec.id === 'trade-kits' && (
                         <TradeKitsSection

@@ -194,7 +194,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-xl overflow-hidden border border-slate-200 hover:border-orange-500/80 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col group justify-between"
+                  className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-orange-500/80 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col group justify-between"
                 >
                   {/* Product Image & Badges */}
                   <div
@@ -238,19 +238,19 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                   </div>
 
                   {/* Card Content */}
-                  <div className={`flex flex-col justify-between flex-1 ${density === 'mini' ? 'p-2' : 'p-3 sm:p-4'}`}>
+                  <div className={`flex flex-col justify-between flex-1 ${density === 'mini' ? 'p-2.5' : 'p-3.5 sm:p-4'}`}>
                     <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-orange-600 block truncate">
+                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-orange-600 block">
                         {product.category}
                       </span>
                       <h3
                         onClick={() => onSelectProduct(product)}
-                        className={`font-bold text-slate-900 leading-tight group-hover:text-orange-600 transition-colors cursor-pointer mt-0.5 ${
+                        className={`font-bold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors cursor-pointer mt-1 break-words ${
                           density === 'mini'
-                            ? 'text-[11px] sm:text-xs line-clamp-2 h-7 sm:h-8'
+                            ? 'text-xs min-h-[30px]'
                             : density === 'compact'
-                            ? 'text-xs sm:text-sm line-clamp-2 min-h-[32px]'
-                            : 'text-sm sm:text-base line-clamp-2'
+                            ? 'text-xs sm:text-sm min-h-[36px]'
+                            : 'text-sm sm:text-base'
                         }`}
                         title={product.name}
                       >
@@ -259,7 +259,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
 
                       {/* Description / Specifications */}
                       {density !== 'mini' && (
-                        <p className="mt-1 text-xs text-slate-500 line-clamp-2 leading-snug">
+                        <p className="mt-1 text-xs text-slate-500 leading-relaxed break-words">
                           {product.shortDescription}
                         </p>
                       )}
@@ -267,28 +267,29 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                       {density === 'detailed' && (
                         <div className="mt-2.5 space-y-1">
                           {product.specifications.slice(0, 2).map((spec, i) => (
-                            <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600 truncate">
+                            <div key={i} className="flex items-center gap-1.5 text-xs text-slate-600">
                               <Check className="w-3.5 h-3.5 text-orange-500 shrink-0" />
-                              <span className="truncate">{spec}</span>
+                              <span className="break-words">{spec}</span>
                             </div>
                           ))}
                         </div>
                       )}
                     </div>
 
-                    {/* Action Bar: Two clear buttons [ Enquire ] & [ WhatsApp ] as requested in Section 10 */}
+                    {/* Action Bar: Two clear buttons [ Enquire ] & [ WhatsApp ] with min-h-[44px] touch targets */}
                     <div className={`border-t border-slate-100 flex flex-col gap-1.5 ${
-                      density === 'mini' ? 'mt-2 pt-1.5' : 'mt-3 pt-2.5'
+                      density === 'mini' ? 'mt-2 pt-2' : 'mt-3 pt-2.5'
                     }`}>
                       <div className="grid grid-cols-2 gap-1.5">
                         <button
                           id={`product-enquire-btn-${product.id}`}
                           onClick={() => onEnquire(product.name)}
-                          className="min-h-[38px] rounded-lg font-bold text-white bg-orange-600 hover:bg-orange-500 active:bg-orange-700 transition flex items-center justify-center gap-1 text-[11px] sm:text-xs shadow-2xs"
+                          className="min-h-[44px] rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-500 active:bg-orange-700 transition flex items-center justify-center gap-1 text-[11px] sm:text-xs shadow-2xs"
                           title={`Get Price for ${product.name}`}
+                          type="button"
                         >
-                          <MessageCircle className="w-3 h-3 shrink-0" />
-                          <span>Enquire</span>
+                          <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                          <span className="whitespace-nowrap">Enquire</span>
                         </button>
 
                         <a
@@ -296,31 +297,32 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                           href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${waMessage}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="min-h-[38px] rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 transition flex items-center justify-center gap-1 text-[11px] sm:text-xs shadow-2xs"
+                          className="min-h-[44px] rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 transition flex items-center justify-center gap-1 text-[11px] sm:text-xs shadow-2xs"
                           title={`WhatsApp Rajdeep Enterprises for ${product.name}`}
                         >
                           <span className="text-xs">💬</span>
-                          <span>WhatsApp</span>
+                          <span className="whitespace-nowrap">WhatsApp</span>
                         </a>
                       </div>
 
                       {density !== 'mini' && onAddToRfq && (
                         <button
+                          type="button"
                           onClick={() => onAddToRfq(product)}
-                          className={`w-full py-1 rounded-md text-[10px] sm:text-[11px] font-semibold transition flex items-center justify-center gap-1 ${
+                          className={`w-full min-h-[40px] py-1.5 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 ${
                             rfqProductIds.includes(product.id)
                               ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'text-slate-600 hover:bg-slate-100 border border-slate-200'
+                              : 'text-slate-700 hover:bg-slate-100 border border-slate-200'
                           }`}
                         >
                           {rfqProductIds.includes(product.id) ? (
                             <>
-                              <Check className="w-3 h-3 text-emerald-600" />
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
                               <span>Added to Bulk RFQ</span>
                             </>
                           ) : (
                             <>
-                              <Plus className="w-3 h-3 text-slate-500" />
+                              <Plus className="w-3.5 h-3.5 text-slate-500" />
                               <span>+ Add to Bulk RFQ</span>
                             </>
                           )}
@@ -344,11 +346,11 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
               We supply specialized safety equipment, refinery-approved materials, and custom consumables upon request.
             </p>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-2.5 shrink-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2.5 shrink-0 w-full sm:w-auto">
             <a
               id="catalog-call-direct-btn"
               href={`tel:${COMPANY_INFO.phone}`}
-              className="px-3.5 py-2 rounded-lg text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition flex items-center gap-1.5"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition flex items-center justify-center gap-1.5 text-center"
             >
               <Phone className="w-3.5 h-3.5" />
               <span>Call: {COMPANY_INFO.displayPhone}</span>
@@ -356,7 +358,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
             <button
               id="catalog-custom-enquiry-btn"
               onClick={() => onEnquire("Custom Material & Safety Requirement")}
-              className="px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-orange-600 hover:bg-orange-500 transition"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-500 transition text-center"
             >
               Request Custom Quote
             </button>

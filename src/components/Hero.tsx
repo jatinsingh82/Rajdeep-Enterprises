@@ -1,5 +1,5 @@
-import React, { useRef, useState } from 'react';
-import { ArrowRight, Phone, ShieldCheck, MapPin, CheckCircle, Building, HardHat, FileText, UserCheck, Store, Camera, Upload, RefreshCw, Check } from 'lucide-react';
+import React from 'react';
+import { ArrowRight, Phone, ShieldCheck, MapPin, CheckCircle, Building, HardHat, FileText, UserCheck, Store } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
 import { useOwnerPhoto } from '../hooks/useOwnerPhoto';
 
@@ -9,50 +9,10 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard }) => {
-  const { photoUrl, photoFileName, isCustomRealPhoto, uploadPhoto, resetToDefault } = useOwnerPhoto();
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadFeedback, setUploadFeedback] = useState<string | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const handleFile = async (file: File) => {
-    setIsUploading(true);
-    try {
-      await uploadPhoto(file);
-      setUploadFeedback('Real photo loaded successfully with 100% original quality!');
-      setTimeout(() => setUploadFeedback(null), 4000);
-    } catch {
-      setUploadFeedback('Could not load file. Please select a valid image.');
-      setTimeout(() => setUploadFeedback(null), 4000);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) handleFile(file);
-  };
-
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setIsDragging(false);
-    const file = e.dataTransfer.files?.[0];
-    if (file) handleFile(file);
-  };
+  const { photoUrl } = useOwnerPhoto();
 
   return (
-    <section id="home" className="relative overflow-hidden bg-[#071324] text-white pt-2 sm:pt-4 pb-6 sm:pb-8 md:py-14 lg:py-16">
-      {/* Hidden File Input for Real Photo Upload */}
-      <input
-        type="file"
-        ref={fileInputRef}
-        onChange={handleFileChange}
-        accept="image/*"
-        className="hidden"
-        id="owner-photo-file-input"
-      />
-
+    <section id="home" className="relative overflow-hidden bg-[#071324] text-white pt-3 sm:pt-6 pb-6 sm:pb-10 md:py-14 lg:py-16">
       {/* Background industrial overlay & grid */}
       <div className="absolute inset-0 industrial-grid-dark opacity-25 pointer-events-none"></div>
       
@@ -63,7 +23,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
       {/* Top safety stripe bar */}
       <div className="absolute top-0 left-0 right-0 h-1 hazard-stripe-light opacity-90"></div>
 
-      <div className="relative max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Mobile View: Specifically structured for mobile phones (lg:hidden) */}
         <div className="lg:hidden space-y-4 mb-2 text-left">
           
@@ -73,19 +33,19 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
             <span>Industrial Safety & Material Supplies</span>
           </div>
 
-          {/* 2. Responsive Heading */}
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+          {/* 2. Responsive Heading with clamp() */}
+          <h1 className="text-[clamp(1.65rem,6.5vw,2.25rem)] font-black text-white tracking-tight leading-[1.2]">
             Industrial Safety & Material Supplies in Mathura
           </h1>
 
-          {/* 3. Short Description */}
-          <p className="text-sm text-slate-300 leading-relaxed">
+          {/* 3. Short Description (16px body) */}
+          <p className="text-base text-slate-300 leading-relaxed">
             Safety PPE, welding materials, hardware, stationery and industrial supplies for factories, contractors, workshops and project sites across Mathura and whole India.
           </p>
 
-          {/* 4. Primary CTA Buttons (Large enough to tap easily, min 44px height) */}
-          <div className="flex flex-col sm:flex-row gap-2.5 pt-1">
-            {/* View Products Button */}
+          {/* 4. Primary CTA Buttons (Consistent min-h-[44px] touch targets & border radius) */}
+          <div className="flex flex-col gap-2.5 pt-1">
+            {/* View Products Button - Full Width */}
             <a
               id="mobile-hero-view-products-btn"
               href="#products"
@@ -95,6 +55,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <ArrowRight className="w-4 h-4" />
             </a>
 
+            {/* Secondary CTAs: 2-Column Grid */}
             <div className="grid grid-cols-2 gap-2">
               {/* WhatsApp Us Button */}
               <a
@@ -102,54 +63,45 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 active:bg-emerald-700 shadow transition text-center"
+                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-bold text-xs sm:text-sm text-white bg-emerald-600 active:bg-emerald-700 shadow transition text-center"
               >
                 <span className="text-sm">💬</span>
-                <span>WhatsApp Us</span>
+                <span className="whitespace-nowrap">WhatsApp Us</span>
               </a>
 
               {/* Call Now Button */}
               <a
                 id="mobile-hero-call-btn"
                 href={`tel:${COMPANY_INFO.phone}`}
-                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-3 rounded-xl font-bold text-xs sm:text-sm text-slate-950 bg-amber-400 active:bg-amber-500 shadow transition text-center"
+                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-bold text-xs sm:text-sm text-slate-950 bg-amber-400 active:bg-amber-500 shadow transition text-center"
               >
-                <Phone className="w-3.5 h-3.5 text-slate-950" />
-                <span>Call Now</span>
+                <Phone className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                <span className="whitespace-nowrap">Call Now</span>
               </a>
             </div>
           </div>
 
-          {/* 5. Authentic business/shop image with clean aspect ratio & controlled height */}
+          {/* 5. Authentic business/shop image - clean display with no upload/change option */}
           <div className="rounded-xl overflow-hidden bg-slate-900 border border-slate-800 shadow-lg mt-3">
-            <div
-              onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-              onDragLeave={() => setIsDragging(false)}
-              onDrop={handleDrop}
-              className="w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden"
-            >
+            <div className="w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden">
               <img
                 src={photoUrl}
                 alt="Rajdeep Enterprises Storefront and Proprietor at Mathura Refinery Main Gate"
-                className="w-full h-auto max-h-[220px] sm:max-h-[260px] object-contain block mx-auto"
+                className="w-full h-auto max-h-[240px] sm:max-h-[280px] object-contain block mx-auto"
                 loading="eager"
                 referrerPolicy="no-referrer"
               />
             </div>
 
-            {/* Caption below photo as requested in Section 5 */}
-            <div className="p-2.5 bg-slate-900/95 border-t border-slate-800 flex items-center justify-between text-xs">
-              <div className="flex items-center gap-1.5 text-slate-300 font-medium truncate">
+            {/* Clean Caption below photo */}
+            <div className="p-2.5 bg-slate-900/95 border-t border-slate-800 flex items-center justify-between text-xs gap-2">
+              <div className="flex items-center gap-1.5 text-slate-300 font-medium min-w-0">
                 <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                <span className="truncate">Rajdeep Enterprises • Mathura Refinery Main Gate</span>
+                <span className="leading-snug break-words">Rajdeep Enterprises • Mathura Refinery Gate</span>
               </div>
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="text-[10px] font-bold text-sky-400 hover:text-sky-300 px-2 py-0.5 rounded bg-slate-800 border border-slate-700 shrink-0"
-              >
-                Photo
-              </button>
+              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-700/50 shrink-0">
+                Verified Store
+              </span>
             </div>
           </div>
 
@@ -259,19 +211,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
           <div className="lg:col-span-5 relative">
             <div className="relative mx-auto max-w-md lg:max-w-none">
               
-              {/* Main Storefront & Owner Image Card - Untouched real photo */}
+              {/* Main Storefront & Owner Image Card - Clean display without change/upload UI */}
               <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-sky-500/40 bg-slate-950 flex flex-col">
-                {/* 100% Original Photo with No Overlays, Filters or Crops */}
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={() => setIsDragging(false)}
-                  onDrop={handleDrop}
-                  className={`w-full flex flex-col items-center justify-center bg-slate-950 overflow-hidden cursor-pointer transition-all ${
-                    isDragging ? 'ring-4 ring-emerald-400 bg-slate-900' : ''
-                  }`}
-                  title="Click or drop your real WhatsApp photo here"
-                  onClick={() => fileInputRef.current?.click()}
-                >
+                <div className="w-full flex flex-col items-center justify-center bg-slate-950 overflow-hidden">
                   <img
                     src={photoUrl}
                     alt="Shop owner Raj Singh Tarkar standing outside Rajdeep Enterprises store at UP SIDC Complex Refinery Main Gate Mathura"
@@ -280,55 +222,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                     referrerPolicy="no-referrer"
                   />
                 </div>
-
-                {/* Photo Action Bar / Upload Status */}
-                {!isCustomRealPhoto ? (
-                  <div className="p-3 bg-amber-500/15 border-t border-amber-500/30 flex items-center justify-between gap-3 text-xs">
-                    <div className="text-left text-amber-200">
-                      <span className="font-bold text-amber-300 block">Use Your Real Photo (0% AI):</span>
-                      <span>Select <strong className="text-white">WhatsApp Image 2026-09-12 at 17.50.45.jpeg</strong> to load your 100% original photo</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={isUploading}
-                      className="shrink-0 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs flex items-center gap-2 shadow-lg transition"
-                    >
-                      <Camera className="w-4 h-4" />
-                      <span>Choose Real Photo File</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div className="px-4 py-2.5 bg-emerald-950/80 border-t border-emerald-500/40 flex items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-1.5 text-emerald-300 font-bold text-xs truncate">
-                      <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span className="truncate">100% Real Original Photo Active {photoFileName ? `(${photoFileName})` : ''}</span>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-sky-300 text-xs font-bold border border-slate-700"
-                      >
-                        Change
-                      </button>
-                      <button
-                        type="button"
-                        onClick={resetToDefault}
-                        className="px-2 py-1 rounded text-slate-400 hover:text-red-400 text-xs transition"
-                        title="Reset to default"
-                      >
-                        Reset
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                {uploadFeedback && (
-                  <div className="p-2 bg-emerald-600 text-white text-xs font-bold text-center animate-in fade-in">
-                    {uploadFeedback}
-                  </div>
-                )}
 
                 {/* Information Card - Cleanly beneath the photo */}
                 <div className="p-4 bg-slate-900 border-t border-slate-800 text-left">

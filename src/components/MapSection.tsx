@@ -33,17 +33,17 @@ export const MapSection: React.FC<MapSectionProps> = ({ lang }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 items-stretch">
           
           {/* Interactive Map */}
-          <div className="bg-slate-900 rounded-xl overflow-hidden border border-slate-300 shadow-sm flex flex-col justify-between">
-            <div className="p-2 sm:p-2.5 bg-[#0B192C] text-white flex items-center justify-between border-b border-slate-800">
-              <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold truncate">
+          <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-300 shadow-sm flex flex-col justify-between">
+            <div className="p-2.5 bg-[#0B192C] text-white flex items-center justify-between border-b border-slate-800 gap-2">
+              <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold min-w-0">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
-                <span className="truncate">Mathura Refinery Map Location</span>
+                <span className="leading-snug break-words">Mathura Refinery Map Location</span>
               </div>
               <a
                 href={COMPANY_INFO.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-[10px] sm:text-xs font-bold text-sky-400 hover:underline flex items-center gap-1 shrink-0 ml-1"
+                className="text-[10px] sm:text-xs font-bold text-sky-400 hover:underline flex items-center gap-1 shrink-0 ml-1 whitespace-nowrap"
               >
                 <span>Google Maps</span>
                 <ExternalLink className="w-3 h-3" />
@@ -69,26 +69,26 @@ export const MapSection: React.FC<MapSectionProps> = ({ lang }) => {
                 href={COMPANY_INFO.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full xs:w-auto inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition text-center min-h-[36px]"
+                className="w-full xs:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs transition text-center min-h-[44px] whitespace-nowrap active:scale-98"
               >
-                <Navigation className="w-3.5 h-3.5" />
+                <Navigation className="w-3.5 h-3.5 shrink-0" />
                 <span>Open in GPS Navigation</span>
               </a>
             </div>
           </div>
 
           {/* Office & Depot Details */}
-          <div className="p-3 sm:p-5 rounded-xl bg-blue-50/90 border border-blue-200 text-left flex flex-col justify-between shadow-sm">
+          <div className="p-4 sm:p-5 rounded-2xl bg-blue-50/90 border border-blue-200 text-left flex flex-col justify-between shadow-sm">
             <div>
               <div className="flex items-center gap-2 mb-2 sm:mb-3">
-                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-blue-600 text-white flex items-center justify-center shrink-0">
+                <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-blue-600 text-white flex items-center justify-center shrink-0">
                   <MapPin className="w-4 h-4 sm:w-5 sm:h-5" />
                 </div>
                 <div className="min-w-0">
-                  <h4 className="font-extrabold text-slate-900 text-sm sm:text-base truncate">
+                  <h4 className="font-extrabold text-slate-900 text-sm sm:text-base leading-tight">
                     Office & Supply Depot
                   </h4>
-                  <p className="text-[10px] sm:text-xs text-blue-950 font-semibold flex items-center gap-1 truncate">
+                  <p className="text-[10px] sm:text-xs text-blue-950 font-semibold flex items-center gap-1 leading-tight mt-0.5">
                     <Shield className="w-3 h-3 text-blue-600 shrink-0" />
                     <span>Opposite Refinery Main Gate</span>
                   </p>

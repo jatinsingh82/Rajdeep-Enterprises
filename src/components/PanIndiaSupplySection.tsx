@@ -90,18 +90,18 @@ export const PanIndiaSupplySection: React.FC<PanIndiaSupplySectionProps> = ({
                   Any Quantity • All 28 States
                 </span>
               </div>
-              <h2 className="text-sm sm:text-base md:text-lg font-black text-white tracking-tight truncate mt-0.5">
+              <h2 className="text-sm sm:text-base md:text-lg font-black text-white tracking-tight leading-snug break-words mt-0.5">
                 All-India Supply Network & Custom Sourcing
               </h2>
-              <p className="text-[11px] text-slate-400 truncate hidden sm:block">
+              <p className="text-[11px] text-slate-400 hidden sm:block">
                 Doorstep dispatch to every pin code across India, no minimum order limit, plus on-demand custom material sourcing.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[10px] sm:text-xs font-bold text-sky-400 bg-sky-950/80 px-2 py-1 rounded-md border border-sky-800/50">
-              {isOpen ? 'Close' : 'Drop Down'}
+            <span className="text-[10px] sm:text-xs font-bold text-sky-400 bg-sky-950/80 px-2 py-1 rounded-md border border-sky-800/50 whitespace-nowrap">
+              {isOpen ? 'Close Section' : 'Explore Details'}
             </span>
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 group-hover:text-white">
               {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

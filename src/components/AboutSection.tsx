@@ -39,18 +39,18 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
                   Proprietor: {COMPANY_INFO.contactPerson}
                 </span>
               </div>
-              <h2 className="text-sm sm:text-base md:text-lg font-black text-slate-900 tracking-tight truncate mt-0.5">
+              <h2 className="text-sm sm:text-base md:text-lg font-black text-slate-900 tracking-tight leading-snug break-words mt-0.5">
                 About Rajdeep Enterprises
               </h2>
-              <p className="text-[11px] text-slate-500 truncate hidden sm:block">
+              <p className="text-[11px] text-slate-500 hidden sm:block">
                 All kinds of safety accessories & all types of material suppliers at UP SIDC Complex, Refinery Main Gate, Mathura.
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <span className="text-[10px] sm:text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md border border-blue-200">
-              {isOpen ? 'Close' : 'Drop Down'}
+            <span className="text-[10px] sm:text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md border border-blue-200 whitespace-nowrap">
+              {isOpen ? 'Close Section' : 'Explore Details'}
             </span>
             <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 group-hover:text-slate-900">
               {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
