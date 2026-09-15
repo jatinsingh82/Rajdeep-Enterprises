@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Product } from '../types';
 import { COMPANY_INFO, PRODUCTS } from '../data/companyData';
+import { trackProductView, trackRFQStep } from '../utils/analytics';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -49,14 +50,27 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     return product.badge?.includes('Karam') ? 'Karam' : null;
   })();
 
-  // Update document title, meta and inject Product JSON-LD schema dynamically
+  // Track product view and update document title, meta and inject Product JSON-LD schema dynamically
   useEffect(() => {
     if (!product) return;
 
-    const originalTitle = document.title;
-    document.title = `${product.name} | Industrial Safety Supplies | Rajdeep Enterprises Mathura`;
+    // Analytics event
+    trackProductView(product.id, product.name, product.category);
+    trackRFQStep('product_modal_opened', product.name);
 
-    // Inject Product JSON-LD
+    const originalTitle = document.title;
+    const metaDescEl = document.querySelector('meta[name="description"]');
+    const originalMetaDesc = metaDescEl?.getAttribute('content') || '';
+
+    document.title = `${product.name} | Industrial Safety Supplies | Rajdeep Enterprises Mathura`;
+    if (metaDescEl) {
+      metaDescEl.setAttribute(
+        'content',
+        `${product.name} supplier in Mathura & Pan-India. ${product.shortDescription}. Inquire for genuine B2B pricing, MTC & refinery gate pass compliance.`
+      );
+    }
+
+    // Inject Product & Breadcrumb JSON-LD
     const scriptId = 'product-jsonld-script';
     let scriptEl = document.getElementById(scriptId) as HTMLScriptElement | null;
     if (!scriptEl) {
@@ -68,20 +82,71 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
     const productSchema = {
       '@context': 'https://schema.org',
-      '@type': 'Product',
-      name: product.name,
-      description: product.shortDescription,
-      image: typeof product.image === 'string' ? product.image : undefined,
-      category: product.category,
-      brand: {
-        '@type': 'Brand',
-        name: brandName || 'Rajdeep Enterprises'
-      }
+      '@graph': [
+        {
+          '@type': 'Product',
+          '@id': `https://rajdeep-enterprises.com/#product/${product.id}`,
+          name: product.name,
+          description: product.fullDescription || product.shortDescription,
+          image: typeof product.image === 'string' ? product.image : undefined,
+          category: product.category,
+          brand: {
+            '@type': 'Brand',
+            name: brandName || 'Rajdeep Enterprises'
+          },
+          offers: {
+            '@type': 'Offer',
+            priceCurrency: 'INR',
+            availability: 'https://schema.org/InStock',
+            price: '0.00',
+            priceValidUntil: '2027-12-31',
+            seller: {
+              '@type': 'Organization',
+              name: 'Rajdeep Enterprises',
+              telephone: COMPANY_INFO.phone,
+              address: {
+                '@type': 'PostalAddress',
+                streetAddress: COMPANY_INFO.address,
+                addressLocality: 'Mathura',
+                addressRegion: 'Uttar Pradesh',
+                postalCode: '281005',
+                addressCountry: 'IN'
+              }
+            }
+          }
+        },
+        {
+          '@type': 'BreadcrumbList',
+          itemListElement: [
+            {
+              '@type': 'ListItem',
+              position: 1,
+              name: 'Home',
+              item: 'https://rajdeep-enterprises.com/'
+            },
+            {
+              '@type': 'ListItem',
+              position: 2,
+              name: 'Products',
+              item: 'https://rajdeep-enterprises.com/#products'
+            },
+            {
+              '@type': 'ListItem',
+              position: 3,
+              name: product.name,
+              item: `https://rajdeep-enterprises.com/#product/${product.id}`
+            }
+          ]
+        }
+      ]
     };
     scriptEl.textContent = JSON.stringify(productSchema);
 
     return () => {
       document.title = originalTitle;
+      if (metaDescEl && originalMetaDesc) {
+        metaDescEl.setAttribute('content', originalMetaDesc);
+      }
       const el = document.getElementById(scriptId);
       if (el) {
         el.remove();
@@ -453,7 +518,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               <span className="text-slate-300 ml-1">Daily counter stock ready for IOCL gate-entry passes and civil fabrication contractors.</span>
             </div>
             <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700 shrink-0">
-              100% Verified GST Invoicing
+              Standard GST Invoicing & Input Credit
             </span>
           </div>
 

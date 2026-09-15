@@ -25,13 +25,13 @@ export const IndustriesSection: React.FC<IndustriesSectionProps> = ({ onEnquire 
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-bold uppercase tracking-wider mb-3">
-            Target Customer Segments
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider mb-3">
+            <span>Target Customer Segments</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Industries We Serve
           </h2>
-          <div className="w-16 h-1 bg-orange-500 mx-auto mt-4 rounded-full"></div>
+          <div className="w-16 h-1 bg-orange-600 mx-auto mt-4 rounded-full"></div>
           <p className="mt-4 text-base text-slate-600">
             We provide targeted protective equipment, traffic accessories, and industrial materials tailored to the safety challenges of various sectors.
           </p>
@@ -90,9 +90,9 @@ export const IndustriesSection: React.FC<IndustriesSectionProps> = ({ onEnquire 
         </div>
 
         {/* Commercial & Small Business Support */}
-        <div className="mt-10 p-6 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="mt-10 p-6 rounded-2xl bg-white border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-orange-100 text-orange-600 rounded-xl">
+            <div className="p-3 bg-slate-100 text-orange-600 rounded-xl border border-slate-200">
               <Store className="w-6 h-6" />
             </div>
             <div>
@@ -107,7 +107,7 @@ export const IndustriesSection: React.FC<IndustriesSectionProps> = ({ onEnquire 
 
           <button
             onClick={() => onEnquire("Commercial Business / Small Contractor Supply")}
-            className="shrink-0 px-4 py-2 rounded-lg text-xs font-bold bg-slate-900 text-white hover:bg-slate-800 transition"
+            className="shrink-0 px-5 py-2.5 rounded-xl text-xs font-bold bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white transition active:scale-98 shadow-xs min-h-[44px]"
           >
             Enquire for Your Business
           </button>

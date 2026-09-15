@@ -15,6 +15,9 @@ import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { MobileBottomActionBar } from './components/MobileBottomActionBar';
 import { Product, RfqItem, Language } from './types';
 import { generateProductCataloguePdf } from './utils/pdfGenerator';
+import { initAnalytics } from './utils/analytics';
+import { PRODUCTS } from './data/companyData';
+import { CATEGORY_SEO_DATA } from './data/categorySeoData';
 
 // Code-split secondary modals to reduce initial JavaScript bundle and improve INP/LCP
 const VisitingCardModal = lazy(() => import('./components/VisitingCardModal').then(m => ({ default: m.VisitingCardModal })));
@@ -25,6 +28,7 @@ const BrandingPreviewModal = lazy(() => import('./components/BrandingPreviewModa
 const SizingGuideModal = lazy(() => import('./components/SizingGuideModal').then(m => ({ default: m.SizingGuideModal })));
 const HseAuditModal = lazy(() => import('./components/HseAuditModal').then(m => ({ default: m.HseAuditModal })));
 const VendorDossierModal = lazy(() => import('./components/VendorDossierModal').then(m => ({ default: m.VendorDossierModal })));
+const LegalModal = lazy(() => import('./components/LegalModal').then(m => ({ default: m.LegalModal })));
 
 export default function App() {
   const [lang, setLang] = useState<Language>('en');
@@ -34,11 +38,49 @@ export default function App() {
   const [selectedQuoteQuantity, setSelectedQuoteQuantity] = useState<string>('');
   const [isVisitingCardOpen, setIsVisitingCardOpen] = useState(false);
   const [selectedDetailProduct, setSelectedDetailProduct] = useState<Product | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All Products');
   const [isRfqModalOpen, setIsRfqModalOpen] = useState(false);
   const [isBrandingModalOpen, setIsBrandingModalOpen] = useState(false);
   const [isSizingModalOpen, setIsSizingModalOpen] = useState(false);
   const [isHseAuditOpen, setIsHseAuditOpen] = useState(false);
   const [isVendorDossierOpen, setIsVendorDossierOpen] = useState(false);
+  const [isLegalModalOpen, setIsLegalModalOpen] = useState(false);
+  const [legalModalTab, setLegalModalTab] = useState<'privacy' | 'terms' | 'disclaimer'>('privacy');
+
+  // Initialize non-blocking analytics on mount if configured
+  useEffect(() => {
+    initAnalytics();
+  }, []);
+
+  // Synchronize URL Hash deep links for categories and products
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash;
+      if (!hash) return;
+
+      if (hash.startsWith('#product/')) {
+        const productId = hash.replace('#product/', '').trim();
+        const found = PRODUCTS.find((p) => p.id === productId);
+        if (found) {
+          setSelectedDetailProduct(found);
+        }
+      } else if (hash.startsWith('#category/')) {
+        const slug = hash.replace('#category/', '').trim();
+        const matched = Object.entries(CATEGORY_SEO_DATA).find(([_, info]) => info.slug === slug);
+        if (matched) {
+          setSelectedCategory(matched[0]);
+          const el = document.getElementById('products');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
   const [rfqItems, setRfqItems] = useState<RfqItem[]>(() => {
     try {
       const saved = localStorage.getItem('rajdeep_rfq_cart');
@@ -122,6 +164,40 @@ export default function App() {
 
   const handleSelectProduct = (product: Product) => {
     setSelectedDetailProduct(product);
+    try {
+      window.history.pushState(null, '', `#product/${product.id}`);
+    } catch {
+      window.location.hash = `product/${product.id}`;
+    }
+  };
+
+  const handleCloseDetailProduct = () => {
+    setSelectedDetailProduct(null);
+    if (window.location.hash.startsWith('#product/')) {
+      try {
+        window.history.pushState(null, '', '#products');
+      } catch {
+        window.location.hash = 'products';
+      }
+    }
+  };
+
+  const handleCategoryChange = (cat: string) => {
+    setSelectedCategory(cat);
+    const seoInfo = CATEGORY_SEO_DATA[cat];
+    if (seoInfo) {
+      try {
+        window.history.pushState(null, '', `#category/${seoInfo.slug}`);
+      } catch {
+        window.location.hash = `category/${seoInfo.slug}`;
+      }
+    } else if (cat === 'All Products') {
+      try {
+        window.history.pushState(null, '', '#products');
+      } catch {
+        window.location.hash = 'products';
+      }
+    }
   };
 
   const handleEnquireFromProduct = (productName: string, category?: string, quantity?: string) => {
@@ -172,6 +248,8 @@ export default function App() {
           rfqProductIds={rfqProductIds}
           onDownloadPdf={handleDownloadPdf}
           lang={lang}
+          selectedCategory={selectedCategory}
+          onSelectCategory={handleCategoryChange}
         />
 
         {/* 3. Whole India Supply & Any Quantity Logistics Section */}
@@ -218,6 +296,10 @@ export default function App() {
       <Footer
         onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
         onOpenQuoteModal={() => handleOpenQuoteModal('General Inquiry')}
+        onOpenLegalModal={(tab) => {
+          setLegalModalTab(tab || 'privacy');
+          setIsLegalModalOpen(true);
+        }}
       />
 
       {/* Floating WhatsApp Quick Action Button (shown on tablet/desktop) */}
@@ -240,7 +322,7 @@ export default function App() {
         {selectedDetailProduct && (
           <ProductDetailModal
             product={selectedDetailProduct}
-            onClose={() => setSelectedDetailProduct(null)}
+            onClose={handleCloseDetailProduct}
             onEnquire={handleEnquireFromProduct}
             onAddToRfq={handleAddToRfq}
             isInRfq={selectedDetailProduct ? rfqProductIds.includes(selectedDetailProduct.id) : false}
@@ -307,6 +389,15 @@ export default function App() {
             isOpen={isVendorDossierOpen}
             onClose={() => setIsVendorDossierOpen(false)}
             onOpenQuoteModal={handleOpenQuoteModal}
+          />
+        )}
+
+        {/* Basic Business Legal & Commercial Disclosures Modal */}
+        {isLegalModalOpen && (
+          <LegalModal
+            isOpen={isLegalModalOpen}
+            onClose={() => setIsLegalModalOpen(false)}
+            initialTab={legalModalTab}
           />
         )}
       </Suspense>

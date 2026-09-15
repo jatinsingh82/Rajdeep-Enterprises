@@ -195,7 +195,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
                 Official Supplier Quotation
               </span>
               <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded border border-slate-700">
-                100% Verified GST Invoice
+                Standard GST Tax Invoice
               </span>
             </div>
             <h2 id="enquiry-modal-heading" className="text-base sm:text-lg font-black text-white mt-0.5">

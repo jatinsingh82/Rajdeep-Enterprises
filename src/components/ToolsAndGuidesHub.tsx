@@ -244,7 +244,7 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                 </div>
                 <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-200">
                   <Calculator className="w-4 h-4 text-sky-400 shrink-0" />
-                  <span className="font-semibold">18% & 12% GST ITC Verified</span>
+                  <span className="font-semibold">18% & 12% GST ITC Invoiced</span>
                 </div>
                 <div className="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-slate-800/80 border border-slate-700/80 text-slate-200">
                   <Wrench className="w-4 h-4 text-orange-400 shrink-0" />

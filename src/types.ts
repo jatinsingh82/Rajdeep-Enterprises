@@ -84,19 +84,6 @@ export interface TradeKit {
   estimatedKitPriceRange: string;
 }
 
-export interface Testimonial {
-  id: string;
-  clientName: string;
-  designation: string;
-  company: string;
-  location: string;
-  projectContext: string;
-  quote: string;
-  rating: number;
-  date: string;
-  verifiedBadge: string;
-}
-
 export interface HsnTaxRate {
   hsnCode: string;
   category: string;

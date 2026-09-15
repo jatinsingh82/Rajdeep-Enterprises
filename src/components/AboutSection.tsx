@@ -34,7 +34,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                  Verified Business Profile
+                  Business Profile & Operations
                 </span>
                 <span className="text-[10px] text-slate-500 font-mono hidden xs:inline">
                   Proprietor: {COMPANY_INFO.contactPerson}
@@ -68,7 +68,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
               <div className="lg:col-span-8 space-y-3">
                 <div className="inline-flex items-center gap-2 text-xs font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-full border border-slate-300">
                   <ShieldCheck className="w-4 h-4 text-orange-600" />
-                  <span>Verified Supply Depot at Mathura Refinery Main Gate</span>
+                  <span>Industrial Supply Depot at Mathura Refinery Main Gate</span>
                 </div>
                 <h3 className="text-lg sm:text-2xl font-black text-slate-900 leading-snug">
                   Industrial Safety & Material Supplier

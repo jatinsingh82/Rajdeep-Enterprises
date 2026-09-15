@@ -1,4 +1,4 @@
-import { TradeKit, Testimonial, HsnTaxRate } from '../types';
+import { TradeKit, HsnTaxRate } from '../types';
 
 export const TRADE_KITS: TradeKit[] = [
   {
@@ -376,57 +376,6 @@ export const TRADE_KITS: TradeKit[] = [
         spec: "A3/A4 crisp black & white and color laser drawings with lamination"
       }
     ]
-  }
-];
-
-export const TESTIMONIALS_DATA: Testimonial[] = [
-  {
-    id: "t1",
-    clientName: "Er. Arvind Sharma",
-    designation: "Lead Piping & Turnaround Contractor",
-    company: "Sharma Heavy Engg. Works",
-    location: "Mathura Refinery Main Gate Site",
-    projectContext: "IOCL Mathura Planned Shutdown Overhaul",
-    quote: "During the plant turnaround, we had an urgent shortfall of 350 pairs of Karam steel-toe shoes and 120 Udyogi fall arrest harnesses. Raj Singh Tarkar dispatched the entire consignment to our site gate within 45 minutes with genuine batch test certificates. Not a single item was rejected by IOCL safety officers.",
-    rating: 5,
-    date: "August 2025",
-    verifiedBadge: "Verified Contractor Supply"
-  },
-  {
-    id: "t2",
-    clientName: "Rajeshwar Chauhan",
-    designation: "Senior Safety Manager",
-    company: "National Highway EPC Concessionaire",
-    location: "NH-19 Expressway Corridor (Mathura - Agra)",
-    projectContext: "Highway Widening & Median Barricading Project",
-    quote: "We ordered 800 heavy-duty 750mm traffic cones, 1,200 cat-eye road studs, and 500 high-vis neon jackets. Rajdeep Enterprises delivered right to our highway camps in three phased truckloads. Best rates, GST E-Way bill compliance, and dependable material quality.",
-    rating: 5,
-    date: "November 2025",
-    verifiedBadge: "Verified EPC Infrastructure"
-  },
-  {
-    id: "t3",
-    clientName: "Vikas Meena",
-    designation: "Project Procurement Head",
-    company: "Petrochem Mechanical Contractors Ltd.",
-    location: "Dahej & Jamnagar Petrochemical Corridor",
-    projectContext: "Pan-India Consignment Supply",
-    quote: "Even though our site is located in Gujarat, Rajdeep Enterprises handled the pan-India transport seamlessly. They also sourced custom logo-printed helmets and non-standard chemical suits that other local vendors couldn't arrange. We order all our trade kits from them now.",
-    rating: 5,
-    date: "January 2026",
-    verifiedBadge: "Pan-India Verified Supply"
-  },
-  {
-    id: "t4",
-    clientName: "Sunil Kumar Agarwal",
-    designation: "Warehouse Operations Head",
-    company: "Northern Logistics & Industrial Parks",
-    location: "Palwal - Mathura Industrial Belt",
-    projectContext: "Warehouse Forklift Lane Marking & Personnel PPE",
-    quote: "Ordered 120 rolls of yellow-black hazard floor marking tape and 60 sets of cut-resistant gloves. The adhesive grip of the lane marking tape is rock solid even under continuous 3-ton forklift traffic. Prompt invoicing and very honest business conduct.",
-    rating: 5,
-    date: "February 2026",
-    verifiedBadge: "Verified Industrial Warehouse"
   }
 ];
 

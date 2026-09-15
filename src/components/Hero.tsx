@@ -2,6 +2,7 @@ import React from 'react';
 import { ArrowRight, Phone, ShieldCheck, MapPin, CheckCircle, Building, HardHat, FileText, UserCheck, Store, Truck, MessageSquare } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
 import { useOwnerPhoto } from '../hooks/useOwnerPhoto';
+import { trackCallClick, trackWhatsAppClick, trackCustomQuoteClick } from '../utils/analytics';
 
 interface HeroProps {
   onOpenQuoteModal: (productName?: string) => void;
@@ -30,9 +31,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
           </div>
 
           {/* 2. Responsive Heading with clamp() */}
-          <div className="text-[clamp(1.65rem,6.5vw,2.25rem)] font-black text-white tracking-tight leading-[1.2]">
-            Industrial Safety & Material Supplies in Mathura
-          </div>
+          <h1 className="text-[clamp(1.65rem,6.5vw,2.25rem)] font-black text-white tracking-tight leading-[1.2]">
+            Industrial Safety PPE, Site Stationery & Material Supplies
+          </h1>
 
           {/* 3. Short Description (16px body) */}
           <p className="text-base text-slate-300 leading-relaxed">
@@ -59,6 +60,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick('hero_mobile', 'General Inquiry')}
                 className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-sm transition text-center"
               >
                 <MessageSquare className="w-3.5 h-3.5 text-white shrink-0" />
@@ -69,6 +71,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <a
                 id="mobile-hero-call-btn"
                 href={`tel:${COMPANY_INFO.phone}`}
+                onClick={() => trackCallClick(COMPANY_INFO.phone, 'hero_mobile')}
                 className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-slate-950 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 shadow-sm transition text-center"
               >
                 <Phone className="w-3.5 h-3.5 text-slate-950 shrink-0" />
@@ -80,7 +83,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
             <button
               type="button"
               id="mobile-hero-quote-btn"
-              onClick={() => onOpenQuoteModal()}
+              onClick={() => {
+                trackCustomQuoteClick('Hero Mobile CTA');
+                onOpenQuoteModal();
+              }}
               className="min-h-[44px] w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 transition text-center"
             >
               <FileText className="w-3.5 h-3.5 text-orange-400" />
@@ -129,8 +135,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
                 <span className="leading-snug break-words">Rajdeep Enterprises • Mathura Refinery Gate</span>
               </div>
-              <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-700/50 shrink-0">
-                Verified Store
+              <span className="text-[10px] font-bold text-sky-400 bg-sky-950/80 px-2 py-0.5 rounded border border-sky-700/50 shrink-0">
+                Store Location
               </span>
             </div>
           </div>
@@ -211,6 +217,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick('hero_desktop', 'General Inquiry')}
                 className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-extrabold text-sm text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-sm transition-all active:scale-98 min-h-[44px]"
               >
                 <MessageSquare className="w-4 h-4 text-white" />
@@ -221,6 +228,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <a
                 id="hero-call-now-btn"
                 href={`tel:${COMPANY_INFO.phone}`}
+                onClick={() => trackCallClick(COMPANY_INFO.phone, 'hero_desktop')}
                 className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-extrabold text-sm text-slate-950 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 transition-all shadow-sm active:scale-98 min-h-[44px]"
               >
                 <Phone className="w-4 h-4 text-slate-950" />
@@ -231,7 +239,10 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <button
                 type="button"
                 id="hero-quote-modal-btn"
-                onClick={() => onOpenQuoteModal()}
+                onClick={() => {
+                  trackCustomQuoteClick('Hero Desktop CTA');
+                  onOpenQuoteModal();
+                }}
                 className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-500 transition-all active:scale-98 min-h-[44px]"
               >
                 <FileText className="w-4 h-4 text-orange-400" />

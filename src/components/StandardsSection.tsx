@@ -32,7 +32,7 @@ export const StandardsSection: React.FC<StandardsSectionProps> = ({ lang, onEnqu
           <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
             {t.standardsTitle}
           </h2>
-          <div className="w-16 h-1 bg-orange-500 mx-auto mt-4 rounded-full"></div>
+          <div className="w-16 h-1 bg-orange-600 mx-auto mt-4 rounded-full"></div>
           <p className="mt-4 text-sm sm:text-base text-slate-400">
             {t.standardsSubtitle}
           </p>
@@ -44,7 +44,7 @@ export const StandardsSection: React.FC<StandardsSectionProps> = ({ lang, onEnqu
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all ${
+              className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all min-h-[40px] sm:min-h-0 flex items-center ${
                 selectedCategory === cat
                   ? 'bg-orange-600 text-white shadow-md'
                   : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
@@ -129,7 +129,7 @@ export const StandardsSection: React.FC<StandardsSectionProps> = ({ lang, onEnqu
           </div>
           <button
             onClick={() => onEnquire('Requesting Batch Test Certificates and Compliance Documents')}
-            className="px-4 py-2 rounded-lg bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold shrink-0 transition"
+            className="px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white text-xs font-bold shrink-0 transition min-h-[44px] active:scale-98 shadow-xs"
           >
             Request Documentation
           </button>

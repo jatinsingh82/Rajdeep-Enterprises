@@ -63,7 +63,7 @@ export const WhyChooseUs: React.FC<WhyChooseUsProps> = ({ onOpenQuoteModal }) =>
                   Industrial Reliability
                 </span>
                 <span className="text-[10px] text-slate-400 font-mono hidden xs:inline">
-                  Verified Safety Protocols
+                  Tested Safety Standards
                 </span>
               </div>
               <h2 className="text-sm sm:text-base md:text-lg font-black text-white tracking-tight leading-snug break-words mt-0.5">
@@ -118,7 +118,7 @@ export const WhyChooseUs: React.FC<WhyChooseUsProps> = ({ onOpenQuoteModal }) =>
 
                     <div className="mt-2 pt-1.5 border-t border-slate-800 flex items-center gap-1 text-[9px] sm:text-[10px] text-emerald-400">
                       <CheckCircle2 className="w-3 h-3 shrink-0" />
-                      <span>Refinery Verified</span>
+                      <span>Standard Compliant</span>
                     </div>
                   </div>
                 );

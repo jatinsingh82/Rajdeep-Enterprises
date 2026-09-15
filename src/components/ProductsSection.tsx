@@ -1,8 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Filter, MessageCircle, Phone, Info, ShieldCheck, Check, Plus, Download, FileText, AlertCircle, Grid3X3, Grid2X2, LayoutGrid } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, Filter, MessageCircle, Phone, Info, ShieldCheck, Check, Plus, Download, FileText, AlertCircle, Grid3X3, Grid2X2, LayoutGrid, Sparkles } from 'lucide-react';
 import { PRODUCTS, PRODUCT_CATEGORIES, COMPANY_INFO } from '../data/companyData';
 import { Product, Language } from '../types';
 import { TRANSLATIONS } from '../data/extraData';
+import { CATEGORY_SEO_DATA, getCategorySeo } from '../data/categorySeoData';
+import { trackCategoryFilter, trackSearch, trackWhatsAppClick } from '../utils/analytics';
 
 interface ProductsSectionProps {
   onSelectProduct: (product: Product) => void;
@@ -11,7 +13,25 @@ interface ProductsSectionProps {
   rfqProductIds?: string[];
   onDownloadPdf?: () => void;
   lang?: Language;
+  selectedCategory?: string;
+  onSelectCategory?: (cat: string) => void;
 }
+
+const SEARCH_SYNONYMS: Record<string, string[]> = {
+  boot: ['shoe', 'footwear', 'gumboot'],
+  boots: ['shoe', 'footwear', 'gumboots', 'shoes'],
+  vest: ['jacket', 'reflective', 'hi-vis'],
+  vests: ['jackets', 'reflective', 'hi-vis'],
+  glasses: ['goggles', 'spectacles', 'eye'],
+  hat: ['helmet', 'head'],
+  hardhat: ['helmet', 'safety helmet'],
+  belt: ['harness', 'fall protection', 'lanyard'],
+  packing: ['gasket', 'sealant', 'jointing'],
+  seal: ['gasket', 'jointing', 'silicone'],
+  registers: ['stationery', 'register', 'copies', 'notebook'],
+  electrodes: ['welding rods', 'welding', 'arc'],
+  crack: ['dpt', 'dye penetrant', 'testing', 'ndt']
+};
 
 export const ProductsSection: React.FC<ProductsSectionProps> = ({
   onSelectProduct,
@@ -19,25 +39,73 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
   onAddToRfq,
   rfqProductIds = [],
   onDownloadPdf,
-  lang = 'en'
+  lang = 'en',
+  selectedCategory: controlledCategory,
+  onSelectCategory
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<string>("All Products");
+  const [internalCategory, setInternalCategory] = useState<string>("All Products");
+  const selectedCategory = controlledCategory !== undefined ? controlledCategory : internalCategory;
+
+  const handleCategoryChange = (cat: string) => {
+    trackCategoryFilter(cat);
+    if (onSelectCategory) {
+      onSelectCategory(cat);
+    } else {
+      setInternalCategory(cat);
+    }
+  };
+
   const [searchQuery, setSearchQuery] = useState<string>("");
   // Density switcher: 'compact' (2-col default on mobile), 'detailed' (1-col mobile), or 'mini'
   const [density, setDensity] = useState<'mini' | 'compact' | 'detailed'>('compact');
   const t = TRANSLATIONS[lang];
 
-  // Filter products based on Category & Search
+  // Retrieve rich SEO metadata if a valid category is selected
+  const categorySeo = useMemo(() => {
+    return getCategorySeo(selectedCategory);
+  }, [selectedCategory]);
+
+  // Track search query with debounce
+  useEffect(() => {
+    if (!searchQuery.trim()) return;
+    const timer = setTimeout(() => {
+      trackSearch(searchQuery.trim(), filteredProducts.length);
+    }, 600);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
+  // Enhanced Filter with multi-token matching and synonyms
   const filteredProducts = useMemo(() => {
+    const rawTokens = searchQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
+
+    // Expand search tokens with known industrial synonyms
+    const expandedTokens = rawTokens.map(token => {
+      const syns = SEARCH_SYNONYMS[token] || [];
+      return [token, ...syns];
+    });
+
     return PRODUCTS.filter((product) => {
       const matchesCategory =
         selectedCategory === "All Products" ||
         (selectedCategory === "Featured Safety" ? product.isFeatured : product.category === selectedCategory);
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.shortDescription.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.specifications.some((s) => s.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesSearch;
+
+      if (!matchesCategory) return false;
+      if (expandedTokens.length === 0) return true;
+
+      const searchableText = [
+        product.name,
+        product.category,
+        product.shortDescription,
+        product.fullDescription,
+        product.badge || '',
+        product.commonUses,
+        ...product.specifications
+      ].join(' ').toLowerCase();
+
+      // Every word group must have at least one synonym present
+      return expandedTokens.every(tokenGroup => 
+        tokenGroup.some(token => searchableText.includes(token))
+      );
     });
   }, [selectedCategory, searchQuery]);
 
@@ -149,7 +217,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
               <button
                 key={cat}
                 id={`category-btn-${cat.toLowerCase().replace(/[^a-z0-9]/g, '-')}`}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => handleCategoryChange(cat)}
                 className={`min-h-[40px] px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all shrink-0 border ${
                   selectedCategory === cat
                     ? 'bg-slate-900 text-white border-slate-900 shadow-sm'
@@ -162,20 +230,127 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
           </div>
         </div>
 
+        {/* Category SEO Overview Card */}
+        {categorySeo && selectedCategory !== "All Products" && selectedCategory !== "Featured Safety" && (
+          <div className="bg-slate-900 text-white rounded-2xl p-4 sm:p-6 border border-slate-800 shadow-md space-y-4 mb-8">
+            <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+              <div className="space-y-2 max-w-3xl">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2.5 py-0.5 rounded-md text-[10px] sm:text-xs font-black uppercase tracking-wider bg-orange-600 text-white">
+                    Category Guide
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono">
+                    {filteredProducts.length} Industrial Items Cataloged & Sourced
+                  </span>
+                </div>
+                <h3 className="text-lg sm:text-2xl font-black text-white">
+                  {categorySeo.heading}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                  {categorySeo.summary}
+                </p>
+              </div>
+
+              <div className="flex flex-row lg:flex-col gap-2 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onEnquire(`Category Quotation: ${selectedCategory}`)}
+                  className="min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white transition flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>Request Category RFQ</span>
+                </button>
+                <a
+                  href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(`Hello Rajdeep Enterprises, I need pricing and availability for *${selectedCategory}*. Please share catalogue.`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppClick('category_seo_card', selectedCategory)}
+                  className="min-h-[44px] px-4 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <MessageCircle className="w-3.5 h-3.5" />
+                  <span>WhatsApp Enquiry</span>
+                </a>
+              </div>
+            </div>
+
+            {/* Target Applications and Standards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3 border-t border-slate-800 text-xs">
+              <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                <span className="text-[11px] font-bold text-amber-400 uppercase tracking-wider block mb-1">
+                  Primary Field Users & Work Environments:
+                </span>
+                <p className="text-slate-300 text-xs leading-relaxed">
+                  {categorySeo.audience}
+                </p>
+              </div>
+              <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800/80">
+                <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider block mb-1">
+                  Applicable Indian & International Standards:
+                </span>
+                <p className="text-slate-300 text-xs font-mono leading-relaxed">
+                  {categorySeo.standards}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Products Grid */}
         {filteredProducts.length === 0 ? (
-          <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-300 p-6">
-            <AlertCircle className="w-10 h-10 text-slate-400 mx-auto mb-2" />
-            <h3 className="text-sm font-bold text-slate-800">No products found</h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-              No product matched "{searchQuery}". Rajdeep Enterprises supplies any custom industrial material on demand.
-            </p>
-            <button
-              onClick={() => onEnquire(`Custom Requirement: ${searchQuery}`)}
-              className="mt-3 px-3.5 py-2 rounded-md text-xs font-bold bg-orange-600 text-white hover:bg-orange-500"
-            >
-              Enquire for Custom Material Supply
-            </button>
+          <div className="text-center py-10 sm:py-14 bg-slate-50 rounded-2xl border border-dashed border-slate-300 p-6 space-y-4 max-w-2xl mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center mx-auto">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-base font-bold text-slate-800">
+                No products found matching "{searchQuery}"
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-md mx-auto">
+                We supply safety gear, welding, gaskets, tools, and industrial materials across all 28 states. We can source custom specifications on-demand.
+              </p>
+            </div>
+
+            {/* Popular Suggested Categories */}
+            <div className="pt-2">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider block mb-2">
+                Browse Popular Categories:
+              </span>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                {["Personal Protective Equipment (PPE)", "Welding & NDT Testing", "Hardware, Gaskets & Sealants", "Industrial Safety & Fall Protection"].map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setSearchQuery("");
+                      handleCategoryChange(cat);
+                    }}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:border-orange-500 hover:text-orange-600 transition"
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Direct Action Buttons */}
+            <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("");
+                  handleCategoryChange("All Products");
+                }}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-200 hover:bg-slate-300 text-slate-800 transition min-h-[44px]"
+              >
+                Clear Search & Show All Products
+              </button>
+              <button
+                type="button"
+                onClick={() => onEnquire(`Custom Material Sourcing: ${searchQuery}`)}
+                className="px-4 py-2 rounded-xl text-xs font-bold bg-orange-600 hover:bg-orange-700 text-white transition min-h-[44px]"
+              >
+                Request Custom Sourcing
+              </button>
+            </div>
           </div>
         ) : (
           <div

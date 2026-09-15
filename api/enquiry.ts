@@ -32,20 +32,21 @@ function sanitizeInput(str: unknown): string {
 }
 
 export default function handler(req: any, res: any) {
-  // CORS configuration
-  const origin = req.headers?.origin || '*';
-  const allowedOrigins = [
-    'https://rajdeep-enterprises.vercel.app',
-    'https://ais-pre-vzx65xo5tfk2j5f6z3tbec-761216421422.asia-southeast1.run.app',
-    'https://ais-dev-vzx65xo5tfk2j5f6z3tbec-761216421422.asia-southeast1.run.app'
-  ];
+  // Dynamic CORS configuration for custom domain and local preview
+  const origin = req.headers?.origin || '';
+  const configuredSiteUrl = process.env.SITE_URL?.replace(/\/$/, '');
+  const vercelUrl = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : '';
 
-  if (allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', 'https://rajdeep-enterprises.vercel.app');
-  }
+  const isAllowed =
+    !origin ||
+    process.env.NODE_ENV !== 'production' ||
+    origin === configuredSiteUrl ||
+    origin === vercelUrl ||
+    origin.endsWith('.vercel.app') ||
+    origin.includes('rajdeep') ||
+    origin.includes('run.app');
 
+  res.setHeader('Access-Control-Allow-Origin', isAllowed ? (origin || '*') : (configuredSiteUrl || '*'));
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('X-Content-Type-Options', 'nosniff');

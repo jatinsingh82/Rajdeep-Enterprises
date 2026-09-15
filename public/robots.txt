@@ -1,9 +1,10 @@
+# Rajdeep Enterprises - Production Robots Configuration
 User-agent: *
 Allow: /
 
-# Disallow private and administrative assets
+# Disallow internal API endpoints from search indexation
 Disallow: /api/
-Disallow: /private/
 
-# Sitemap location
-Sitemap: https://ais-pre-vzx65xo5tfk2j5f6z3tbec-761216421422.asia-southeast1.run.app/sitemap.xml
+# Production Sitemap Location (Update domain when custom domain DNS is connected)
+Sitemap: https://rajdeep-enterprises.com/sitemap.xml
+

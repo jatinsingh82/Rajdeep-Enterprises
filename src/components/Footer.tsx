@@ -5,9 +5,10 @@ import { COMPANY_INFO, PRODUCT_CATEGORIES } from '../data/companyData';
 interface FooterProps {
   onOpenVisitingCard: () => void;
   onOpenQuoteModal: () => void;
+  onOpenLegalModal: (tab?: 'privacy' | 'terms' | 'disclaimer') => void;
 }
 
-export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteModal }) => {
+export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteModal, onOpenLegalModal }) => {
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -91,40 +92,40 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             </div>
           </div>
 
-          {/* Col 2: Quick Navigation */}
-          <div className="lg:col-span-2 space-y-3">
+          {/* Col 2: Quick Navigation & Categories */}
+          <div className="lg:col-span-3 space-y-3">
             <h4 className="text-sm font-bold uppercase tracking-wider text-white">
-              Quick Links
+              Primary Navigation
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <a href="#home" className="hover:text-orange-400 transition-colors">Home</a>
+                <a href="#home" className="hover:text-orange-400 transition-colors">Home Depot Overview</a>
               </li>
               <li>
-                <a href="#products" className="hover:text-orange-400 transition-colors">Our Products</a>
+                <a href="#products" className="hover:text-orange-400 transition-colors">All Products Catalogue</a>
               </li>
               <li>
-                <a href="#pan-india" className="text-sky-300 font-bold hover:text-sky-200 transition-colors">Whole India Supply</a>
+                <a href="#pan-india" className="text-sky-300 font-bold hover:text-sky-200 transition-colors">Pan-India Wholesale Supply</a>
               </li>
               <li>
-                <a href="#tools-and-guides" className="hover:text-orange-400 transition-colors">Tools, Compliance & Industrial Guides</a>
+                <a href="#trade-kits" className="hover:text-orange-400 transition-colors">Pre-Configured Trade Safety Kits</a>
               </li>
               <li>
-                <a href="#principles" className="hover:text-orange-400 transition-colors">Core Principles</a>
+                <a href="#standards" className="hover:text-orange-400 transition-colors">BIS & EN Safety Standards Guide</a>
               </li>
               <li>
-                <a href="#about" className="hover:text-orange-400 transition-colors">About Us</a>
+                <a href="#gst-compliance" className="hover:text-orange-400 transition-colors">GST & HSN Rate Reference</a>
               </li>
               <li>
-                <a href="#location" className="hover:text-orange-400 transition-colors">Where Can You Find Us</a>
+                <a href="#industries" className="hover:text-orange-400 transition-colors">Industries & Gate Clearances</a>
               </li>
               <li>
-                <a href="#contact" className="hover:text-orange-400 transition-colors">Contact Us</a>
+                <a href="#location" className="hover:text-orange-400 transition-colors">Mathura Refinery Depot Location</a>
               </li>
             </ul>
           </div>
 
-          {/* Col 3: Key Products */}
+          {/* Col 3: Key Products & Deep Links */}
           <div className="lg:col-span-3 space-y-3">
             <h4 className="text-sm font-bold uppercase tracking-wider text-white">
               Core Products
@@ -132,27 +133,51 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             <ul className="space-y-2 text-xs text-slate-400">
               <li className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                <span>Industrial Safety Helmets</span>
+                <a href="#product/safety-helmets" className="hover:text-orange-400 transition-colors">
+                  Industrial Safety Helmets (IS:2925)
+                </a>
               </li>
               <li className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                <span>Karam Industrial Safety Shoes</span>
+                <a href="#product/safety-shoes" className="hover:text-orange-400 transition-colors">
+                  Karam Industrial Safety Shoes (IS:15298)
+                </a>
               </li>
               <li className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                <span>Cut-Resistant & Coated Gloves</span>
+                <a href="#product/belt-harness" className="hover:text-orange-400 transition-colors">
+                  Full Body Safety Harness (IS:3521)
+                </a>
               </li>
               <li className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                <span>Udyogi Full Body Safety Harness</span>
+                <a href="#product/champion-gasket-sheet" className="hover:text-orange-400 transition-colors">
+                  Champion Gaskets & Jointing Sheets
+                </a>
               </li>
               <li className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                <span>Traffic Cones & SSWW Road Studs</span>
+                <a href="#product/welding-rods-electrodes" className="hover:text-orange-400 transition-colors">
+                  Welding Rods & Electrodes (E6013 / E7018)
+                </a>
               </li>
               <li className="flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                <span>Champion Gaskets & Jointing Sheets</span>
+                <a href="#product/dpt-kit-ndt-crack" className="hover:text-orange-400 transition-colors">
+                  DPT Testing Kit (NDT Inspection)
+                </a>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                <a href="#product/road-cones" className="hover:text-orange-400 transition-colors">
+                  Traffic Cones & Reflective Road Studs
+                </a>
+              </li>
+              <li className="flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
+                <a href="#product/site-registers-documentation" className="hover:text-orange-400 transition-colors">
+                  Site Registers & Safety Compliance Books
+                </a>
               </li>
             </ul>
           </div>
@@ -205,10 +230,29 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
 
         </div>
 
-        {/* Bottom Bar: Copyright & Back to top */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div>
-            &copy; 2026 Rajdeep Enterprises. All Rights Reserved.
+        {/* Bottom Bar: Copyright, Legal Links & Back to top */}
+        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+            <span>&copy; 2026 Rajdeep Enterprises. All Rights Reserved.</span>
+            <span className="hidden sm:inline text-slate-700">|</span>
+            <button
+              onClick={() => onOpenLegalModal('privacy')}
+              className="text-slate-400 hover:text-orange-400 underline decoration-slate-700 transition"
+            >
+              Privacy Policy
+            </button>
+            <button
+              onClick={() => onOpenLegalModal('terms')}
+              className="text-slate-400 hover:text-orange-400 underline decoration-slate-700 transition"
+            >
+              Terms of Supply
+            </button>
+            <button
+              onClick={() => onOpenLegalModal('disclaimer')}
+              className="text-slate-400 hover:text-orange-400 underline decoration-slate-700 transition"
+            >
+              Commercial Disclosures
+            </button>
           </div>
           <div className="flex items-center gap-4">
             <span className="text-slate-400">Mathura, Uttar Pradesh, India</span>

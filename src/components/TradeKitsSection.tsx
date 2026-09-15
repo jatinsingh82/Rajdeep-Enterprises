@@ -93,14 +93,14 @@ export const TradeKitsSection: React.FC<TradeKitsSectionProps> = ({
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-100 border border-orange-200 text-orange-800 text-xs font-bold uppercase tracking-wider mb-3">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider mb-3">
             <Briefcase className="w-3.5 h-3.5 text-orange-600" />
             <span>Turnkey Workforce PPE Packages</span>
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
             Trade-Specific PPE Kits Configurator
           </h2>
-          <div className="w-20 h-1 bg-orange-500 mx-auto mt-4 rounded-full"></div>
+          <div className="w-20 h-1 bg-orange-600 mx-auto mt-4 rounded-full"></div>
           <p className="mt-4 text-sm sm:text-base text-slate-600 leading-relaxed">
             Eliminate individual item guesswork. Equip your workforce with pre-approved industrial safety kits tailored to specific trade roles, certified to pass refinery & EPC safety inspector gate checks.
           </p>
@@ -188,10 +188,10 @@ export const TradeKitsSection: React.FC<TradeKitsSectionProps> = ({
                 <div className="pt-1">
                   <button
                     onClick={() => handleAddWholeKitToRfq(activeKit)}
-                    className={`w-full py-2.5 px-3 rounded-xl font-black text-xs flex items-center justify-center gap-2 transition shadow-md active:scale-95 ${
+                    className={`w-full py-2.5 px-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition shadow-xs active:scale-98 min-h-[44px] ${
                       addedSuccessId === activeKit.id
                         ? 'bg-emerald-600 text-white'
-                        : 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 text-white'
+                        : 'bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white'
                     }`}
                   >
                     {addedSuccessId === activeKit.id ? (
@@ -210,7 +210,7 @@ export const TradeKitsSection: React.FC<TradeKitsSectionProps> = ({
 
                 <button
                   onClick={() => handleWhatsAppKitEnquiry(activeKit)}
-                  className="w-full py-2 px-3 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs flex items-center justify-center gap-2 transition"
+                  className="w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs flex items-center justify-center gap-2 transition active:scale-98 min-h-[44px] shadow-xs"
                 >
                   <MessageCircle className="w-3.5 h-3.5 fill-white/20" />
                   <span>Get Kit Quote on WhatsApp</span>
@@ -269,7 +269,7 @@ export const TradeKitsSection: React.FC<TradeKitsSectionProps> = ({
             {/* Standards Bar & Custom Modifying Note */}
             <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
               <div className="flex items-center gap-1.5 flex-wrap">
-                <span className="font-bold text-slate-700">Standards Verified:</span>
+                <span className="font-bold text-slate-700">Standards Compliance:</span>
                 {activeKit.standards.map((std, i) => (
                   <span key={i} className="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 font-mono text-[10px] text-slate-800 font-bold">
                     {std}
