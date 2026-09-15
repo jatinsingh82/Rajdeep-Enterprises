@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Phone, Mail, MapPin, Menu, X, Shield, ArrowRight, FileText, CheckCircle2, ShoppingBag, Download, Languages, Printer, Ruler, ShieldCheck, Building2, ChevronDown, Wrench } from 'lucide-react';
+import { Phone, Mail, MapPin, Menu, X, Shield, ArrowRight, FileText, CheckCircle2, ShoppingBag, Download, Languages, Printer, Ruler, ShieldCheck, Building2, ChevronDown, Wrench, Truck, MessageSquare } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../data/extraData';
@@ -107,11 +107,12 @@ export const Header: React.FC<HeaderProps> = ({
               <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
               <span className="font-medium">Refinery Main Gate, UP SIDC Complex, Mathura</span>
             </div>
-            <div className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-300 bg-[#1E3E62]/60 px-2.5 py-0.5 rounded-full border border-sky-500/30">
-              <span>🇮🇳 Whole India Supply & Sourcing</span>
+            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-sky-300 bg-[#1E3E62]/60 px-2.5 py-0.5 rounded-full border border-sky-500/30">
+              <Truck className="w-3 h-3 text-sky-400 shrink-0" />
+              <span>Pan-India Supply & Sourcing</span>
             </div>
             <div className="hidden lg:flex items-center gap-1.5 text-slate-300">
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
               <span>Proprietor: <strong className="text-white font-semibold">{COMPANY_INFO.contactPerson}</strong></span>
             </div>
           </div>
@@ -301,9 +302,12 @@ export const Header: React.FC<HeaderProps> = ({
       >
         <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-4">
           {/* Brand Logo */}
-          <a id="brand-logo-link" href="#home" className="flex items-center gap-1.5 sm:gap-3 group min-w-0 shrink">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white border-2 border-orange-500 shadow-sm shrink-0 group-hover:scale-105 transition-transform">
-              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-orange-500 fill-orange-500/20" />
+          <a id="brand-logo-link" href="#home" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white border-2 border-orange-500 shadow-sm shrink-0 group-hover:border-orange-400 transition-colors">
+              <div className="flex flex-col items-center justify-center">
+                <span className="font-black text-[11px] sm:text-xs tracking-tight text-white leading-none">RE</span>
+                <span className="text-[7px] font-mono font-bold text-orange-400 leading-none mt-0.5">B2B</span>
+              </div>
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1 leading-tight">
@@ -315,7 +319,7 @@ export const Header: React.FC<HeaderProps> = ({
                 </span>
               </div>
               <p className="text-[9px] sm:text-[10px] text-slate-500 font-medium tracking-wide uppercase hidden md:block">
-                Safety Accessories & Material Supplies • Mathura
+                Industrial & Safety Supplies • Mathura Refinery Gate
               </p>
             </div>
           </a>
@@ -326,7 +330,7 @@ export const Header: React.FC<HeaderProps> = ({
               <a
                 key={link.name}
                 href={link.href}
-                className="text-[13px] font-bold text-slate-700 hover:text-blue-700 transition-colors py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-blue-600 hover:after:w-full after:transition-all"
+                className="text-[13px] font-bold text-slate-700 hover:text-orange-600 transition-colors py-1 relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-0.5 after:bg-orange-600 hover:after:w-full after:transition-all"
               >
                 {link.name}
               </a>
@@ -339,7 +343,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-rfq-cart-btn"
               onClick={onOpenRfqModal}
-              className="relative flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition"
+              className="relative flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition"
               title="View Bulk Quotation Cart"
             >
               <ShoppingBag className="w-4 h-4 text-orange-600" />
@@ -354,7 +358,7 @@ export const Header: React.FC<HeaderProps> = ({
             <a
               id="header-call-btn"
               href={`tel:${COMPANY_INFO.phone}`}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition"
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-200 transition"
             >
               <Phone className="w-3.5 h-3.5 text-orange-600" />
               <span>{COMPANY_INFO.phone}</span>
@@ -363,7 +367,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="header-quote-btn"
               onClick={() => onOpenQuoteModal()}
-              className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-xs font-bold text-white bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-500 hover:to-red-500 shadow-sm hover:shadow transition active:scale-95"
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 shadow-sm transition active:scale-98"
             >
               <span>{t.requestQuote}</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -477,7 +481,7 @@ export const Header: React.FC<HeaderProps> = ({
                   <a
                     id="mobile-drawer-call-btn"
                     href={`tel:${COMPANY_INFO.phone}`}
-                    className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-slate-950 bg-amber-400 active:bg-amber-500 shadow transition text-center"
+                    className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-slate-950 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 shadow-sm transition text-center"
                   >
                     <Phone className="w-4 h-4 text-slate-950" />
                     <span>Call Now ({COMPANY_INFO.phone})</span>
@@ -489,9 +493,9 @@ export const Header: React.FC<HeaderProps> = ({
                     href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-emerald-600 active:bg-emerald-700 shadow transition text-center"
+                    className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-sm transition text-center"
                   >
-                    <span className="text-base">💬</span>
+                    <MessageSquare className="w-4 h-4 text-white" />
                     <span>WhatsApp Us</span>
                   </a>
 
@@ -502,10 +506,10 @@ export const Header: React.FC<HeaderProps> = ({
                       setMobileMenuOpen(false);
                       onOpenQuoteModal();
                     }}
-                    className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-blue-600 active:bg-blue-700 shadow transition"
+                    className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 shadow-sm transition"
                   >
                     <FileText className="w-4 h-4" />
-                    <span>Request Quote</span>
+                    <span>Request Official Quotation</span>
                   </button>
                 </div>
 

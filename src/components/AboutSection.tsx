@@ -24,16 +24,16 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full text-left p-4 sm:p-5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-blue-400 transition-all flex items-center justify-between gap-3 shadow-xs group"
+          className="w-full text-left p-4 sm:p-5 rounded-2xl bg-white hover:bg-slate-50 border border-slate-200 hover:border-slate-400 transition-all flex items-center justify-between gap-3 shadow-xs group"
           aria-expanded={isOpen}
         >
           <div className="flex items-center gap-3 sm:gap-4 min-w-0">
-            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-slate-100 border border-slate-200 text-slate-800 flex items-center justify-center shrink-0 group-hover:bg-slate-900 group-hover:text-white transition-colors">
               <Building2 className="w-5 h-5 sm:w-6 sm:h-6" />
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-extrabold text-blue-700 uppercase tracking-wider bg-blue-100 px-2 py-0.5 rounded">
+                <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
                   Verified Business Profile
                 </span>
                 <span className="text-[10px] text-slate-500 font-mono hidden xs:inline">
@@ -50,7 +50,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-lg border border-blue-200 whitespace-nowrap">
+            <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-300 whitespace-nowrap">
               {isOpen ? 'Minimize Overview' : 'Read Business Profile'}
             </span>
             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 group-hover:text-slate-900">
@@ -66,12 +66,12 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
             {/* Top Overview & Storefront Snapshot */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start pb-6 border-b border-slate-100">
               <div className="lg:col-span-8 space-y-3">
-                <div className="inline-flex items-center gap-2 text-xs font-bold text-blue-700 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
-                  <ShieldCheck className="w-4 h-4 text-blue-600" />
+                <div className="inline-flex items-center gap-2 text-xs font-bold text-slate-800 bg-slate-100 px-3 py-1 rounded-full border border-slate-300">
+                  <ShieldCheck className="w-4 h-4 text-orange-600" />
                   <span>Verified Supply Depot at Mathura Refinery Main Gate</span>
                 </div>
                 <h3 className="text-lg sm:text-2xl font-black text-slate-900 leading-snug">
-                  Trusted Industrial Safety & Material Supplier
+                  Industrial Safety & Material Supplier
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
                   Rajdeep Enterprises is an established industrial safety accessories and material supply firm situated at <strong>15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura</strong>. Directed personally by proprietor <strong>{COMPANY_INFO.contactPerson}</strong>, we provide end-to-end procurement support for refinery contractors, fabrication yards, and industrial projects.
@@ -81,7 +81,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
                     type="button"
                     id="about-visiting-card-btn"
                     onClick={onOpenVisitingCard}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition shadow-2xs min-h-[40px]"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 transition shadow-2xs min-h-[40px]"
                   >
                     <span>View Official Visiting Card</span>
                     <ArrowUpRight className="w-3.5 h-3.5" />
@@ -90,7 +90,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
                     type="button"
                     id="about-quote-btn"
                     onClick={onOpenQuoteModal}
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-slate-900 hover:bg-slate-800 transition shadow-2xs min-h-[40px]"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 transition shadow-2xs min-h-[40px]"
                   >
                     <span>Request Quotation</span>
                   </button>

@@ -1,22 +1,52 @@
 @import "tailwindcss";
 
 @layer base {
+  :root {
+    --color-brand-navy: #0B192C;
+    --color-brand-slate: #0F172A;
+    --color-brand-orange: #EA580C;
+    --color-brand-amber: #D97706;
+    --color-brand-blue: #1D4ED8;
+    --color-brand-emerald: #059669;
+    --color-surface-light: #F8FAFC;
+    --color-border-subtle: #E2E8F0;
+  }
+
   html, body {
     overflow-x: hidden;
     max-width: 100vw;
     width: 100%;
     margin: 0;
     padding: 0;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
   body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     -webkit-text-size-adjust: 100%;
+    background-color: #F8FAFC;
+    color: #0F172A;
   }
+
   h1, h2, h3, h4, h5, h6 {
-    font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+    font-family: 'Montserrat', 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.02em;
   }
+
   img, iframe, svg {
     max-width: 100%;
+  }
+
+  /* Accessible focus-visible state across all interactive elements */
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid #EA580C;
+    outline-offset: 2px;
   }
 }
 
@@ -24,8 +54,8 @@
 .hazard-stripe-light {
   background: repeating-linear-gradient(
     -45deg,
-    #f97316,
-    #f97316 12px,
+    #ea580c,
+    #ea580c 12px,
     #0f172a 12px,
     #0f172a 24px
   );
@@ -34,8 +64,8 @@
 .hazard-stripe-yellow {
   background: repeating-linear-gradient(
     -45deg,
-    #facc15,
-    #facc15 10px,
+    #f59e0b,
+    #f59e0b 10px,
     #1e293b 10px,
     #1e293b 20px
   );
@@ -53,4 +83,14 @@
   background-image: 
     linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+}
+
+/* Reduced Motion Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

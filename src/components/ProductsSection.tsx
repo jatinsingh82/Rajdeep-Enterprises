@@ -47,13 +47,14 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
         
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3">
-            Industrial Catalog
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3">
+            <ShieldCheck className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+            <span>Certified Industrial Supplies & PPE</span>
           </div>
           <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-            Our Products
+            Product Specifications & Supply Catalogue
           </h2>
-          <div className="w-16 h-1 bg-orange-500 mx-auto mt-3 rounded-full"></div>
+          <div className="w-16 h-1 bg-orange-600 mx-auto mt-3 rounded-full"></div>
           <p className="mt-3 text-xs sm:text-base text-slate-600 leading-relaxed px-2">
             Safety accessories, welding consumables, Champion gaskets, site registers, stationery, power tools, and heavy machinery for refineries and workshops. Order any quantity with pan-India supply.
           </p>
@@ -286,7 +287,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                         <button
                           id={`product-enquire-btn-${product.id}`}
                           onClick={() => onEnquire(product.name)}
-                          className="min-h-[44px] rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-500 active:bg-orange-700 transition flex items-center justify-center gap-1 text-[11px] sm:text-xs shadow-2xs"
+                          className="min-h-[44px] rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 transition flex items-center justify-center gap-1.5 text-[11px] sm:text-xs shadow-2xs"
                           title={`Get Price for ${product.name}`}
                           type="button"
                         >
@@ -299,10 +300,10 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                           href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${waMessage}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="min-h-[44px] rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 transition flex items-center justify-center gap-1 text-[11px] sm:text-xs shadow-2xs"
+                          className="min-h-[44px] rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center justify-center gap-1.5 text-[11px] sm:text-xs shadow-2xs"
                           title={`WhatsApp Rajdeep Enterprises for ${product.name}`}
                         >
-                          <span className="text-xs">💬</span>
+                          <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                           <span className="whitespace-nowrap">WhatsApp</span>
                         </a>
                       </div>
@@ -313,8 +314,8 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                           onClick={() => onAddToRfq(product)}
                           className={`w-full min-h-[40px] py-1.5 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 ${
                             rfqProductIds.includes(product.id)
-                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                              : 'text-slate-700 hover:bg-slate-100 border border-slate-200'
+                              ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
+                              : 'text-slate-700 hover:bg-slate-100 border border-slate-300'
                           }`}
                         >
                           {rfqProductIds.includes(product.id) ? (
@@ -339,7 +340,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
         )}
 
         {/* Custom product note */}
-        <div className="mt-8 sm:mt-12 p-4 sm:p-6 rounded-xl bg-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="mt-8 sm:mt-12 p-4 sm:p-6 rounded-2xl bg-slate-900 text-white flex flex-col md:flex-row items-center justify-between gap-4 border border-slate-800 shadow-sm">
           <div className="space-y-1 text-center md:text-left">
             <h4 className="text-sm sm:text-base font-bold">
               Looking for a specific brand, size, or custom industrial supply?
@@ -352,7 +353,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
             <a
               id="catalog-call-direct-btn"
               href={`tel:${COMPANY_INFO.phone}`}
-              className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 transition flex items-center justify-center gap-1.5 text-center"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold text-slate-950 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 transition flex items-center justify-center gap-1.5 text-center"
             >
               <Phone className="w-3.5 h-3.5" />
               <span>Call: {COMPANY_INFO.displayPhone}</span>
@@ -360,7 +361,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
             <button
               id="catalog-custom-enquiry-btn"
               onClick={() => onEnquire("Custom Material & Safety Requirement")}
-              className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-500 transition text-center"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 transition text-center"
             >
               Request Custom Quote
             </button>

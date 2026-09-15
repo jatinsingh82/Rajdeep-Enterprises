@@ -1,5 +1,5 @@
 import React from 'react';
-import { Shield, Phone, Mail, MapPin, ArrowUp, FileText, CheckCircle } from 'lucide-react';
+import { Shield, Phone, Mail, MapPin, ArrowUp, FileText, CheckCircle, Truck, MessageSquare } from 'lucide-react';
 import { COMPANY_INFO, PRODUCT_CATEGORIES } from '../data/companyData';
 
 interface FooterProps {
@@ -15,22 +15,22 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
   return (
     <footer className="bg-slate-950 text-slate-300 border-t border-slate-800 relative">
       {/* Top Hazard Accent Line */}
-      <div className="h-1.5 hazard-stripe-light opacity-80"></div>
+      <div className="h-1 hazard-stripe-light opacity-80"></div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-14 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 pb-[calc(5.5rem+env(safe-area-inset-bottom,0px))] md:pb-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80">
           
           {/* Col 1: Business Identity & Description */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center text-white border-2 border-sky-500 shadow-sm shrink-0">
-                <Shield className="w-6 h-6 text-sky-400 fill-sky-400/20" />
+              <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center text-white font-black text-sm tracking-wider shadow-sm shrink-0 border border-orange-500/40">
+                RE
               </div>
               <div>
                 <span className="font-extrabold text-xl tracking-tight text-white block">
-                  RAJDEEP <span className="text-sky-400">ENTERPRISES</span>
+                  RAJDEEP <span className="text-orange-500">ENTERPRISES</span>
                 </span>
-                <span className="text-xs text-sky-300 font-semibold tracking-wide">
+                <span className="text-xs text-slate-400 font-semibold tracking-wide">
                   {COMPANY_INFO.tagline}
                 </span>
               </div>
@@ -41,11 +41,13 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             </p>
 
             <div className="flex flex-wrap items-center gap-2 pt-1">
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-300 bg-slate-900 border border-sky-500/30 px-2.5 py-1 rounded-full">
-                🇮🇳 Supplying in Whole India Everywhere
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-slate-200 bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">
+                <Truck className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Pan-India Supply Everywhere</span>
               </span>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-slate-900 border border-emerald-500/30 px-2.5 py-1 rounded-full">
-                Any Quantity • Extra Items Sourced
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-400 bg-slate-900 border border-slate-700 px-2.5 py-1 rounded-full">
+                <CheckCircle className="w-3.5 h-3.5" />
+                <span>Zero Order Minimums</span>
               </span>
             </div>
 
@@ -53,7 +55,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             <div className="grid grid-cols-3 gap-2 pt-2 sm:hidden">
               <a
                 href={`tel:${COMPANY_INFO.phone}`}
-                className="py-2.5 px-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
+                className="py-2.5 px-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
               >
                 <Phone className="w-3.5 h-3.5" />
                 <span>Call</span>
@@ -62,18 +64,18 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
                 href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(COMPANY_INFO.whatsappDefaultMessage)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
+                className="py-2.5 px-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-xs transition"
               >
-                <span className="text-xs">💬</span>
+                <MessageSquare className="w-3.5 h-3.5" />
                 <span>WhatsApp</span>
               </a>
               <a
                 href={COMPANY_INFO.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-sky-300 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition"
+                className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition"
               >
-                <MapPin className="w-3.5 h-3.5" />
+                <MapPin className="w-3.5 h-3.5 text-orange-400" />
                 <span>Directions</span>
               </a>
             </div>
@@ -81,9 +83,9 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             <div className="pt-1">
               <button
                 onClick={onOpenVisitingCard}
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-xs font-bold text-sky-300 border border-slate-700 transition"
+                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-xs font-bold text-slate-200 border border-slate-700 transition"
               >
-                <FileText className="w-3.5 h-3.5 text-sky-400" />
+                <FileText className="w-3.5 h-3.5 text-orange-400" />
                 <span>View Official Visiting Card</span>
               </button>
             </div>
@@ -96,28 +98,28 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
-                <a href="#home" className="hover:text-sky-400 transition-colors">Home</a>
+                <a href="#home" className="hover:text-orange-400 transition-colors">Home</a>
               </li>
               <li>
-                <a href="#products" className="hover:text-sky-400 transition-colors">Our Products</a>
+                <a href="#products" className="hover:text-orange-400 transition-colors">Our Products</a>
               </li>
               <li>
-                <a href="#pan-india" className="text-sky-300 font-bold hover:text-sky-200 transition-colors">🇮🇳 Whole India Supply</a>
+                <a href="#pan-india" className="text-sky-300 font-bold hover:text-sky-200 transition-colors">Whole India Supply</a>
               </li>
               <li>
-                <a href="#tools-and-guides" className="hover:text-sky-400 transition-colors">Tools, Compliance & Industrial Guides</a>
+                <a href="#tools-and-guides" className="hover:text-orange-400 transition-colors">Tools, Compliance & Industrial Guides</a>
               </li>
               <li>
-                <a href="#principles" className="hover:text-sky-400 transition-colors">Core Principles</a>
+                <a href="#principles" className="hover:text-orange-400 transition-colors">Core Principles</a>
               </li>
               <li>
-                <a href="#about" className="hover:text-sky-400 transition-colors">About Us</a>
+                <a href="#about" className="hover:text-orange-400 transition-colors">About Us</a>
               </li>
               <li>
-                <a href="#location" className="hover:text-sky-400 transition-colors">Where Can You Find Us</a>
+                <a href="#location" className="hover:text-orange-400 transition-colors">Where Can You Find Us</a>
               </li>
               <li>
-                <a href="#contact" className="hover:text-sky-400 transition-colors">Contact Us</a>
+                <a href="#contact" className="hover:text-orange-400 transition-colors">Contact Us</a>
               </li>
             </ul>
           </div>
@@ -129,27 +131,27 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             </h4>
             <ul className="space-y-2 text-xs text-slate-400">
               <li className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
                 <span>Industrial Safety Helmets</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
                 <span>Karam Industrial Safety Shoes</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
                 <span>Cut-Resistant & Coated Gloves</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
                 <span>Udyogi Full Body Safety Harness</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
                 <span>Traffic Cones & SSWW Road Studs</span>
               </li>
               <li className="flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
                 <span>Champion Gaskets & Jointing Sheets</span>
               </li>
             </ul>
@@ -162,23 +164,23 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             </h4>
             <div className="space-y-2.5 text-xs text-slate-300">
               <div className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                <MapPin className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
                 <span>{COMPANY_INFO.address}</span>
               </div>
               <div className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-sky-400 shrink-0" />
+                <Phone className="w-4 h-4 text-orange-400 shrink-0" />
                 <div className="flex flex-wrap items-center gap-1.5">
-                  <a href={`tel:${COMPANY_INFO.phone}`} className="text-sky-300 hover:underline font-bold">
+                  <a href={`tel:${COMPANY_INFO.phone}`} className="text-slate-200 hover:text-orange-400 hover:underline font-bold">
                     {COMPANY_INFO.phone}
                   </a>
                   <span className="text-slate-600">/</span>
-                  <a href={`tel:${COMPANY_INFO.secondaryPhone}`} className="text-sky-300 hover:underline font-bold">
+                  <a href={`tel:${COMPANY_INFO.secondaryPhone}`} className="text-slate-200 hover:text-orange-400 hover:underline font-bold">
                     {COMPANY_INFO.secondaryPhone}
                   </a>
                 </div>
               </div>
               <div className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-sky-400 shrink-0" />
+                <Mail className="w-4 h-4 text-orange-400 shrink-0" />
                 <a href={`mailto:${COMPANY_INFO.email}`} className="text-slate-300 hover:text-white break-all">
                   {COMPANY_INFO.email}
                 </a>
@@ -194,7 +196,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             <div className="pt-2">
               <button
                 onClick={onOpenQuoteModal}
-                className="w-full py-2 px-3 text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 rounded-lg transition"
+                className="w-full py-2.5 px-3 text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 rounded-xl transition shadow-sm"
               >
                 Request Fast Quotation
               </button>

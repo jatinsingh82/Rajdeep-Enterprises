@@ -50,6 +50,9 @@ export const RfqModal: React.FC<RfqModalProps> = ({
   const [requestMtc, setRequestMtc] = useState(true);
   const [copied, setCopied] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [honeypot, setHoneypot] = useState('');
+  const [rfqReference, setRfqReference] = useState('');
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -57,6 +60,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
       document.body.style.overflow = 'hidden';
       setSubmitted(false);
       setErrors({});
+      setRfqReference('');
     } else {
       document.body.style.overflow = '';
     }
@@ -126,10 +130,12 @@ export const RfqModal: React.FC<RfqModalProps> = ({
     return text;
   };
 
-  const handleSendWhatsApp = () => {
+  const handleSendWhatsApp = async () => {
     if (!validateRfq()) {
       return;
     }
+
+    setIsSubmitting(true);
 
     // Persist RFQ submission in localStorage for audit
     try {
@@ -151,15 +157,52 @@ export const RfqModal: React.FC<RfqModalProps> = ({
         submittedAt: new Date().toISOString()
       });
       localStorage.setItem('rajdeep_rfqs', JSON.stringify(stored));
-    } catch (e) {
-      console.error('Error logging RFQ to storage', e);
+    } catch {
+      // ignore
     }
 
-    const message = generateBoqText();
-    const encoded = encodeURIComponent(message);
-    const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encoded}`;
-    window.open(url, '_blank');
-    setSubmitted(true);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+    try {
+      const res = await fetch('/api/rfq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contractorName,
+          companyName,
+          phoneNumber,
+          emailAddress,
+          siteLocation,
+          notes,
+          requestMtc,
+          rfqItems: rfqItems.map((i) => ({
+            name: i.product.name,
+            quantity: i.quantity
+          })),
+          website_hp: honeypot
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRfqReference(data.rfqReference || '');
+      }
+    } catch {
+      clearTimeout(timeoutId);
+      // Fail gracefully: user can dispatch to WhatsApp without interruption
+    } finally {
+      setIsSubmitting(false);
+      const message = generateBoqText();
+      const encoded = encodeURIComponent(message);
+      const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encoded}`;
+      window.open(url, '_blank');
+      setSubmitted(true);
+    }
   };
 
   const handleCopyBoq = () => {
@@ -216,6 +259,11 @@ export const RfqModal: React.FC<RfqModalProps> = ({
               <h3 className="text-lg sm:text-xl font-black text-slate-900">
                 Bulk RFQ Submitted Successfully!
               </h3>
+              {rfqReference && (
+                <div className="inline-block px-3.5 py-1 bg-emerald-100 text-emerald-900 rounded-lg text-xs font-mono font-bold">
+                  RFQ Tracking ID: {rfqReference}
+                </div>
+              )}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 max-w-md mx-auto text-left space-y-2">
                 <p>
                   <strong>Contact Person:</strong> {contractorName} {companyName && `(${companyName})`}
@@ -421,6 +469,18 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                 <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
                   Contractor / Buyer Details for Invoicing & Dispatch
                 </h4>
+
+                {/* Anti-spam honeypot input */}
+                <input
+                  type="text"
+                  name="website_hp"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  aria-hidden="true"
+                  value={honeypot}
+                  onChange={(e) => setHoneypot(e.target.value)}
+                  style={{ position: 'absolute', opacity: 0, zIndex: -1, pointerEvents: 'none', height: 0, width: 0 }}
+                />
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   <div>
@@ -554,11 +614,12 @@ export const RfqModal: React.FC<RfqModalProps> = ({
 
               <button
                 type="button"
+                disabled={isSubmitting}
                 onClick={handleSendWhatsApp}
-                className="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-sm transition"
+                className="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-75 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-sm transition"
               >
                 <MessageCircle className="w-4 h-4 fill-white/20" />
-                <span>Send Bulk RFQ on WhatsApp</span>
+                <span>{isSubmitting ? 'Logging RFQ...' : 'Send Bulk RFQ on WhatsApp'}</span>
               </button>
             </div>
           </div>

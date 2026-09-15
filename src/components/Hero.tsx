@@ -1,5 +1,5 @@
 import React from 'react';
-import { ArrowRight, Phone, ShieldCheck, MapPin, CheckCircle, Building, HardHat, FileText, UserCheck, Store } from 'lucide-react';
+import { ArrowRight, Phone, ShieldCheck, MapPin, CheckCircle, Building, HardHat, FileText, UserCheck, Store, Truck, MessageSquare } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
 import { useOwnerPhoto } from '../hooks/useOwnerPhoto';
 
@@ -14,11 +14,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
   return (
     <section id="home" className="relative overflow-hidden bg-[#071324] text-white pt-3 sm:pt-6 pb-6 sm:pb-10 md:py-14 lg:py-16">
       {/* Background industrial overlay & grid */}
-      <div className="absolute inset-0 industrial-grid-dark opacity-25 pointer-events-none"></div>
-      
-      {/* Subtle safety accent gradient glow */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-blue-600/15 rounded-full blur-3xl pointer-events-none"></div>
-      <div className="absolute bottom-0 left-10 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div className="absolute inset-0 industrial-grid-dark opacity-15 pointer-events-none"></div>
 
       {/* Top safety stripe bar */}
       <div className="absolute top-0 left-0 right-0 h-1 hazard-stripe-light opacity-90"></div>
@@ -28,8 +24,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
         <div className="lg:hidden space-y-4 mb-2 text-left">
           
           {/* 1. Small Badge / Tag */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 border border-sky-400/40 text-sky-300 text-xs font-bold">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-sky-300 text-xs font-bold">
+            <ShieldCheck className="w-3.5 h-3.5 text-orange-500 shrink-0" />
             <span>Industrial Safety & Material Supplier • Mathura</span>
           </div>
 
@@ -49,7 +45,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
             <a
               id="mobile-hero-view-products-btn"
               href="#products"
-              className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-blue-600 hover:bg-blue-500 active:bg-blue-700 shadow-md transition text-center"
+              className="min-h-[44px] w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold text-sm text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 shadow-sm transition text-center"
             >
               <span>View Products Catalogue</span>
               <ArrowRight className="w-4 h-4" />
@@ -63,9 +59,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 shadow transition text-center"
+                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-sm transition text-center"
               >
-                <span className="text-sm">💬</span>
+                <MessageSquare className="w-3.5 h-3.5 text-white shrink-0" />
                 <span className="whitespace-nowrap">WhatsApp Us</span>
               </a>
 
@@ -73,7 +69,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <a
                 id="mobile-hero-call-btn"
                 href={`tel:${COMPANY_INFO.phone}`}
-                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-slate-950 bg-amber-400 hover:bg-amber-500 active:bg-amber-600 shadow transition text-center"
+                className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-slate-950 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 shadow-sm transition text-center"
               >
                 <Phone className="w-3.5 h-3.5 text-slate-950 shrink-0" />
                 <span className="whitespace-nowrap">Call Now</span>
@@ -85,9 +81,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               type="button"
               id="mobile-hero-quote-btn"
               onClick={() => onOpenQuoteModal()}
-              className="min-h-[44px] w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs text-slate-200 bg-slate-900/90 hover:bg-slate-800 border border-slate-700 transition text-center"
+              className="min-h-[44px] w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 transition text-center"
             >
-              <FileText className="w-3.5 h-3.5 text-sky-400" />
+              <FileText className="w-3.5 h-3.5 text-orange-400" />
               <span>Request Custom Quotation</span>
             </button>
           </div>
@@ -148,21 +144,22 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
           <div className="lg:col-span-7 space-y-6 text-left">
             {/* Location & Pan-India Trust Pill */}
             <div className="flex flex-wrap items-center gap-2">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900/90 border border-slate-700 text-xs font-semibold text-slate-200 shadow-sm backdrop-blur-sm">
-                <span className="w-2 h-2 rounded-full bg-sky-400 animate-ping"></span>
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-xs font-semibold text-slate-200 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-sky-400"></span>
                 <MapPin className="w-3.5 h-3.5 text-sky-400" />
                 <span className="text-sky-300 font-bold">Mathura, UP</span>
                 <span className="text-slate-500">•</span>
                 <span className="text-slate-300">Refinery Main Gate Hub</span>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-950/80 border border-sky-500/50 text-sky-300 text-xs font-bold shadow-sm">
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900 border border-slate-700 text-sky-300 text-xs font-bold shadow-xs">
                 <UserCheck className="w-3.5 h-3.5 text-sky-400" />
                 <span>Proprietor: {COMPANY_INFO.contactPerson}</span>
               </div>
 
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-950/80 border border-emerald-600/50 text-emerald-300 text-xs font-bold shadow-sm">
-                <span>🇮🇳 Supplying Whole India Everywhere</span>
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-emerald-950/90 border border-emerald-700/60 text-emerald-300 text-xs font-bold shadow-xs">
+                <Truck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>Supplying Pan-India Everywhere</span>
               </div>
             </div>
 
@@ -202,7 +199,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <a
                 id="hero-explore-products-btn"
                 href="#products"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white bg-blue-600 hover:bg-blue-500 shadow-lg shadow-blue-600/30 transition-all transform active:scale-95 min-h-[44px]"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 shadow-sm transition-all transform active:scale-98 min-h-[44px]"
               >
                 <span>View Products Catalogue</span>
                 <ArrowRight className="w-4 h-4" />
@@ -214,9 +211,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation%20for%20safety%20materials`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-extrabold text-sm text-white bg-emerald-600 hover:bg-emerald-500 shadow-md transition-all active:scale-95 min-h-[44px]"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-extrabold text-sm text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-sm transition-all active:scale-98 min-h-[44px]"
               >
-                <span className="text-base">💬</span>
+                <MessageSquare className="w-4 h-4 text-white" />
                 <span>WhatsApp Us</span>
               </a>
 
@@ -224,7 +221,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <a
                 id="hero-call-now-btn"
                 href={`tel:${COMPANY_INFO.phone}`}
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-extrabold text-sm text-slate-950 bg-amber-400 hover:bg-amber-300 transition-all shadow-md active:scale-95 min-h-[44px]"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-extrabold text-sm text-slate-950 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 transition-all shadow-sm active:scale-98 min-h-[44px]"
               >
                 <Phone className="w-4 h-4 text-slate-950" />
                 <span>Call {COMPANY_INFO.displayPhone}</span>
@@ -235,9 +232,9 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 type="button"
                 id="hero-quote-modal-btn"
                 onClick={() => onOpenQuoteModal()}
-                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-500 transition-all active:scale-95 min-h-[44px]"
+                className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-bold text-sm text-slate-200 bg-slate-900 hover:bg-slate-800 border border-slate-700 hover:border-slate-500 transition-all active:scale-98 min-h-[44px]"
               >
-                <FileText className="w-4 h-4 text-sky-400" />
+                <FileText className="w-4 h-4 text-orange-400" />
                 <span>Request Custom Quote</span>
               </button>
             </div>
@@ -263,7 +260,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
             <div className="relative mx-auto max-w-md lg:max-w-none">
               
               {/* Main Storefront & Owner Image Card - Clean display without change/upload UI */}
-              <div className="rounded-2xl overflow-hidden shadow-2xl border-2 border-sky-500/40 bg-slate-950 flex flex-col">
+              <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-700/80 bg-slate-950 flex flex-col">
                 <div className="w-full flex flex-col items-center justify-center bg-slate-950 overflow-hidden">
                   <img
                     src={photoUrl}

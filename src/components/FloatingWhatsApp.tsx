@@ -39,18 +39,15 @@ export const FloatingWhatsApp: React.FC = () => {
       <button
         id="floating-whatsapp-btn"
         onClick={handleClick}
-        className="group relative flex items-center justify-center w-14 h-14 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-110 active:scale-95 focus:outline-none"
+        className="group relative flex items-center justify-center w-13 h-13 rounded-full bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95 focus:outline-none"
         aria-label="Chat on WhatsApp with Rajdeep Enterprises"
         title="Chat on WhatsApp with Rajdeep Enterprises"
       >
-        {/* Pulsing ring */}
-        <span className="absolute inset-0 rounded-full bg-emerald-400 opacity-40 animate-ping pointer-events-none"></span>
-
         {/* WhatsApp Icon */}
-        <MessageCircle className="w-7 h-7 fill-white/20 relative z-10" />
+        <MessageCircle className="w-6 h-6 relative z-10" />
 
         {/* Online Indicator Badge */}
-        <span className="absolute top-0 right-0 w-3.5 h-3.5 bg-emerald-300 border-2 border-white rounded-full"></span>
+        <span className="absolute top-0 right-0 w-3 h-3 bg-emerald-400 border-2 border-white rounded-full"></span>
       </button>
     </div>
   );

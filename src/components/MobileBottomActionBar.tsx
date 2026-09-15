@@ -17,11 +17,11 @@ export const MobileBottomActionBar: React.FC = () => {
         <a
           id="mobile-bottom-call-btn"
           href={`tel:${COMPANY_INFO.phone}`}
-          className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-amber-400 hover:bg-amber-500 active:bg-amber-600 text-slate-950 font-extrabold text-xs shadow-xs transition active:scale-95 text-center min-w-0"
+          className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-bold text-xs shadow-xs transition active:scale-98 text-center min-w-0"
           aria-label={`Call Rajdeep Enterprises at ${COMPANY_INFO.phone}`}
         >
           <Phone className="w-4 h-4 shrink-0 text-slate-950" />
-          <span className="font-extrabold whitespace-nowrap">Call</span>
+          <span className="font-bold whitespace-nowrap">Call</span>
         </a>
 
         {/* WhatsApp Button */}
@@ -30,11 +30,11 @@ export const MobileBottomActionBar: React.FC = () => {
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-extrabold text-xs shadow-xs transition active:scale-95 text-center min-w-0"
+          className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs shadow-xs transition active:scale-98 text-center min-w-0"
           aria-label="Chat with Rajdeep Enterprises on WhatsApp"
         >
-          <MessageCircle className="w-4 h-4 shrink-0 fill-white/20" />
-          <span className="font-extrabold whitespace-nowrap">WhatsApp</span>
+          <MessageCircle className="w-4 h-4 shrink-0" />
+          <span className="font-bold whitespace-nowrap">WhatsApp</span>
         </a>
 
         {/* Directions Button */}
@@ -43,11 +43,11 @@ export const MobileBottomActionBar: React.FC = () => {
           href={COMPANY_INFO.googleMapsUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-extrabold text-xs shadow-xs transition active:scale-95 text-center min-w-0"
+          className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-100 font-bold text-xs shadow-xs transition active:scale-98 text-center min-w-0 border border-slate-700"
           aria-label="Get GPS Directions to Mathura Refinery Gate Office"
         >
-          <Navigation className="w-4 h-4 shrink-0" />
-          <span className="font-extrabold whitespace-nowrap">Directions</span>
+          <Navigation className="w-4 h-4 shrink-0 text-orange-400" />
+          <span className="font-bold whitespace-nowrap">Directions</span>
         </a>
       </div>
     </aside>
