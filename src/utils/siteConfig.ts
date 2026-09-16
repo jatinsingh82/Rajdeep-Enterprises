@@ -22,8 +22,7 @@ export const SITE_CONFIG = {
   },
 
   // Fallback production origin used for generating static sitemaps & SEO schemas
-  // before custom domain DNS is fully propagated.
-  defaultProductionDomain: 'https://rajdeep-enterprises.com',
+  defaultProductionDomain: 'https://rajdeep-enterprises.vercel.app',
 
   // Google Analytics 4 Measurement ID (e.g., 'G-XXXXXXXXXX')
   get gaMeasurementId(): string {

@@ -85,7 +85,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       '@graph': [
         {
           '@type': 'Product',
-          '@id': `https://rajdeep-enterprises.com/#product/${product.id}`,
+          '@id': `https://rajdeep-enterprises.vercel.app/#product/${product.id}`,
           name: product.name,
           description: product.fullDescription || product.shortDescription,
           image: typeof product.image === 'string' ? product.image : undefined,
@@ -122,19 +122,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               '@type': 'ListItem',
               position: 1,
               name: 'Home',
-              item: 'https://rajdeep-enterprises.com/'
+              item: 'https://rajdeep-enterprises.vercel.app/'
             },
             {
               '@type': 'ListItem',
               position: 2,
               name: 'Products',
-              item: 'https://rajdeep-enterprises.com/#products'
+              item: 'https://rajdeep-enterprises.vercel.app/#products'
             },
             {
               '@type': 'ListItem',
               position: 3,
               name: product.name,
-              item: `https://rajdeep-enterprises.com/#product/${product.id}`
+              item: `https://rajdeep-enterprises.vercel.app/#product/${product.id}`
             }
           ]
         }

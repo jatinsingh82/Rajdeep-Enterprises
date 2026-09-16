@@ -5,6 +5,5 @@ Allow: /
 # Disallow internal API endpoints from search indexation
 Disallow: /api/
 
-# Production Sitemap Location (Update domain when custom domain DNS is connected)
-Sitemap: https://rajdeep-enterprises.com/sitemap.xml
-
+# Production Sitemap Location
+Sitemap: https://rajdeep-enterprises.vercel.app/sitemap.xml
