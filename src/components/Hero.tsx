@@ -1,7 +1,6 @@
 import React from 'react';
-import { ArrowRight, Phone, ShieldCheck, MapPin, CheckCircle, Building, HardHat, FileText, UserCheck, Store, Truck, MessageSquare } from 'lucide-react';
+import { ArrowRight, Phone, ShieldCheck, MapPin, CheckCircle, Building, FileText, UserCheck, Store, Truck, MessageSquare } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
-import { useOwnerPhoto } from '../hooks/useOwnerPhoto';
 import { trackCallClick, trackWhatsAppClick, trackCustomQuoteClick } from '../utils/analytics';
 
 interface HeroProps {
@@ -10,8 +9,6 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard }) => {
-  const { photoUrl } = useOwnerPhoto();
-
   return (
     <section id="home" className="relative overflow-hidden bg-[#071324] text-white pt-3 sm:pt-6 pb-6 sm:pb-10 md:py-14 lg:py-16">
       {/* Background industrial overlay & grid */}
@@ -113,34 +110,6 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
               <span className="font-semibold">Pan-India Dispatch</span>
             </div>
           </div>
-
-          {/* 5. Authentic business/shop image - clean display with no upload/change option */}
-          <div className="rounded-xl overflow-hidden bg-slate-900 border border-slate-800 shadow-lg mt-3">
-            <div className="w-full bg-slate-950 flex flex-col items-center justify-center overflow-hidden">
-              <img
-                src={photoUrl}
-                alt="Rajdeep Enterprises Storefront and Proprietor at Mathura Refinery Main Gate"
-                width="480"
-                height="320"
-                className="w-full h-auto max-h-[240px] sm:max-h-[280px] object-contain block mx-auto aspect-[3/2]"
-                loading="eager"
-                fetchPriority="high"
-                referrerPolicy="no-referrer"
-              />
-            </div>
-
-            {/* Clean Caption below photo */}
-            <div className="p-2.5 bg-slate-900/95 border-t border-slate-800 flex items-center justify-between text-xs gap-2">
-              <div className="flex items-center gap-1.5 text-slate-300 font-medium min-w-0">
-                <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-                <span className="leading-snug break-words">Rajdeep Enterprises • Mathura Refinery Gate</span>
-              </div>
-              <span className="text-[10px] font-bold text-sky-400 bg-sky-950/80 px-2 py-0.5 rounded border border-sky-700/50 shrink-0">
-                Store Location
-              </span>
-            </div>
-          </div>
-
         </div>
 
         {/* Desktop View: Full 2-column layout (hidden on mobile, shown on lg+) */}
@@ -266,80 +235,92 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
             </div>
           </div>
 
-          {/* Right Column: Verified Shop & Owner Front Showcase */}
+          {/* Right Column: Industrial Supply & Depot Desk (No Photo) */}
           <div className="lg:col-span-5 relative">
             <div className="relative mx-auto max-w-md lg:max-w-none">
-              
-              {/* Main Storefront & Owner Image Card - Clean display without change/upload UI */}
-              <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-700/80 bg-slate-950 flex flex-col">
-                <div className="w-full flex flex-col items-center justify-center bg-slate-950 overflow-hidden">
-                  <img
-                    src={photoUrl}
-                    alt="Shop owner Raj Singh Tarkar standing outside Rajdeep Enterprises store at UP SIDC Complex Refinery Main Gate Mathura"
-                    width="600"
-                    height="700"
-                    className="w-full h-auto max-h-[520px] object-contain block aspect-[6/7]"
-                    loading="eager"
-                    fetchPriority="high"
-                    referrerPolicy="no-referrer"
-                  />
+              <div className="rounded-2xl overflow-hidden shadow-xl border border-slate-700/80 bg-slate-900/90 backdrop-blur-sm p-6 text-left space-y-5">
+                
+                {/* Header with Depot Badge */}
+                <div className="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-sky-950 border border-sky-700/50 text-[11px] font-bold text-sky-400">
+                      <Store className="w-3.5 h-3.5" />
+                      <span>Industrial Supply Depot</span>
+                    </div>
+                    <h3 className="text-xl font-black text-white mt-2">
+                      Rajdeep Enterprises
+                    </h3>
+                    <p className="text-xs text-slate-300 mt-0.5">
+                      15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura
+                    </p>
+                  </div>
+                  <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/30 flex items-center justify-center text-orange-400 shrink-0">
+                    <Building className="w-5 h-5" />
+                  </div>
                 </div>
 
-                {/* Information Card - Cleanly beneath the photo */}
-                <div className="p-4 bg-slate-900 border-t border-slate-800 text-left">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                {/* Key Operational Highlights */}
+                <div className="space-y-3 text-xs text-slate-300">
+                  <div className="flex items-start gap-2.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                     <div>
-                      <div className="text-[10px] font-bold text-sky-400 uppercase tracking-widest flex items-center gap-1">
-                        <Store className="w-3.5 h-3.5 text-sky-400" />
-                        <span>Shop Owner & Proprietor</span>
-                      </div>
-                      <div className="text-lg font-black text-white leading-tight mt-0.5">
-                        {COMPANY_INFO.contactPerson}
-                      </div>
+                      <span className="font-bold text-white block">Immediate Gate Entry Compliance</span>
+                      <span className="text-slate-400 text-[11px]">BIS & EN certified footwear, helmets, safety goggles & harnesses ready for plant passes.</span>
                     </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <Truck className="w-4 h-4 text-sky-400 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-white block">Pan-India Dispatch & No Minimum Limits</span>
+                      <span className="text-slate-400 text-[11px]">Supply available in any quantity needed—from 1 replacement item to bulk industrial consignments.</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2.5">
+                    <CheckCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold text-white block">Standard GST Invoicing with ITC</span>
+                      <span className="text-slate-400 text-[11px]">Proper tax invoices (18% / 12%) for contractor input credit and audit compliance.</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Proprietor & Direct Contact Bar */}
+                <div className="pt-4 border-t border-slate-800 bg-slate-950/60 -mx-6 -mb-6 p-5 rounded-b-2xl flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider block">Proprietor / Contact</span>
+                      <span className="text-sm font-black text-white">{COMPANY_INFO.contactPerson}</span>
+                    </div>
+                    <span className="text-xs font-mono font-bold text-sky-300 bg-slate-900 px-2.5 py-1 rounded border border-slate-800">
+                      {COMPANY_INFO.displayPhone}
+                    </span>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
                     <a
                       href={`tel:${COMPANY_INFO.phone}`}
-                      className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold shadow-md transition transform active:scale-95"
-                      title="Call Owner Directly"
+                      onClick={() => trackCallClick(COMPANY_INFO.phone, 'hero_depot_card')}
+                      className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold shadow-sm transition active:scale-95 text-center"
                     >
                       <Phone className="w-3.5 h-3.5" />
-                      <span>Call Direct</span>
+                      <span>Direct Call</span>
+                    </a>
+                    <a
+                      href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=Hello%20Rajdeep%20Enterprises,%20I%20need%20a%20quotation`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => trackWhatsAppClick('hero_depot_card', 'Quick Inquiry')}
+                      className="inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-extrabold shadow-sm transition active:scale-95 text-center"
+                    >
+                      <MessageSquare className="w-3.5 h-3.5" />
+                      <span>WhatsApp</span>
                     </a>
                   </div>
-
-                  <div className="flex items-center gap-1.5 text-xs text-slate-300 font-medium">
-                    <span className="text-sky-300 font-bold">Rajdeep Enterprises Store</span>
-                    <span className="text-slate-500">•</span>
-                    <span className="text-slate-300 truncate">15/1, U.P.S.I.D.C. Complex</span>
-                  </div>
-                  <p className="text-[11px] text-slate-400 mt-1 leading-snug">
-                    Refinery Main Gate, Mathura • Safety Accessories, Welding Gear, Champion Gaskets, Tools & Site Stationery
-                  </p>
                 </div>
+
               </div>
-
-              {/* Floating Stat Box 1 - Top Left */}
-              <div className="absolute -top-3 -left-3 sm:-left-5 bg-slate-900/95 border border-slate-700/90 p-3 rounded-xl shadow-xl flex items-center gap-2.5 backdrop-blur-md hidden sm:flex z-10">
-                <div className="w-9 h-9 rounded-lg bg-blue-600/20 text-sky-400 flex items-center justify-center border border-blue-500/30">
-                  <HardHat className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">Genuine Physical Store</div>
-                  <div className="text-[10px] text-slate-400">100% In-Stock Goods</div>
-                </div>
-              </div>
-
-              {/* Floating Stat Box 2 - Bottom Right */}
-              <div className="absolute -bottom-3 -right-2 sm:-right-4 bg-slate-900/95 border border-slate-700/90 p-3 rounded-xl shadow-xl flex items-center gap-2.5 backdrop-blur-md hidden sm:flex z-10">
-                <div className="w-9 h-9 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center border border-sky-500/30">
-                  <Building className="w-4 h-4" />
-                </div>
-                <div>
-                  <div className="text-xs font-bold text-white">Direct Counter Supply</div>
-                  <div className="text-[10px] text-slate-400">Refinery Main Gate, Mathura</div>
-                </div>
-              </div>
-
             </div>
           </div>
 

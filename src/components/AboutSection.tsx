@@ -10,11 +10,9 @@ interface AboutSectionProps {
 
 export const AboutSection: React.FC<AboutSectionProps> = ({
   onOpenVisitingCard,
-  onOpenQuoteModal,
-  storefrontPhotoUrl
+  onOpenQuoteModal
 }) => {
   const [isOpen, setIsOpen] = useState(true);
-  const photoUrl = storefrontPhotoUrl || '/attached_assets/WhatsApp_Image_2026-09-12_at_17.24.08.jpeg';
 
   return (
     <section id="about" className="py-6 sm:py-10 bg-slate-50 relative overflow-hidden border-b border-slate-200">
@@ -100,12 +98,9 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
               {/* Verified Owner Card */}
               <div className="lg:col-span-4 bg-slate-900 rounded-xl p-4 text-white border border-slate-800 flex flex-col justify-between">
                 <div className="flex items-center gap-3">
-                  <img
-                    src={photoUrl}
-                    alt={COMPANY_INFO.contactPerson}
-                    className="w-12 h-12 rounded-xl object-cover object-top border border-sky-400 shrink-0"
-                    referrerPolicy="no-referrer"
-                  />
+                  <div className="w-12 h-12 rounded-xl bg-slate-800 border border-sky-500/40 flex items-center justify-center text-sky-400 shrink-0">
+                    <Building2 className="w-6 h-6" />
+                  </div>
                   <div className="min-w-0">
                     <span className="text-[10px] text-sky-400 font-bold uppercase tracking-wider block">Proprietor</span>
                     <h4 className="text-sm font-black text-white truncate">{COMPANY_INFO.contactPerson}</h4>
