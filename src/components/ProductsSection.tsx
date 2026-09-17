@@ -56,7 +56,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
   };
 
   const [searchQuery, setSearchQuery] = useState<string>("");
-  // Density switcher: 'compact' (2-col default on mobile), 'detailed' (1-col mobile), or 'mini'
+  // Density switcher: 'compact' (optimized responsive grid), 'detailed' (1-col mobile), or 'mini' (ultra-dense)
   const [density, setDensity] = useState<'mini' | 'compact' | 'detailed'>('compact');
   const t = TRANSLATIONS[lang];
 
@@ -110,29 +110,29 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
   }, [selectedCategory, searchQuery]);
 
   return (
-    <section id="products" className="py-12 md:py-20 bg-white relative">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <section id="products" className="py-6 sm:py-12 md:py-20 bg-white relative">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3">
-            <ShieldCheck className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+        <div className="text-center max-w-3xl mx-auto mb-4 sm:mb-10">
+          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1.5 sm:mb-3">
+            <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600 shrink-0" />
             <span>Certified Industrial Supplies & PPE</span>
           </div>
-          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Product Specifications & Supply Catalogue
           </h2>
-          <div className="w-16 h-1 bg-orange-600 mx-auto mt-3 rounded-full"></div>
-          <p className="mt-3 text-xs sm:text-base text-slate-600 leading-relaxed px-2">
+          <div className="w-12 sm:w-16 h-1 bg-orange-600 mx-auto mt-2 sm:mt-3 rounded-full"></div>
+          <p className="mt-2 sm:mt-3 text-[11px] sm:text-base text-slate-600 leading-relaxed px-1">
             Safety accessories, welding consumables, Champion gaskets, site registers, stationery, power tools, and heavy machinery for refineries and workshops. Order any quantity with pan-India supply.
           </p>
         </div>
 
         {/* Search, Density Switcher & Category Controls */}
-        <div className="mb-6 sm:mb-10 space-y-3 sm:space-y-4">
+        <div className="mb-4 sm:mb-8 space-y-2.5 sm:space-y-4">
           
           {/* Search bar & Mobile View Controls */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
             <div className="relative w-full sm:w-96">
               <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -141,7 +141,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                 placeholder="Search safety shoes, helmets, gloves, welding..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full min-h-[44px] pl-9.5 pr-10 py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-slate-50 transition"
+                className="w-full min-h-[40px] sm:min-h-[44px] pl-9.5 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-slate-50 transition"
               />
               {searchQuery && (
                 <button
@@ -158,8 +158,21 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
             <div className="flex items-center justify-between gap-2">
               <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200">
                 <button
+                  onClick={() => setDensity('compact')}
+                  className={`min-h-[34px] sm:min-h-[36px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                    density === 'compact'
+                      ? 'bg-orange-600 text-white shadow-xs'
+                      : 'text-slate-700 hover:text-slate-900'
+                  }`}
+                  title="Grid view"
+                >
+                  <Grid2X2 className="w-3.5 h-3.5" />
+                  <span>Grid</span>
+                </button>
+
+                <button
                   onClick={() => setDensity('detailed')}
-                  className={`min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`min-h-[34px] sm:min-h-[36px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     density === 'detailed'
                       ? 'bg-orange-600 text-white shadow-xs'
                       : 'text-slate-700 hover:text-slate-900'
@@ -168,19 +181,6 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                 >
                   <LayoutGrid className="w-3.5 h-3.5" />
                   <span>1 in Row</span>
-                </button>
-
-                <button
-                  onClick={() => setDensity('compact')}
-                  className={`min-h-[36px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
-                    density === 'compact'
-                      ? 'bg-orange-600 text-white shadow-xs'
-                      : 'text-slate-700 hover:text-slate-900'
-                  }`}
-                  title="2 in a row (Compact grid)"
-                >
-                  <Grid2X2 className="w-3.5 h-3.5" />
-                  <span>2 in Row</span>
                 </button>
 
                 <button
@@ -200,7 +200,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
               {onDownloadPdf && (
                 <button
                   onClick={onDownloadPdf}
-                  className="min-h-[38px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 shadow-2xs transition"
+                  className="min-h-[34px] sm:min-h-[38px] inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 shadow-2xs transition"
                   title="Download complete printable catalogue"
                 >
                   <Download className="w-3.5 h-3.5 text-orange-600" />
@@ -356,10 +356,10 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
           <div
             className={`grid transition-all duration-200 ${
               density === 'mini'
-                ? 'grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5'
+                ? 'grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5'
                 : density === 'compact'
-                ? 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5'
-                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6'
+                ? 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-5'
+                : 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 sm:gap-6'
             }`}
           >
             {filteredProducts.map((product) => {
@@ -370,17 +370,17 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
               return (
                 <div
                   key={product.id}
-                  className="bg-white rounded-2xl overflow-hidden border border-slate-200 hover:border-orange-500/80 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col group justify-between"
+                  className="bg-white rounded-xl sm:rounded-2xl overflow-hidden border border-slate-200 hover:border-orange-500/80 shadow-2xs hover:shadow-md transition-all duration-200 flex flex-col group justify-between"
                 >
                   {/* Product Image & Badges */}
                   <div
                     onClick={() => onSelectProduct(product)}
                     className={`relative overflow-hidden bg-slate-100 cursor-pointer ${
                       density === 'mini'
-                        ? 'h-24 sm:h-32'
+                        ? 'h-20 sm:h-32'
                         : density === 'compact'
-                        ? 'h-36 sm:h-48'
-                        : 'h-48 sm:h-56'
+                        ? 'h-24 xs:h-28 sm:h-48'
+                        : 'h-40 sm:h-56'
                     }`}
                   >
                     <img
@@ -395,15 +395,15 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
 
                     {/* Badges */}
                     {product.badge && density !== 'mini' && (
-                      <div className="absolute top-2 left-2">
-                        <span className="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider bg-orange-600 text-white shadow-xs">
+                      <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2">
+                        <span className="px-1.5 py-0.5 sm:px-2 rounded text-[9px] sm:text-[10px] font-bold uppercase tracking-wider bg-orange-600 text-white shadow-xs">
                           {product.badge}
                         </span>
                       </div>
                     )}
 
                     {product.isCardPhotoItem && (
-                      <div className="absolute top-2 right-2 bg-slate-900/85 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-md backdrop-blur-xs">
+                      <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 bg-slate-900/85 text-amber-300 text-[8px] sm:text-[10px] font-bold px-1.5 py-0.5 rounded backdrop-blur-xs">
                         Refinery Grade
                       </div>
                     )}
@@ -416,18 +416,18 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                   </div>
 
                   {/* Card Content */}
-                  <div className={`flex flex-col justify-between flex-1 ${density === 'mini' ? 'p-2.5' : 'p-3.5 sm:p-4'}`}>
+                  <div className={`flex flex-col justify-between flex-1 ${density === 'mini' ? 'p-2' : 'p-2 sm:p-4'}`}>
                     <div>
-                      <span className="text-[10px] font-extrabold uppercase tracking-wider text-orange-600 block">
+                      <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-orange-600 block line-clamp-1">
                         {product.category}
                       </span>
                       <h3
                         onClick={() => onSelectProduct(product)}
-                        className={`font-bold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors cursor-pointer mt-1 break-words ${
+                        className={`font-bold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors cursor-pointer mt-0.5 sm:mt-1 break-words ${
                           density === 'mini'
-                            ? 'text-xs min-h-[30px]'
+                            ? 'text-[11px] sm:text-xs min-h-[28px] line-clamp-2'
                             : density === 'compact'
-                            ? 'text-xs sm:text-sm min-h-[36px]'
+                            ? 'text-[11px] sm:text-sm min-h-[28px] sm:min-h-[36px] line-clamp-2'
                             : 'text-sm sm:text-base'
                         }`}
                         title={product.name}
@@ -437,7 +437,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
 
                       {/* Description / Specifications */}
                       {density !== 'mini' && (
-                        <p className="mt-1 text-xs text-slate-500 leading-relaxed break-words">
+                        <p className="mt-1 text-xs text-slate-500 leading-relaxed break-words hidden sm:block">
                           {product.shortDescription}
                         </p>
                       )}
@@ -454,19 +454,19 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                       )}
                     </div>
 
-                    {/* Action Bar: Two clear buttons [ Enquire ] & [ WhatsApp ] with min-h-[44px] touch targets */}
-                    <div className={`border-t border-slate-100 flex flex-col gap-1.5 ${
-                      density === 'mini' ? 'mt-2 pt-2' : 'mt-3 pt-2.5'
+                    {/* Action Bar: Two clear buttons [ Enquire ] & [ WhatsApp ] */}
+                    <div className={`border-t border-slate-100 flex flex-col gap-1 sm:gap-1.5 ${
+                      density === 'mini' ? 'mt-1.5 pt-1.5' : 'mt-1.5 sm:mt-3 pt-1.5 sm:pt-2.5'
                     }`}>
-                      <div className="grid grid-cols-2 gap-1.5">
+                      <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                         <button
                           id={`product-enquire-btn-${product.id}`}
                           onClick={() => onEnquire(product.name)}
-                          className="min-h-[44px] rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 transition flex items-center justify-center gap-1.5 text-[11px] sm:text-xs shadow-2xs"
+                          className="min-h-[36px] sm:min-h-[44px] rounded-lg sm:rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 transition flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs shadow-2xs"
                           title={`Get Price for ${product.name}`}
                           type="button"
                         >
-                          <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                          <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                           <span className="whitespace-nowrap">Enquire</span>
                         </button>
 
@@ -475,10 +475,10 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                           href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${waMessage}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="min-h-[44px] rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center justify-center gap-1.5 text-[11px] sm:text-xs shadow-2xs"
+                          className="min-h-[36px] sm:min-h-[44px] rounded-lg sm:rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs shadow-2xs"
                           title={`WhatsApp Rajdeep Enterprises for ${product.name}`}
                         >
-                          <MessageCircle className="w-3.5 h-3.5 shrink-0" />
+                          <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
                           <span className="whitespace-nowrap">WhatsApp</span>
                         </a>
                       </div>
@@ -487,7 +487,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                         <button
                           type="button"
                           onClick={() => onAddToRfq(product)}
-                          className={`w-full min-h-[40px] py-1.5 rounded-xl text-[11px] font-bold transition flex items-center justify-center gap-1.5 ${
+                          className={`w-full min-h-[32px] sm:min-h-[40px] py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-bold transition flex items-center justify-center gap-1 sm:gap-1.5 ${
                             rfqProductIds.includes(product.id)
                               ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
                               : 'text-slate-700 hover:bg-slate-100 border border-slate-300'
@@ -495,13 +495,13 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                         >
                           {rfqProductIds.includes(product.id) ? (
                             <>
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              <span>Added to Bulk RFQ</span>
+                              <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
+                              <span>Added to RFQ</span>
                             </>
                           ) : (
                             <>
-                              <Plus className="w-3.5 h-3.5 text-slate-500" />
-                              <span>+ Add to Bulk RFQ</span>
+                              <Plus className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500" />
+                              <span>+ Add to RFQ</span>
                             </>
                           )}
                         </button>
