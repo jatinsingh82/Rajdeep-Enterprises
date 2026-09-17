@@ -128,19 +128,19 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
   };
 
   return (
-    <section id="contact" className="py-16 md:py-24 bg-white relative">
+    <section id="contact" className="py-12 sm:py-16 md:py-24 bg-white relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
+        <div className="text-center max-w-3xl mx-auto mb-10 sm:mb-16">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider mb-3">
             <span>Direct Commercial Enquiries</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
             Contact Rajdeep Enterprises
           </h2>
-          <div className="w-16 h-1 bg-orange-600 mx-auto mt-4 rounded-full"></div>
-          <p className="mt-4 text-base text-slate-600">
+          <div className="w-16 h-1 bg-orange-600 mx-auto mt-3 sm:mt-4 rounded-full"></div>
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base text-slate-600">
             Reach out to us for immediate quotations, product samples, custom material requests, or industrial supply inquiries in Mathura and surrounding industrial belts.
           </p>
         </div>

@@ -15,7 +15,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
   const [isOpen, setIsOpen] = useState(true);
 
   return (
-    <section id="about" className="py-6 sm:py-10 bg-slate-50 relative overflow-hidden border-b border-slate-200">
+    <section id="about" className="py-10 sm:py-14 bg-slate-50 relative overflow-hidden border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
@@ -32,7 +32,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-extrabold text-slate-700 uppercase tracking-wider bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
-                  Business Profile & Operations
+                  Business Profile
                 </span>
                 <span className="text-[10px] text-slate-500 font-mono hidden xs:inline">
                   Proprietor: {COMPANY_INFO.contactPerson}
@@ -48,8 +48,8 @@ export const AboutSection: React.FC<AboutSectionProps> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-300 whitespace-nowrap">
-              {isOpen ? 'Minimize Overview' : 'Read Business Profile'}
+            <span className="hidden xs:inline text-xs font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-300 whitespace-nowrap">
+              {isOpen ? 'Minimize' : 'View Profile'}
             </span>
             <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 group-hover:text-slate-900">
               {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}

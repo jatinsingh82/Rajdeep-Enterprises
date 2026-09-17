@@ -122,10 +122,10 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Language Switcher */}
             <button
               onClick={onToggleLang}
-              className="flex items-center gap-0.5 px-1.5 py-0.5 rounded bg-[#1E3E62]/80 hover:bg-[#1E3E62] text-sky-300 font-bold border border-sky-500/30 transition text-[10px] sm:text-[11px]"
+              className="flex items-center gap-1 px-2 py-1 rounded-md bg-[#1E3E62]/80 hover:bg-[#1E3E62] text-sky-300 font-bold border border-sky-500/30 transition text-[11px] min-h-[30px]"
               title="Switch Language / भाषा बदलें"
             >
-              <Languages className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-400" />
+              <Languages className="w-3 h-3 text-sky-400" />
               <span>{lang === 'en' ? 'हिन्दी' : 'EN'}</span>
             </button>
 
@@ -133,36 +133,36 @@ export const Header: React.FC<HeaderProps> = ({
             <a
               id="topbar-phone-link"
               href={`tel:${COMPANY_INFO.phone}`}
-              className="flex items-center gap-0.5 text-sky-300 hover:text-white font-semibold transition-colors px-1 py-0.5 rounded hover:bg-[#1E3E62] text-[10px] sm:text-xs"
+              className="flex items-center gap-1 text-sky-300 hover:text-white font-semibold transition-colors px-2 py-1 rounded-md hover:bg-[#1E3E62] text-[11px] sm:text-xs min-h-[30px]"
               title="Call Proprietor Directly"
             >
-              <Phone className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-400" />
+              <Phone className="w-3 h-3 text-sky-400" />
               <span className="hidden sm:inline font-mono">{COMPANY_INFO.displayPhone}</span>
-              <span className="sm:hidden text-[10px] font-bold">Call</span>
+              <span className="sm:hidden text-[11px] font-bold">Call</span>
             </a>
 
-            {/* Visiting Card modal button */}
+            {/* Visiting Card modal button - cleanly visible on tablet/desktop */}
             <button
               id="topbar-visiting-card-btn"
               onClick={onOpenVisitingCard}
-              className="flex items-center gap-0.5 bg-[#1E3E62] hover:bg-sky-700 text-white px-1.5 sm:px-2 py-0.5 sm:py-1 rounded text-[10px] sm:text-xs font-semibold border border-sky-400/40 shadow-xs transition"
+              className="hidden xs:flex items-center gap-1 bg-[#1E3E62] hover:bg-sky-700 text-white px-2 py-1 rounded-md text-[11px] sm:text-xs font-semibold border border-sky-400/40 shadow-2xs transition min-h-[30px]"
               title="View Business Visiting Card"
             >
-              <FileText className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-300" />
+              <FileText className="w-3 h-3 text-sky-300" />
               <span>Card</span>
             </button>
 
-            {/* Tools & Guides Dropdown - Kept AFTER Visiting Card */}
-            <div className="relative" ref={toolsMenuRef}>
+            {/* Tools & Guides Dropdown - Kept accessible on sm+ screens */}
+            <div className="relative hidden sm:block" ref={toolsMenuRef}>
               <button
                 id="topbar-tools-guides-btn"
                 onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
-                className="flex items-center gap-0.5 text-[10px] sm:text-xs text-white bg-blue-600 hover:bg-blue-500 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded font-semibold border border-sky-400/50 shadow-xs transition"
+                className="flex items-center gap-1 text-xs text-white bg-blue-600 hover:bg-blue-500 px-2.5 py-1 rounded-md font-semibold border border-sky-400/50 shadow-2xs transition min-h-[30px]"
                 title="Procurement Tools, Technical Guides & Compliance"
               >
-                <Wrench className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-200" />
+                <Wrench className="w-3 h-3 text-sky-200" />
                 <span>Guides</span>
-                <ChevronDown className={`w-2.5 h-2.5 sm:w-3 sm:h-3 text-sky-200 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3 h-3 text-sky-200 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
 
               {toolsDropdownOpen && (
@@ -297,13 +297,13 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Main Navbar */}
       <nav
         className={`w-full bg-white transition-shadow duration-300 overflow-x-hidden ${
-          isScrolled ? 'shadow-md py-1.5 sm:py-2.5' : 'shadow-sm py-2 sm:py-3'
+          isScrolled ? 'shadow-md py-2 sm:py-2.5' : 'shadow-xs py-2.5 sm:py-3.5'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4">
           {/* Brand Logo */}
           <a id="brand-logo-link" href="#home" className="flex items-center gap-2 sm:gap-3 group min-w-0 shrink">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white border-2 border-orange-500 shadow-sm shrink-0 group-hover:border-orange-400 transition-colors">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-slate-900 flex items-center justify-center text-white border-2 border-orange-500 shadow-xs shrink-0 group-hover:border-orange-400 transition-colors">
               <div className="flex flex-col items-center justify-center">
                 <span className="font-black text-[11px] sm:text-xs tracking-tight text-white leading-none">RE</span>
                 <span className="text-[7px] font-mono font-bold text-orange-400 leading-none mt-0.5">B2B</span>
@@ -311,10 +311,10 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-1 leading-tight">
-                <span className="font-extrabold text-xs sm:text-base lg:text-lg tracking-tight text-slate-900 whitespace-nowrap">
+                <span className="font-extrabold text-sm sm:text-base lg:text-lg tracking-tight text-slate-900 whitespace-nowrap">
                   RAJDEEP
                 </span>
-                <span className="font-bold text-xs sm:text-base lg:text-lg tracking-tight text-orange-600 whitespace-nowrap">
+                <span className="font-bold text-sm sm:text-base lg:text-lg tracking-tight text-orange-600 whitespace-nowrap">
                   ENTERPRISES
                 </span>
               </div>

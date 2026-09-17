@@ -10,7 +10,7 @@ interface HeroProps {
 
 export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard }) => {
   return (
-    <section id="home" className="relative overflow-hidden bg-[#071324] text-white pt-3 sm:pt-6 pb-6 sm:pb-10 md:py-14 lg:py-16">
+    <section id="home" className="relative overflow-hidden bg-[#071324] text-white pt-5 sm:pt-8 pb-8 sm:pb-12 md:py-14 lg:py-16">
       {/* Background industrial overlay & grid */}
       <div className="absolute inset-0 industrial-grid-dark opacity-15 pointer-events-none"></div>
 
@@ -19,21 +19,21 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Mobile View: Specifically structured for mobile phones (lg:hidden) */}
-        <div className="lg:hidden space-y-4 mb-2 text-left">
+        <div className="lg:hidden space-y-4 text-left">
           
           {/* 1. Small Badge / Tag */}
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 border border-slate-700 text-sky-300 text-xs font-bold">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900/90 border border-slate-700/80 text-sky-300 text-xs font-bold shadow-2xs">
             <ShieldCheck className="w-3.5 h-3.5 text-orange-500 shrink-0" />
             <span>Industrial Safety & Material Supplier • Mathura</span>
           </div>
 
           {/* 2. Responsive Heading with clamp() */}
-          <h1 className="text-[clamp(1.65rem,6.5vw,2.25rem)] font-black text-white tracking-tight leading-[1.2]">
+          <h1 className="text-[clamp(1.5rem,5.8vw,2.15rem)] font-black text-white tracking-tight leading-[1.22]">
             Industrial Safety PPE, Site Stationery & Material Supplies
           </h1>
 
-          {/* 3. Short Description (16px body) */}
-          <p className="text-base text-slate-300 leading-relaxed">
+          {/* 3. Short Description (16px body, 1.5+ line-height) */}
+          <p className="text-base text-slate-300 leading-relaxed font-normal">
             Rajdeep Enterprises supplies certified safety PPE, welding consumables, Champion gaskets, hardware, and site materials. Direct counter pickup at Mathura Refinery Gate with reliable dispatch across all 28 states of India.
           </p>
 
@@ -60,7 +60,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 onClick={() => trackWhatsAppClick('hero_mobile', 'General Inquiry')}
                 className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-sm transition text-center"
               >
-                <MessageSquare className="w-3.5 h-3.5 text-white shrink-0" />
+                <MessageSquare className="w-4 h-4 text-white shrink-0" />
                 <span className="whitespace-nowrap">WhatsApp Us</span>
               </a>
 
@@ -71,7 +71,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
                 onClick={() => trackCallClick(COMPANY_INFO.phone, 'hero_mobile')}
                 className="min-h-[44px] flex items-center justify-center gap-1.5 py-3 px-2 rounded-xl font-extrabold text-xs sm:text-sm text-slate-950 bg-amber-500 hover:bg-amber-400 active:bg-amber-600 shadow-sm transition text-center"
               >
-                <Phone className="w-3.5 h-3.5 text-slate-950 shrink-0" />
+                <Phone className="w-4 h-4 text-slate-950 shrink-0" />
                 <span className="whitespace-nowrap">Call Now</span>
               </a>
             </div>
@@ -92,21 +92,21 @@ export const Hero: React.FC<HeroProps> = ({ onOpenQuoteModal, onOpenVisitingCard
           </div>
 
           {/* Quick Trust Badges on Mobile */}
-          <div className="grid grid-cols-2 gap-2 pt-1 text-[11px] text-slate-300">
-            <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-900/70 border border-slate-800">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <div className="grid grid-cols-2 gap-2 pt-2 text-xs text-slate-300">
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
               <span className="font-semibold">Gate Pass Ready</span>
             </div>
-            <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-900/70 border border-slate-800">
-              <CheckCircle className="w-3.5 h-3.5 text-sky-400 shrink-0" />
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <CheckCircle className="w-4 h-4 text-sky-400 shrink-0" />
               <span className="font-semibold">100% GST Invoiced</span>
             </div>
-            <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-900/70 border border-slate-800">
-              <MapPin className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <MapPin className="w-4 h-4 text-amber-400 shrink-0" />
               <span className="font-semibold">Mathura Gate Depot</span>
             </div>
-            <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-900/70 border border-slate-800">
-              <Building className="w-3.5 h-3.5 text-orange-400 shrink-0" />
+            <div className="flex items-center gap-2 p-2.5 rounded-xl bg-slate-900/80 border border-slate-800">
+              <Building className="w-4 h-4 text-orange-400 shrink-0" />
               <span className="font-semibold">Pan-India Dispatch</span>
             </div>
           </div>

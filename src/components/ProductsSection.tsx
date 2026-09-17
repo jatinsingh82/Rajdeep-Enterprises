@@ -110,38 +110,38 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
   }, [selectedCategory, searchQuery]);
 
   return (
-    <section id="products" className="py-6 sm:py-12 md:py-20 bg-white relative">
-      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+    <section id="products" className="py-10 sm:py-14 md:py-20 bg-white relative">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-4 sm:mb-10">
-          <div className="inline-flex items-center gap-2 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1.5 sm:mb-3">
-            <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600 shrink-0" />
+        <div className="text-center max-w-3xl mx-auto mb-6 sm:mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider mb-2 sm:mb-3">
+            <ShieldCheck className="w-3.5 h-3.5 text-orange-600 shrink-0" />
             <span>Certified Industrial Supplies & PPE</span>
           </div>
-          <h2 className="text-xl sm:text-4xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight leading-tight">
             Product Specifications & Supply Catalogue
           </h2>
-          <div className="w-12 sm:w-16 h-1 bg-orange-600 mx-auto mt-2 sm:mt-3 rounded-full"></div>
-          <p className="mt-2 sm:mt-3 text-[11px] sm:text-base text-slate-600 leading-relaxed px-1">
+          <div className="w-12 sm:w-16 h-1 bg-orange-600 mx-auto mt-2.5 sm:mt-3 rounded-full"></div>
+          <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed px-1">
             Safety accessories, welding consumables, Champion gaskets, site registers, stationery, power tools, and heavy machinery for refineries and workshops. Order any quantity with pan-India supply.
           </p>
         </div>
 
         {/* Search, Density Switcher & Category Controls */}
-        <div className="mb-4 sm:mb-8 space-y-2.5 sm:space-y-4">
+        <div className="mb-6 sm:mb-8 space-y-3 sm:space-y-4">
           
           {/* Search bar & Mobile View Controls */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 sm:gap-3">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <div className="relative w-full sm:w-96">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 id="products-search-input"
                 type="text"
                 placeholder="Search safety shoes, helmets, gloves, welding..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full min-h-[40px] sm:min-h-[44px] pl-9.5 pr-10 py-2 sm:py-2.5 text-xs sm:text-sm rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-slate-50 transition"
+                className="w-full min-h-[44px] pl-10 pr-10 py-2.5 text-sm rounded-xl border border-slate-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-slate-50 transition"
               />
               {searchQuery && (
                 <button
@@ -159,12 +159,12 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
               <div className="inline-flex items-center p-1 rounded-xl bg-slate-100 border border-slate-200">
                 <button
                   onClick={() => setDensity('compact')}
-                  className={`min-h-[34px] sm:min-h-[36px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     density === 'compact'
                       ? 'bg-orange-600 text-white shadow-xs'
                       : 'text-slate-700 hover:text-slate-900'
                   }`}
-                  title="Grid view"
+                  title="Grid view (2 items per row)"
                 >
                   <Grid2X2 className="w-3.5 h-3.5" />
                   <span>Grid</span>
@@ -172,7 +172,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
 
                 <button
                   onClick={() => setDensity('detailed')}
-                  className={`min-h-[34px] sm:min-h-[36px] flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`min-h-[38px] flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     density === 'detailed'
                       ? 'bg-orange-600 text-white shadow-xs'
                       : 'text-slate-700 hover:text-slate-900'
@@ -185,7 +185,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
 
                 <button
                   onClick={() => setDensity('mini')}
-                  className={`hidden sm:flex min-h-[36px] items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+                  className={`hidden sm:flex min-h-[38px] items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition ${
                     density === 'mini'
                       ? 'bg-orange-600 text-white shadow-xs'
                       : 'text-slate-700 hover:text-slate-900'
@@ -200,7 +200,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
               {onDownloadPdf && (
                 <button
                   onClick={onDownloadPdf}
-                  className="min-h-[34px] sm:min-h-[38px] inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 shadow-2xs transition"
+                  className="min-h-[38px] inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-800 shadow-2xs transition"
                   title="Download complete printable catalogue"
                 >
                   <Download className="w-3.5 h-3.5 text-orange-600" />
@@ -416,18 +416,18 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                   </div>
 
                   {/* Card Content */}
-                  <div className={`flex flex-col justify-between flex-1 ${density === 'mini' ? 'p-2' : 'p-2 sm:p-4'}`}>
+                  <div className={`flex flex-col justify-between flex-1 ${density === 'mini' ? 'p-2' : 'p-2.5 sm:p-4'}`}>
                     <div>
-                      <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-orange-600 block line-clamp-1">
+                      <span className="text-[10px] sm:text-[10px] font-extrabold uppercase tracking-wider text-orange-600 block line-clamp-1">
                         {product.category}
                       </span>
                       <h3
                         onClick={() => onSelectProduct(product)}
-                        className={`font-bold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors cursor-pointer mt-0.5 sm:mt-1 break-words ${
+                        className={`font-bold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors cursor-pointer mt-1 break-words ${
                           density === 'mini'
                             ? 'text-[11px] sm:text-xs min-h-[28px] line-clamp-2'
                             : density === 'compact'
-                            ? 'text-[11px] sm:text-sm min-h-[28px] sm:min-h-[36px] line-clamp-2'
+                            ? 'text-xs sm:text-sm min-h-[32px] sm:min-h-[36px] line-clamp-2'
                             : 'text-sm sm:text-base'
                         }`}
                         title={product.name}
@@ -455,18 +455,18 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                     </div>
 
                     {/* Action Bar: Two clear buttons [ Enquire ] & [ WhatsApp ] */}
-                    <div className={`border-t border-slate-100 flex flex-col gap-1 sm:gap-1.5 ${
-                      density === 'mini' ? 'mt-1.5 pt-1.5' : 'mt-1.5 sm:mt-3 pt-1.5 sm:pt-2.5'
+                    <div className={`border-t border-slate-100 flex flex-col gap-1.5 ${
+                      density === 'mini' ? 'mt-1.5 pt-1.5' : 'mt-2 sm:mt-3 pt-2 sm:pt-2.5'
                     }`}>
-                      <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
+                      <div className="grid grid-cols-2 gap-1.5">
                         <button
                           id={`product-enquire-btn-${product.id}`}
                           onClick={() => onEnquire(product.name)}
-                          className="min-h-[36px] sm:min-h-[44px] rounded-lg sm:rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 transition flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs shadow-2xs"
+                          className="min-h-[38px] sm:min-h-[44px] rounded-lg sm:rounded-xl font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 transition flex items-center justify-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs shadow-2xs"
                           title={`Get Price for ${product.name}`}
                           type="button"
                         >
-                          <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                          <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                           <span className="whitespace-nowrap">Enquire</span>
                         </button>
 
@@ -475,10 +475,10 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                           href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${waMessage}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="min-h-[36px] sm:min-h-[44px] rounded-lg sm:rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center justify-center gap-1 sm:gap-1.5 text-[10px] sm:text-xs shadow-2xs"
+                          className="min-h-[38px] sm:min-h-[44px] rounded-lg sm:rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center justify-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs shadow-2xs"
                           title={`WhatsApp Rajdeep Enterprises for ${product.name}`}
                         >
-                          <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                          <MessageCircle className="w-3.5 h-3.5 shrink-0" />
                           <span className="whitespace-nowrap">WhatsApp</span>
                         </a>
                       </div>
@@ -487,7 +487,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                         <button
                           type="button"
                           onClick={() => onAddToRfq(product)}
-                          className={`w-full min-h-[32px] sm:min-h-[40px] py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-bold transition flex items-center justify-center gap-1 sm:gap-1.5 ${
+                          className={`w-full min-h-[34px] sm:min-h-[40px] py-1 sm:py-1.5 rounded-lg sm:rounded-xl text-[10px] sm:text-[11px] font-bold transition flex items-center justify-center gap-1 sm:gap-1.5 ${
                             rfqProductIds.includes(product.id)
                               ? 'bg-emerald-50 text-emerald-800 border border-emerald-300'
                               : 'text-slate-700 hover:bg-slate-100 border border-slate-300'
