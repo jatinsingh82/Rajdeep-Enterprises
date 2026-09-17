@@ -258,7 +258,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
 
                 <a
                   id="contact-directions-btn"
-                  href={COMPANY_INFO.googleMapsUrl}
+                  href={COMPANY_INFO.directionsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="min-h-[44px] py-2.5 px-4 rounded-xl text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 transition flex items-center justify-center gap-2 shadow-xs active:scale-98"
@@ -274,7 +274,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-slate-900 font-bold text-sm">
                   <MapPin className="w-4 h-4 text-orange-600" />
-                  <span>Location Map • Mathura Refinery Gate</span>
+                  <span>Shop Location • Rajdeep Enterprises</span>
                 </div>
                 <span className="text-[11px] bg-white border border-slate-300 text-slate-800 px-2 py-0.5 rounded font-mono font-bold">
                   UP SIDC
@@ -282,19 +282,19 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
               </div>
 
               <div className="relative rounded-xl overflow-hidden border border-slate-300 bg-slate-200 aspect-video flex items-center justify-center group">
-                {/* Styled static map preview representing Mathura Refinery Gate */}
+                {/* Styled static map preview representing Rajdeep Enterprises shop */}
                 <div className="absolute inset-0 bg-[#0B192C] flex flex-col items-center justify-center p-4 text-center text-white">
                   <div className="w-10 h-10 rounded-xl bg-orange-600 flex items-center justify-center mb-2 shadow-sm">
                     <MapPin className="w-5 h-5 text-white" />
                   </div>
                   <div className="text-xs font-bold text-white">
-                    15/1, U.P. S.I.D.C. Complex
+                    Rajdeep Enterprises • 15/1, U.P. S.I.D.C. Complex
                   </div>
                   <div className="text-[11px] text-amber-300">
-                    Refinery Main Gate, Mathura, UP
+                    Opposite Refinery Main Gate, Mathura, UP - 281005
                   </div>
                   <div className="text-[10px] text-slate-400 mt-2">
-                    Opposite Mathura Refinery Entrance
+                    Direct counter pickup & warehouse supply depot
                   </div>
                 </div>
 

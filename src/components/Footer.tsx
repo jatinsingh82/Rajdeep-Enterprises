@@ -71,7 +71,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
                 <span>WhatsApp</span>
               </a>
               <a
-                href={COMPANY_INFO.googleMapsUrl}
+                href={COMPANY_INFO.directionsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="py-2.5 px-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs flex items-center justify-center gap-1.5 border border-slate-700 transition"

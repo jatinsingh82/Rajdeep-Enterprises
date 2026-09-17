@@ -40,11 +40,11 @@ export const MobileBottomActionBar: React.FC = () => {
         {/* Directions Button */}
         <a
           id="mobile-bottom-directions-btn"
-          href={COMPANY_INFO.googleMapsUrl}
+          href={COMPANY_INFO.directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
           className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-100 font-bold text-xs shadow-xs transition active:scale-98 text-center min-w-0 border border-slate-700"
-          aria-label="Get GPS Directions to Mathura Refinery Gate Office"
+          aria-label="Get GPS Directions to Rajdeep Enterprises Shop"
         >
           <Navigation className="w-4 h-4 shrink-0 text-orange-400" />
           <span className="font-bold whitespace-nowrap">Directions</span>

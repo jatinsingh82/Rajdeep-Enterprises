@@ -57,7 +57,8 @@ export const COMPANY_INFO = {
     lat: 27.4239,
     lng: 77.6974
   },
-  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=U.P.+S.I.D.C.+Complex+Refinery+Main+Gate+Mathura+Uttar+Pradesh",
+  googleMapsUrl: "https://www.google.com/maps/search/?api=1&query=Rajdeep+Enterprises,+15/1,+U.P.+S.I.D.C.+Complex,+Refinery+Main+Gate,+Mathura,+Uttar+Pradesh+-+281005",
+  directionsUrl: "https://www.google.com/maps/dir/?api=1&destination=Rajdeep+Enterprises,+15/1,+U.P.+S.I.D.C.+Complex,+Refinery+Main+Gate,+Mathura,+Uttar+Pradesh+-+281005",
   whatsappDefaultMessage: "Hello, I am interested in your safety accessories, industrial materials, site stationery and hardware supplies. I would like to get a quotation.",
 };
 

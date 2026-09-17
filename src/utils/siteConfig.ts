@@ -44,7 +44,8 @@ export const SITE_CONFIG = {
   email: 'rjsinghtarkar@gmail.com',
   address: '15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura, Uttar Pradesh - 281005',
   landmark: 'Opposite Refinery Main Gate',
-  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=U.P.+S.I.D.C.+Complex+Refinery+Main+Gate+Mathura+Uttar+Pradesh',
+  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Rajdeep+Enterprises,+15/1,+U.P.+S.I.D.C.+Complex,+Refinery+Main+Gate,+Mathura,+Uttar+Pradesh+-+281005',
+  directionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Rajdeep+Enterprises,+15/1,+U.P.+S.I.D.C.+Complex,+Refinery+Main+Gate,+Mathura,+Uttar+Pradesh+-+281005',
 };
 
 /**
