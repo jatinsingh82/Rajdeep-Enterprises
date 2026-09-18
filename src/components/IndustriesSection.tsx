@@ -20,19 +20,19 @@ export const IndustriesSection: React.FC<IndustriesSectionProps> = ({ onEnquire 
   };
 
   return (
-    <div id="industries" className="py-4 sm:py-6 px-1 sm:px-4 w-full bg-slate-50 relative overflow-x-hidden">
-      <div className="w-full">
+    <section id="industries" className="py-10 sm:py-14 md:py-16 bg-slate-50 border-t border-b border-slate-200 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider mb-3">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-200/80 border border-slate-300 text-slate-800 text-xs font-bold uppercase tracking-wider mb-2.5">
             <span>Target Customer Segments</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
             Industries We Serve
           </h2>
-          <div className="w-16 h-1 bg-orange-600 mx-auto mt-4 rounded-full"></div>
-          <p className="mt-4 text-base text-slate-600">
+          <div className="w-16 h-1 bg-orange-600 mx-auto mt-3 rounded-full"></div>
+          <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
             We provide targeted protective equipment, traffic accessories, and industrial materials tailored to the safety challenges of various sectors.
           </p>
         </div>
@@ -114,6 +114,6 @@ export const IndustriesSection: React.FC<IndustriesSectionProps> = ({ onEnquire 
         </div>
 
       </div>
-    </div>
+    </section>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Phone, MessageCircle, Navigation } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
+import { trackPhoneClick, trackWhatsAppClick, trackDirectionsClick } from '../utils/analytics';
 
 export const MobileBottomActionBar: React.FC = () => {
   const whatsappUrl = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(
@@ -17,6 +18,7 @@ export const MobileBottomActionBar: React.FC = () => {
         <a
           id="mobile-bottom-call-btn"
           href={`tel:${COMPANY_INFO.phone}`}
+          onClick={() => trackPhoneClick({ phoneNumber: COMPANY_INFO.phone, source: 'mobile_bottom_bar' })}
           className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 font-bold text-xs shadow-xs transition active:scale-98 text-center min-w-0"
           aria-label={`Call Rajdeep Enterprises at ${COMPANY_INFO.phone}`}
         >
@@ -30,6 +32,7 @@ export const MobileBottomActionBar: React.FC = () => {
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackWhatsAppClick({ source: 'mobile_bottom_bar', context: 'quick_inquiry' })}
           className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-bold text-xs shadow-xs transition active:scale-98 text-center min-w-0"
           aria-label="Chat with Rajdeep Enterprises on WhatsApp"
         >
@@ -43,6 +46,7 @@ export const MobileBottomActionBar: React.FC = () => {
           href={COMPANY_INFO.directionsUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => trackDirectionsClick({ source: 'mobile_bottom_bar' })}
           className="flex items-center justify-center gap-1.5 h-11 px-1 rounded-xl bg-slate-800 hover:bg-slate-700 active:bg-slate-900 text-slate-100 font-bold text-xs shadow-xs transition active:scale-98 text-center min-w-0 border border-slate-700"
           aria-label="Get GPS Directions to Rajdeep Enterprises Shop"
         >

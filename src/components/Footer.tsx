@@ -190,7 +190,16 @@ export const Footer: React.FC<FooterProps> = ({ onOpenVisitingCard, onOpenQuoteM
             <div className="space-y-2.5 text-xs text-slate-300">
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-orange-400 shrink-0 mt-0.5" />
-                <span>{COMPANY_INFO.address}</span>
+                <a
+                  id="footer-address-maps-link"
+                  href={COMPANY_INFO.googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-orange-400 hover:underline transition"
+                  title="View Rajdeep Enterprises on Google Maps"
+                >
+                  {COMPANY_INFO.address}
+                </a>
               </div>
               <div className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-orange-400 shrink-0" />

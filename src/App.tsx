@@ -4,18 +4,18 @@ import { Hero } from './components/Hero';
 import { EmergencyHotlineBanner } from './components/EmergencyHotlineBanner';
 import { AboutSection } from './components/AboutSection';
 import { ProductsSection } from './components/ProductsSection';
+import { IndustriesSection } from './components/IndustriesSection';
 import { PanIndiaSupplySection } from './components/PanIndiaSupplySection';
 import { ToolsAndGuidesHub } from './components/ToolsAndGuidesHub';
 import { MapSection } from './components/MapSection';
 import { WhyChooseUs } from './components/WhyChooseUs';
-import { CtaBanner } from './components/CtaBanner';
 import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { MobileBottomActionBar } from './components/MobileBottomActionBar';
 import { Product, RfqItem, Language } from './types';
 import { generateProductCataloguePdf } from './utils/pdfGenerator';
-import { initAnalytics } from './utils/analytics';
+import { initAnalytics, trackRfqAddItem, trackCatalogueDownload } from './utils/analytics';
 import { PRODUCTS } from './data/companyData';
 import { CATEGORY_SEO_DATA } from './data/categorySeoData';
 
@@ -109,6 +109,12 @@ export default function App() {
 
   // RFQ Cart Management with custom quantity support
   const handleAddToRfq = (product: Product, quantity: number = 1) => {
+    trackRfqAddItem({
+      productId: product.id,
+      productName: product.name,
+      category: product.category,
+      quantity,
+    });
     setRfqItems((prev) => {
       const existing = prev.find((item) => item.product.id === product.id);
       if (existing) {
@@ -205,7 +211,19 @@ export default function App() {
   };
 
   const handleDownloadPdf = () => {
+    trackCatalogueDownload({
+      format: 'pdf',
+      source: 'catalogue_download_btn',
+    });
     generateProductCataloguePdf();
+  };
+
+  const handleViewAllProducts = () => {
+    handleCategoryChange('All Products');
+    const el = document.getElementById('products');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
   };
 
   const rfqProductIds = rfqItems.map((item) => item.product.id);
@@ -240,7 +258,23 @@ export default function App() {
           onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
         />
 
-        {/* 2. All Products Catalogue (Consolidated Safety, Gaskets, Stationery, Tools) */}
+        {/* 2. About Section */}
+        <AboutSection
+          onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
+          onOpenQuoteModal={() => handleOpenQuoteModal('General Company Quotation')}
+        />
+
+        {/* 3. Featured Products: Curated Site Essentials (Concise 4-item on Mobile, Complete on Desktop) */}
+        <FeaturedProductsSection
+          onSelectProduct={handleSelectProduct}
+          onEnquire={handleEnquireFromProduct}
+          onAddToRfq={handleAddToRfq}
+          rfqProductIds={rfqProductIds}
+          onViewAllProducts={handleViewAllProducts}
+          lang={lang}
+        />
+
+        {/* 4. Our Products Catalogue (Safety, Gaskets, Stationery, Tools) */}
         <ProductsSection
           onSelectProduct={handleSelectProduct}
           onEnquire={handleEnquireFromProduct}
@@ -252,43 +286,42 @@ export default function App() {
           onSelectCategory={handleCategoryChange}
         />
 
-        {/* 3. Whole India Supply & Any Quantity Logistics Section */}
+        {/* 5. Why Choose Us / Core Supply Principles */}
+        <WhyChooseUs
+          onOpenQuoteModal={() => handleOpenQuoteModal('Industrial Partnership / Supplies')}
+        />
+
+        {/* 6. Industries We Serve */}
+        <IndustriesSection
+          onEnquire={handleOpenQuoteModal}
+        />
+
+        {/* 7. Whole India Supply & Any Quantity Logistics Section */}
         <PanIndiaSupplySection
           lang={lang}
           onEnquire={handleOpenQuoteModal}
         />
 
-        {/* 4. Tools, Compliance & Technical Guides in Compact Expandable Dropdown Form */}
+        {/* 8. Compliance & Technical Guides Hub */}
         <ToolsAndGuidesHub
           onAddProductToRfq={handleAddToRfq}
           onOpenQuoteModal={handleOpenQuoteModal}
           lang={lang}
         />
 
-        {/* 5. Core Principles Guiding Our Supply (Placed towards the end) */}
-        <WhyChooseUs
-          onOpenQuoteModal={() => handleOpenQuoteModal('Industrial Partnership / Supplies')}
-        />
-
-        {/* 6. About Section (Placed towards the end) */}
-        <AboutSection
-          onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
-          onOpenQuoteModal={() => handleOpenQuoteModal('General Company Quotation')}
-        />
-
-        {/* 12. Strong Call-To-Action Banner */}
+        {/* 9. Strong Call-To-Action Banner */}
         <CtaBanner
           onOpenQuoteModal={() => handleOpenQuoteModal('Immediate Quotation Request')}
         />
 
-        {/* 13. Where Can You Find Us Section (Interactive Map & Directions) */}
-        <MapSection
-          lang={lang}
-        />
-
-        {/* 14. Contact Rajdeep Enterprises & Quotation Form */}
+        {/* 10. Contact Rajdeep Enterprises & RFQ Form */}
         <ContactSection
           initialRequirement={selectedQuoteProduct}
+        />
+
+        {/* 11. Location: Where Can You Find Us (Interactive Map & Directions) */}
+        <MapSection
+          lang={lang}
         />
       </main>
 

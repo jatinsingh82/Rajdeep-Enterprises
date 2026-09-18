@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, MessageCircle, Phone, Send, CheckCircle2, AlertCircle, Building2, Package, Check, ArrowRight } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
+import {
+  trackQuoteStart,
+  trackQuoteSubmit,
+  trackWhatsAppClick,
+  trackPhoneClick,
+} from '../utils/analytics';
 
 interface EnquiryModalProps {
   isOpen: boolean;
@@ -45,9 +51,14 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
     }
   }, [productName, category, initialQuantity]);
 
-  // Lock background scroll when open
+  // Lock background scroll when open & trigger quote_start
   useEffect(() => {
     if (isOpen) {
+      trackQuoteStart({
+        productName: productName || requirement,
+        category: category || productCategory,
+        source: 'enquiry_modal',
+      });
       document.body.style.overflow = 'hidden';
       setSubmitted(false);
       setErrors({});
@@ -93,6 +104,11 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
   };
 
   const handleWhatsAppInstant = () => {
+    trackWhatsAppClick({
+      source: 'enquiry_modal',
+      context: 'instant_rfq',
+      productName: requirement,
+    });
     const text = encodeURIComponent(
       `*Product Enquiry - Rajdeep Enterprises*\n` +
       `*Supplying in Whole India Everywhere | Any Quantity*\n\n` +
@@ -142,6 +158,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let generatedEnquiryId = '';
 
     try {
       const res = await fetch('/api/enquiry', {
@@ -167,7 +184,8 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
       clearTimeout(timeoutId);
       const data = await res.json();
       if (res.ok && data.success) {
-        setEnquiryRef(data.enquiryId || '');
+        generatedEnquiryId = data.enquiryId || '';
+        setEnquiryRef(generatedEnquiryId);
       }
     } catch {
       clearTimeout(timeoutId);
@@ -175,6 +193,15 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
     } finally {
       setIsSubmitting(false);
       setSubmitted(true);
+
+      // Track quote_submit
+      trackQuoteSubmit({
+        productName: requirement,
+        category: productCategory,
+        quantity,
+        enquiryId: generatedEnquiryId || undefined,
+        hasCompany: Boolean(company.trim()),
+      });
     }
   };
 
@@ -512,6 +539,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
 
                   <a
                     href={`tel:${COMPANY_INFO.phone}`}
+                    onClick={() => trackPhoneClick({ phoneNumber: COMPANY_INFO.phone, source: 'enquiry_modal' })}
                     className="min-h-[44px] py-2 px-3 rounded-xl font-bold text-xs text-slate-900 bg-amber-400 hover:bg-amber-300 active:bg-amber-500 transition flex items-center justify-center gap-1.5 shadow-xs"
                   >
                     <Phone className="w-3.5 h-3.5" />

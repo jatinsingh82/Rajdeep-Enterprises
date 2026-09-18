@@ -21,7 +21,6 @@ import { COMPANY_INFO } from '../data/companyData';
 import { TradeKitsSection } from './TradeKitsSection';
 import { GstGuideSection } from './GstGuideSection';
 import { StandardsSection } from './StandardsSection';
-import { IndustriesSection } from './IndustriesSection';
 import { FaqSection } from './FaqSection';
 import industrialSafetyVisual from '../assets/images/industrial_safety_ppe_1789311870723.jpg';
 
@@ -31,20 +30,18 @@ interface ToolsAndGuidesHubProps {
   lang: Language;
 }
 
-type GuideSectionId = 'trade-kits' | 'gst-compliance' | 'standards' | 'industries' | 'faqs';
+type GuideSectionId = 'trade-kits' | 'gst-compliance' | 'standards' | 'faqs';
 
 export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
   onAddProductToRfq,
   onOpenQuoteModal,
   lang
 }) => {
-  // Store open/closed state for each of the 5 dropdown tools
-  // By default, only the first one (or none) is open so the page stays very compact!
+  // Store open/closed state for each of the 4 dropdown tools
   const [openSections, setOpenSections] = useState<Record<GuideSectionId, boolean>>({
     'trade-kits': false,
     'gst-compliance': false,
     'standards': false,
-    'industries': false,
     'faqs': false
   });
 
@@ -52,7 +49,7 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
   useEffect(() => {
     const handleHash = () => {
       const hash = window.location.hash.replace('#', '');
-      if (['trade-kits', 'gst-compliance', 'standards', 'industries', 'faqs'].includes(hash)) {
+      if (['trade-kits', 'gst-compliance', 'standards', 'faqs'].includes(hash)) {
         setOpenSections(prev => ({
           ...prev,
           [hash as GuideSectionId]: true
@@ -166,22 +163,6 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
       summaryTagsHi: ['IS:2925 हेलमेट', 'IS:15298 जूते', 'गेट पास ऑडिट पास']
     },
     {
-      id: 'industries',
-      anchorId: 'industries',
-      titleEn: 'Industries We Serve',
-      titleHi: 'जिन उद्योगों को हम सेवाएं प्रदान करते हैं',
-      subtitleEn: 'Targeted safety accessories and industrial material solutions for petrochemical, civil, pipeline, and manufacturing sectors.',
-      subtitleHi: 'पेट्रोकेमिकल रिफाइनरी, निर्माण, सिविल प्रोजेक्ट्स और फैब्रिकेशन वर्कशॉप के लिए लक्षित समाधान।',
-      badgeEn: 'Sector Directory',
-      badgeHi: 'औद्योगिक क्षेत्र',
-      icon: Building2,
-      accentColor: 'text-indigo-600',
-      bgAccent: 'bg-indigo-50',
-      borderAccent: 'border-indigo-200',
-      summaryTagsEn: ['Refineries & Petrochemicals', 'Civil & Erection', 'Pipeline & Mechanical'],
-      summaryTagsHi: ['रिफाइनरी व पेट्रोकेमिकल्स', 'सिविल प्रोजेक्ट्स', 'पाइपलाइन वर्क']
-    },
-    {
       id: 'faqs',
       anchorId: 'faqs',
       titleEn: 'Frequently Asked Questions',
@@ -255,7 +236,7 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
               {/* Expand / Collapse Controls Strip */}
               <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-800">
                 <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
-                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                  <span className="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
                   <span>{totalOpen} of 5 Guides Currently Expanded</span>
                 </div>
 
@@ -458,12 +439,6 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                         />
                       )}
 
-                      {sec.id === 'industries' && (
-                        <IndustriesSection
-                          onEnquire={(req) => onOpenQuoteModal(req)}
-                        />
-                      )}
-
                       {sec.id === 'faqs' && (
                         <FaqSection
                           onOpenQuoteModal={onOpenQuoteModal}
@@ -485,7 +460,6 @@ export const ToolsAndGuidesHub: React.FC<ToolsAndGuidesHubProps> = ({
                             {sec.id === 'trade-kits' && 'Request Quote for Recommended Kit'}
                             {sec.id === 'gst-compliance' && 'Request Official GST Quotation'}
                             {sec.id === 'standards' && 'Enquire for IOCL Gate Clearance Materials'}
-                            {sec.id === 'industries' && 'Request Quote for Industry Setup'}
                             {sec.id === 'faqs' && 'Request Custom Quote'}
                           </span>
                         </button>

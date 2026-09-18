@@ -10,6 +10,14 @@ export interface Product {
   specifications: string[];
   commonUses: string;
   isCardPhotoItem?: boolean;
+  // B2B Procurement fields (only populated where real data exists)
+  sku?: string;
+  brand?: string;
+  unit?: string;
+  availability?: string;
+  moq?: string;
+  datasheetUrl?: string;
+  datasheetAvailable?: boolean;
 }
 
 export interface Industry {

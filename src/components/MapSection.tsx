@@ -12,31 +12,32 @@ export const MapSection: React.FC<MapSectionProps> = ({ lang }) => {
   const t = TRANSLATIONS[lang];
 
   return (
-    <section id="location" className="py-4 sm:py-6 md:py-8 bg-white relative border-t border-slate-200">
-      <div className="max-w-7xl mx-auto px-2 sm:px-4 lg:px-6">
+    <section id="location" className="py-10 sm:py-14 md:py-16 bg-white relative border-t border-b border-slate-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Compact Section Header */}
-        <div className="text-center max-w-2xl mx-auto mb-3 sm:mb-5">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1">
-            <MapPin className="w-3 h-3 text-orange-600" />
-            <span>Rajdeep Enterprises Shop Location</span>
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider mb-2.5">
+            <MapPin className="w-3.5 h-3.5 text-orange-600" />
+            <span>Rajdeep Enterprises Physical Depot</span>
           </div>
-          <h2 className="text-base sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
             {t.mapTitle}
           </h2>
-          <p className="text-[11px] sm:text-xs text-slate-600 mt-0.5">
+          <div className="w-16 h-1 bg-orange-600 mx-auto mt-3 rounded-full"></div>
+          <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
             {t.mapSubtitle}
           </p>
         </div>
 
         {/* Responsive Grid: Single-Column on Mobile, Side-by-Side on Tablet/Desktop */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-5 items-stretch">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 items-stretch">
           
           {/* Interactive Map */}
           <div className="bg-slate-900 rounded-2xl overflow-hidden border border-slate-300 shadow-sm flex flex-col justify-between">
             <div className="p-2.5 bg-[#0B192C] text-white flex items-center justify-between border-b border-slate-800 gap-2">
               <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold min-w-0">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0 animate-pulse"></span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
                 <span className="leading-snug break-words">Rajdeep Enterprises Shop Pin</span>
               </div>
               <a

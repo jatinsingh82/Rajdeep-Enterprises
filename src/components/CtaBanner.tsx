@@ -8,7 +8,7 @@ interface CtaBannerProps {
 
 export const CtaBanner: React.FC<CtaBannerProps> = ({ onOpenQuoteModal }) => {
   return (
-    <section className="relative overflow-hidden bg-[#0B192C] text-white py-12 sm:py-16 border-t border-slate-800">
+    <section id="cta" className="relative overflow-hidden bg-[#0B192C] text-white py-12 sm:py-16 border-t border-slate-800">
       {/* Decorative subtle texture */}
       <div className="absolute inset-0 industrial-grid-dark opacity-15 pointer-events-none"></div>
 

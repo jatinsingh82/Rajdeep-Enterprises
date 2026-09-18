@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Phone, Mail, MapPin, Send, CheckCircle2, Clock, MessageSquare, AlertCircle, ExternalLink, User, Building } from 'lucide-react';
 import { COMPANY_INFO, PRODUCTS } from '../data/companyData';
 import { EnquiryFormData } from '../types';
+import {
+  trackPhoneClick,
+  trackWhatsAppClick,
+  trackDirectionsClick,
+  trackQuoteStart,
+  trackQuoteSubmit,
+  trackCallbackRequest,
+} from '../utils/analytics';
 
 interface ContactSectionProps {
   initialRequirement?: string;
@@ -17,13 +25,27 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
     quantity: 'Bulk Industrial Supply',
     message: ''
   });
+  const [requestCallback, setRequestCallback] = useState(false);
   const [honeypot, setHoneypot] = useState('');
   const [enquiryReference, setEnquiryReference] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const hasStartedQuoteRef = useRef(false);
+
+  const handleFormInteraction = () => {
+    if (!hasStartedQuoteRef.current) {
+      hasStartedQuoteRef.current = true;
+      trackQuoteStart({
+        productName: formData.productRequirement,
+        category: 'Contact Form',
+        source: 'contact_section_form',
+      });
+    }
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    handleFormInteraction();
     setFormData({ ...formData, [e.target.name]: e.target.value });
     if (errorMessage) setErrorMessage('');
   };
@@ -72,6 +94,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
 
+    let generatedEnquiryId = '';
+
     try {
       const res = await fetch('/api/enquiry', {
         method: 'POST',
@@ -85,7 +109,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
           emailAddress: formData.emailAddress,
           productRequirement: formData.productRequirement,
           quantity: formData.quantity,
-          message: formData.message,
+          message: formData.message + (requestCallback ? ' [URGENT CALLBACK REQUESTED]' : ''),
           website_hp: honeypot // Anti-spam honeypot
         }),
         signal: controller.signal
@@ -95,7 +119,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
       const data = await res.json();
 
       if (res.ok && data.success) {
-        setEnquiryReference(data.enquiryId || '');
+        generatedEnquiryId = data.enquiryId || '';
+        setEnquiryReference(generatedEnquiryId);
         setSubmitSuccess(true);
       } else {
         // Fallback gracefully without showing internal stack traces
@@ -110,10 +135,34 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
       setSubmitSuccess(true);
     } finally {
       setIsSubmitting(false);
+
+      // Track quote submission event
+      trackQuoteSubmit({
+        productName: formData.productRequirement,
+        category: 'Contact Form',
+        quantity: formData.quantity,
+        enquiryId: generatedEnquiryId || undefined,
+        hasCompany: Boolean(formData.companyName.trim()),
+      });
+
+      // If user requested callback, track callback_request
+      if (requestCallback) {
+        trackCallbackRequest({
+          source: 'contact_form_callback_checkbox',
+          phoneNumber: formData.phoneNumber,
+          urgency: 'high',
+          notes: formData.productRequirement,
+        });
+      }
     }
   };
 
   const sendDirectWhatsApp = () => {
+    trackWhatsAppClick({
+      source: 'contact_section_form',
+      context: 'direct_enquiry',
+      productName: formData.productRequirement,
+    });
     const text = encodeURIComponent(
       `*New Product Enquiry - Rajdeep Enterprises*\n\n` +
       `*Name:* ${formData.fullName || 'Client'}\n` +
@@ -122,6 +171,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
       `*Email:* ${formData.emailAddress}\n` +
       `*Requirement:* ${formData.productRequirement}\n` +
       `*Quantity:* ${formData.quantity}\n` +
+      (requestCallback ? `*Urgent Callback:* Requested\n` : '') +
       `*Message:* ${formData.message || 'Please provide quotation and catalog.'}`
     );
     window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank');
@@ -174,6 +224,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                       <a
                         id="contact-phone-link-1"
                         href={`tel:${COMPANY_INFO.phone}`}
+                        onClick={() => trackPhoneClick({ phoneNumber: COMPANY_INFO.phone, source: 'contact_section_phone_1' })}
                         className="inline-flex items-center gap-1.5 text-base sm:text-lg font-bold text-amber-400 hover:text-amber-300 transition py-1"
                       >
                         <Phone className="w-4 h-4 text-amber-400 shrink-0" />
@@ -183,6 +234,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                       <a
                         id="contact-phone-link-2"
                         href={`tel:${COMPANY_INFO.secondaryPhone}`}
+                        onClick={() => trackPhoneClick({ phoneNumber: COMPANY_INFO.secondaryPhone, source: 'contact_section_phone_2' })}
                         className="inline-flex items-center gap-1.5 text-base sm:text-lg font-bold text-slate-200 hover:text-white transition py-1"
                       >
                         <span>{COMPANY_INFO.secondaryPhone}</span>
@@ -250,6 +302,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                   href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(COMPANY_INFO.whatsappDefaultMessage)}`}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackWhatsAppClick({ source: 'contact_section_card', context: 'direct_chat' })}
                   className="min-h-[44px] py-2.5 px-4 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center justify-center gap-2 shadow-xs active:scale-98"
                 >
                   <MessageSquare className="w-4 h-4" />
@@ -261,6 +314,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                   href={COMPANY_INFO.directionsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackDirectionsClick({ source: 'contact_section_directions' })}
                   className="min-h-[44px] py-2.5 px-4 rounded-xl text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 active:bg-slate-900 border border-slate-700 transition flex items-center justify-center gap-2 shadow-xs active:scale-98"
                 >
                   <MapPin className="w-4 h-4 text-orange-400" />
@@ -303,6 +357,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                   href={COMPANY_INFO.googleMapsUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackDirectionsClick({ source: 'contact_section_google_maps_card' })}
                   className="absolute bottom-3 right-3 bg-white text-slate-900 hover:bg-slate-100 text-xs font-bold px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-1.5 transition border border-slate-200"
                 >
                   <span>Open in Google Maps</span>
@@ -522,6 +577,23 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                         className="w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-slate-300 bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition"
                       ></textarea>
                     </div>
+                    {/* Urgent Callback Request Option */}
+                    <label className="flex items-center gap-2.5 p-3 rounded-xl bg-amber-50/80 border border-amber-200 cursor-pointer hover:bg-amber-100/70 transition">
+                      <input
+                        type="checkbox"
+                        checked={requestCallback}
+                        onChange={(e) => {
+                          handleFormInteraction();
+                          setRequestCallback(e.target.checked);
+                        }}
+                        className="w-4 h-4 rounded text-orange-600 focus:ring-orange-500 border-slate-300 shrink-0"
+                      />
+                      <div className="text-xs">
+                        <span className="font-bold text-slate-900 block">Urgent: Request immediate phone callback</span>
+                        <span className="text-slate-500 text-[11px] block">Proprietor will call directly for gate emergency or quick sizing</span>
+                      </div>
+                    </label>
+
                   </div>
 
                   {/* Submit Action Buttons */}

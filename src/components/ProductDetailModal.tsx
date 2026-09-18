@@ -1,23 +1,34 @@
-import React, { useEffect, useState, useId } from 'react';
+import React, { useEffect, useState, useId, useRef } from 'react';
 import {
   X,
   MessageCircle,
   Phone,
-  CheckCircle2,
   Shield,
-  ArrowRight,
+  FileText,
   Plus,
   Minus,
   Check,
   Building2,
-  FileText,
   Truck,
   Sparkles,
+  Download,
+  Package,
+  Tag,
+  Clock,
+  Layers,
+  CheckCircle2,
   ChevronRight
 } from 'lucide-react';
 import { Product } from '../types';
 import { COMPANY_INFO, PRODUCTS } from '../data/companyData';
-import { trackProductView, trackRFQStep } from '../utils/analytics';
+import {
+  trackProductView,
+  trackDatasheetDownload,
+  trackWhatsAppClick,
+  trackPhoneClick,
+  trackRfqAddItem,
+  trackRFQStep
+} from '../utils/analytics';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -39,10 +50,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const [quantity, setQuantity] = useState<number>(10);
   const [rfqFeedback, setRfqFeedback] = useState<string | null>(null);
   const qtyInputId = useId();
+  const lastTrackedProductIdRef = useRef<string | null>(null);
 
-  // Helper to extract brand if available in specifications or badge
-  const brandName = (() => {
+  // Extract brand if available in product object, specifications, or badge
+  const resolvedBrand = (() => {
     if (!product) return null;
+    if (product.brand) return product.brand;
     const foundBrand = product.specifications.find((s) => s.toLowerCase().startsWith('brand:'));
     if (foundBrand) {
       return foundBrand.split(':')[1]?.trim() || null;
@@ -54,19 +67,25 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   useEffect(() => {
     if (!product) return;
 
-    // Analytics event
-    trackProductView(product.id, product.name, product.category);
-    trackRFQStep('product_modal_opened', product.name);
+    if (lastTrackedProductIdRef.current !== product.id) {
+      lastTrackedProductIdRef.current = product.id;
+      trackProductView({
+        productId: product.id,
+        productName: product.name,
+        category: product.category,
+      });
+      trackRFQStep('product_modal_opened', product.name);
+    }
 
     const originalTitle = document.title;
     const metaDescEl = document.querySelector('meta[name="description"]');
     const originalMetaDesc = metaDescEl?.getAttribute('content') || '';
 
-    document.title = `${product.name} | Industrial Safety Supplies | Rajdeep Enterprises Mathura`;
+    document.title = `${product.name} | B2B Procurement | Rajdeep Enterprises Mathura`;
     if (metaDescEl) {
       metaDescEl.setAttribute(
         'content',
-        `${product.name} supplier in Mathura & Pan-India. ${product.shortDescription}. Inquire for genuine B2B pricing, MTC & refinery gate pass compliance.`
+        `${product.name} (${product.category}) supplier in Mathura Refinery & Pan-India. ${product.shortDescription}. Inquire for genuine B2B pricing, MTC & refinery gate pass compliance.`
       );
     }
 
@@ -87,12 +106,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           '@type': 'Product',
           '@id': `https://rajdeep-enterprises.vercel.app/#product/${product.id}`,
           name: product.name,
+          sku: product.sku || product.id,
           description: product.fullDescription || product.shortDescription,
           image: typeof product.image === 'string' ? product.image : undefined,
           category: product.category,
           brand: {
             '@type': 'Brand',
-            name: brandName || 'Rajdeep Enterprises'
+            name: resolvedBrand || 'Rajdeep Enterprises'
           },
           offers: {
             '@type': 'Offer',
@@ -152,19 +172,24 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         el.remove();
       }
     };
-  }, [product, brandName]);
+  }, [product, resolvedBrand]);
 
-  // Lock background scroll when open
+  // Lock background scroll & handle Escape key
   useEffect(() => {
     if (product) {
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+          onClose();
+        }
+      };
+      window.addEventListener('keydown', handleKeyDown);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleKeyDown);
+      };
     }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [product]);
+  }, [product, onClose]);
 
   if (!product) return null;
 
@@ -190,29 +215,6 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     }
   };
 
-  // WhatsApp with exact product, category, and quantity prefilled
-  const handleWhatsApp = () => {
-    const text = encodeURIComponent(
-      `Hello Rajdeep Enterprises,\n\nI am interested in:\n• Product: *${product.name}*\n• Category: *${product.category}*\n• Desired Quantity: *${quantity} units*\n\nPlease share current stock availability, MTC certification details, and official quotation.`
-    );
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank');
-  };
-
-  const handleEnquireClick = () => {
-    onClose();
-    onEnquire(product.name, product.category, `${quantity} units`);
-  };
-
-  const handleAddToRfqClick = () => {
-    if (onAddToRfq) {
-      onAddToRfq(product, quantity);
-      setRfqFeedback(`Added ${quantity} units to Bulk RFQ!`);
-      setTimeout(() => {
-        setRfqFeedback(null);
-      }, 2500);
-    }
-  };
-
   // Structured specification parser (splits "Label: Value" if present)
   const parsedSpecs = product.specifications.map((spec) => {
     const colonIndex = spec.indexOf(':');
@@ -223,14 +225,137 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
       };
     }
     return {
-      label: 'Standard',
+      label: 'Specification',
       value: spec.trim()
     };
   });
 
-  // Extract brand if available in specifications or badge
-  const brandSpec = parsedSpecs.find((s) => s.label.toLowerCase() === 'brand');
-  const resolvedBrand = brandName || (brandSpec ? brandSpec.value : null);
+  // Download Product Technical Datasheet & track GA4 event
+  const handleDownloadDatasheet = () => {
+    if (!product) return;
+    trackDatasheetDownload({
+      productId: product.id,
+      productName: product.name,
+      category: product.category,
+    });
+
+    const content = [
+      `=============================================================`,
+      `RAJDEEP ENTERPRISES - B2B PRODUCT SPECIFICATION DATASHEET`,
+      `=============================================================`,
+      `Refinery & Industrial Area Supply Depot, Mathura (U.P.)`,
+      `Phone: ${COMPANY_INFO.phone} / ${COMPANY_INFO.secondaryPhone}`,
+      `Email: ${COMPANY_INFO.email} | GST Registered Supplier`,
+      `Depot Address: ${COMPANY_INFO.address}`,
+      `=============================================================`,
+      ``,
+      `PRODUCT IDENTIFICATION:`,
+      `• Product Name: ${product.name}`,
+      `• Product Code / SKU: ${product.sku || 'Available on request'}`,
+      `• Category: ${product.category}`,
+      `• Brand / Make: ${resolvedBrand || 'Available on request'}`,
+      `• Unit of Measurement: ${product.unit || 'Available on request'}`,
+      `• Stock Availability: ${product.availability || 'Ready Stock'}`,
+      `• Minimum Order Quantity (MOQ): ${product.moq || 'Available on request'}`,
+      product.badge ? `• Compliance / Batch Grade: ${product.badge}` : '',
+      ``,
+      `SHORT FACTUAL DESCRIPTION:`,
+      product.shortDescription,
+      product.fullDescription && product.fullDescription !== product.shortDescription
+        ? `\nDETAILED DESCRIPTION:\n${product.fullDescription}`
+        : '',
+      ``,
+      `KEY TECHNICAL SPECIFICATIONS:`,
+      ...product.specifications.map((spec) => `• ${spec}`),
+      ``,
+      product.commonUses ? `RECOMMENDED INDUSTRIAL APPLICATIONS:\n${product.commonUses}\n` : '',
+      `SAFETY & COMPLIANCE VERIFICATION:`,
+      `• Standard: ISI / BIS / EN / AWS / ASTM Compliant (as applicable to product class)`,
+      `• Manufacturer Test Certificate (MTC): Available on batch procurement`,
+      `• Refinery Gate Entry Pass: Immediate dispatch ready for IOCL & industrial sites`,
+      `• GST Tax Invoice with Input Tax Credit (ITC) eligibility provided`,
+      ``,
+      `COMMERCIAL & PROCUREMENT ASSISTANCE:`,
+      `For contractor bulk rates, tender supply, and expedited plant delivery:`,
+      `Contact Lead: ${COMPANY_INFO.contactPerson} (Proprietor)`,
+      `Phone: ${COMPANY_INFO.phone}`,
+      `WhatsApp: ${COMPANY_INFO.phone}`,
+      `Depot Location: 15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura`,
+      `=============================================================`,
+      `Generated on: ${new Date().toLocaleDateString('en-IN')}`,
+      `Official Website: https://rajdeep-enterprises.vercel.app/`
+    ].filter(Boolean).join('\n');
+
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Rajdeep-Datasheet-${product.id}-${product.name.replace(/[^a-zA-Z0-9]/g, '_')}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  // 1. Request Quote Handler
+  const handleRequestQuote = () => {
+    onClose();
+    const unitLabel = product.unit ? product.unit : 'units';
+    onEnquire(product.name, product.category, `${quantity} ${unitLabel}`);
+  };
+
+  // 2. Add to RFQ Handler
+  const handleAddToRfq = () => {
+    if (onAddToRfq) {
+      onAddToRfq(product, quantity);
+      trackRfqAddItem({
+        productId: product.id,
+        productName: product.name,
+        category: product.category,
+        quantity,
+      });
+      const unitLabel = product.unit ? product.unit : 'units';
+      setRfqFeedback(`Added ${quantity} ${unitLabel} to RFQ`);
+      setTimeout(() => {
+        setRfqFeedback(null);
+      }, 2500);
+    }
+  };
+
+  // 3. WhatsApp Handler
+  const handleWhatsApp = () => {
+    trackWhatsAppClick({
+      source: 'product_detail_modal',
+      context: 'product_inquiry',
+      productName: product.name,
+    });
+    const unitLabel = product.unit ? product.unit : 'units';
+    const messageLines = [
+      `Hello Rajdeep Enterprises,`,
+      ``,
+      `I would like to request an official quotation for:`,
+      `• *Product Name:* ${product.name}`,
+      product.sku ? `• *Product Code / SKU:* ${product.sku}` : null,
+      resolvedBrand ? `• *Brand:* ${resolvedBrand}` : null,
+      `• *Category:* ${product.category}`,
+      `• *Quantity Required:* ${quantity} ${unitLabel}`,
+      product.availability ? `• *Availability:* ${product.availability}` : null,
+      ``,
+      `Please share best B2B price, MTC availability, and delivery timeline to our site.`
+    ].filter(Boolean).join('\n');
+
+    const text = encodeURIComponent(messageLines);
+    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank');
+  };
+
+  // 4. Call Handler
+  const handleCall = () => {
+    trackPhoneClick({
+      phoneNumber: COMPANY_INFO.phone,
+      source: 'product_detail_modal'
+    });
+    window.location.href = `tel:${COMPANY_INFO.phone}`;
+  };
 
   // Related products from same category or featured safety
   const relatedProducts = PRODUCTS.filter(
@@ -239,223 +364,272 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200"
+      id="product-detail-modal-backdrop"
+      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6 bg-slate-950/80 backdrop-blur-xs animate-in fade-in duration-200"
       role="dialog"
       aria-modal="true"
-      aria-labelledby="product-detail-modal-title"
+      aria-labelledby="product-detail-name"
     >
-      <div className="relative w-full max-w-3xl bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[92vh] flex flex-col">
+      <div className="relative w-full max-w-3xl bg-white rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-h-[94vh] flex flex-col">
         
-        {/* Top Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-slate-200 bg-slate-50 shrink-0">
-          <div className="min-w-0 pr-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-[10px] sm:text-[11px] font-extrabold text-orange-600 uppercase tracking-wider block">
-                {product.category}
+        {/* Top Header Bar */}
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3 border-b border-slate-200 bg-slate-50 shrink-0">
+          <div className="min-w-0 pr-3 flex items-center gap-2">
+            <span className="text-[11px] font-extrabold text-orange-600 uppercase tracking-wider block truncate">
+              {product.category}
+            </span>
+            {product.sku && (
+              <span className="text-[10px] bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded shrink-0">
+                SKU: {product.sku}
               </span>
-              {brandName && (
-                <span className="text-[10px] bg-slate-200 text-slate-800 font-bold px-2 py-0.5 rounded">
-                  Brand: {brandName}
-                </span>
-              )}
-              {product.isCardPhotoItem && (
-                <span className="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 font-bold px-1.5 py-0.5 rounded">
-                  Refinery Gate Ready
-                </span>
-              )}
-            </div>
-            <h2
-              id="product-detail-modal-title"
-              className="text-base sm:text-xl font-black text-slate-900 truncate mt-0.5"
-            >
-              {product.name}
-            </h2>
+            )}
+            {product.availability && (
+              <span className="hidden xs:inline-flex items-center gap-1 text-[10px] bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                <span>{product.availability}</span>
+              </span>
+            )}
           </div>
 
           <button
+            id="product-detail-close-btn"
+            type="button"
             onClick={onClose}
-            className="w-10 h-10 flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-200 active:bg-slate-300 transition shrink-0"
+            className="w-10 h-10 min-h-[40px] flex items-center justify-center rounded-xl text-slate-500 hover:text-slate-900 hover:bg-slate-200 active:bg-slate-300 transition shrink-0"
             aria-label="Close product details modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Scrollable Modal Body */}
-        <div className="p-4 sm:p-6 overflow-y-auto space-y-5 sm:space-y-6 text-slate-800 flex-1">
-          
-          {/* SEO & User-Friendly Product Breadcrumbs */}
-          <nav aria-label="Breadcrumb" className="text-xs text-slate-500 flex items-center gap-1.5 flex-wrap">
-            <a href="#home" onClick={onClose} className="hover:text-blue-600 transition-colors">Home</a>
-            <ChevronRight className="w-3 h-3 text-slate-400" />
-            <a href="#products" onClick={onClose} className="hover:text-blue-600 transition-colors">Products</a>
-            <ChevronRight className="w-3 h-3 text-slate-400" />
-            <span className="text-slate-600 font-medium">{product.category}</span>
-            <ChevronRight className="w-3 h-3 text-slate-400" />
-            <span className="text-slate-900 font-bold truncate max-w-[200px] sm:max-w-none">{product.name}</span>
-          </nav>
+        {/* Scrollable Content Container Following Strict Requested Hierarchy */}
+        <div className="p-4 sm:p-6 md:p-8 overflow-y-auto space-y-6 text-slate-800 flex-1">
 
-          {/* Main 2-Column Product Layout on Desktop */}
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 sm:gap-6 items-start">
-            
-            {/* Left Column: Product Image Experience (5 cols on md+) */}
-            <div className="md:col-span-5 space-y-3">
-              <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 aspect-4/3 sm:aspect-square flex items-center justify-center group shadow-xs">
-                <img
-                  src={product.image}
-                  alt={`${product.name} industrial supply from Rajdeep Enterprises Mathura`}
-                  width="600"
-                  height="600"
-                  className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-105"
-                  referrerPolicy="no-referrer"
-                />
-                
-                {product.badge && (
-                  <div className="absolute top-2.5 left-2.5">
-                    <span className="px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider bg-orange-600 text-white shadow-xs">
-                      {product.badge}
-                    </span>
-                  </div>
-                )}
-
-                <div className="absolute bottom-2.5 right-2.5 bg-slate-900/85 backdrop-blur-xs text-white text-[10px] font-semibold px-2 py-0.5 rounded">
-                  GST Invoice Included
-                </div>
-              </div>
-
-              {/* Quick Trust Highlights under Image */}
-              <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600">
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-                  <span className="font-semibold text-slate-800">Pan-India Dispatch</span>
-                </div>
-                <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-1.5">
-                  <Building2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                  <span className="font-semibold text-slate-800">Mathura Counter Stock</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Product Information & Specifications (7 cols on md+) */}
-            <div className="md:col-span-7 space-y-4">
+          {/* 1. PRODUCT IMAGE */}
+          <div id="product-detail-image-section" className="space-y-2">
+            <div className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 aspect-16/10 sm:aspect-2/1 flex items-center justify-center group shadow-xs">
+              <img
+                id="product-detail-image"
+                src={product.image}
+                alt={`${product.name} - industrial supply from Rajdeep Enterprises Mathura`}
+                width="800"
+                height="500"
+                className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-102"
+                referrerPolicy="no-referrer"
+              />
               
-              {/* Product Short/Full Description */}
-              <div>
-                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-1">
-                  Product Overview & Industrial Applications
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                  {product.fullDescription || product.shortDescription}
-                </p>
-              </div>
-
-              {/* Recommended For Application Box */}
-              {product.commonUses && (
-                <div className="p-3 rounded-xl bg-orange-50 border border-orange-200 text-xs text-orange-950">
-                  <div className="font-extrabold flex items-center gap-1.5 text-orange-900 mb-0.5">
-                    <Sparkles className="w-3.5 h-3.5 text-orange-600" />
-                    <span>Approved & Recommended For:</span>
-                  </div>
-                  <p className="text-slate-800 leading-normal">
-                    {product.commonUses}
-                  </p>
+              {product.badge && (
+                <div className="absolute top-3 left-3">
+                  <span className="px-2.5 py-1 rounded-lg text-[11px] font-black uppercase tracking-wider bg-orange-600 text-white shadow-xs">
+                    {product.badge}
+                  </span>
                 </div>
               )}
 
-              {/* Quantity Selector Section */}
-              <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                <div className="flex items-center justify-between">
-                  <label htmlFor={qtyInputId} className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    Select Procurement Quantity:
-                  </label>
-                  <span className="text-[11px] font-semibold text-emerald-700">
-                    Order Any Quantity (No Limit)
-                  </span>
-                </div>
+              <div className="absolute bottom-3 right-3 bg-slate-900/85 backdrop-blur-xs text-white text-[10px] sm:text-[11px] font-semibold px-2.5 py-1 rounded-lg flex items-center gap-1.5 shadow-xs">
+                <Building2 className="w-3.5 h-3.5 text-amber-400" />
+                <span>Mathura Refinery Gate Stock</span>
+              </div>
+            </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center bg-white border border-slate-300 rounded-xl p-0.5 shadow-2xs">
-                    <button
-                      type="button"
-                      onClick={handleDecrement}
-                      aria-label="Decrease quantity by 1"
-                      className="w-9 h-9 min-h-[36px] flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 active:bg-slate-200 font-bold transition"
-                    >
-                      <Minus className="w-4 h-4" />
-                    </button>
+            {/* Factual dispatch & verification badges */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-[11px] text-slate-600">
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-1.5">
+                <Truck className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+                <span className="font-semibold text-slate-800">Pan-India Freight Dispatch</span>
+              </div>
+              <div className="p-2 rounded-xl bg-slate-50 border border-slate-200 flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                <span className="font-semibold text-slate-800">GST Invoice with ITC</span>
+              </div>
+              <div className="hidden sm:flex p-2 rounded-xl bg-slate-50 border border-slate-200 items-center gap-1.5">
+                <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                <span className="font-semibold text-slate-800">MTC on Procurement</span>
+              </div>
+            </div>
+          </div>
 
-                    <input
-                      id={qtyInputId}
-                      type="number"
-                      min="1"
-                      max="99999"
-                      value={quantity}
-                      onChange={handleQuantityInputChange}
-                      className="w-16 text-center font-extrabold text-sm text-slate-900 border-none outline-none focus:ring-1 focus:ring-orange-500 rounded py-1 bg-transparent"
-                    />
+          {/* 2. PRODUCT NAME */}
+          <div id="product-detail-name-section" className="space-y-1">
+            <h1
+              id="product-detail-name"
+              className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight leading-snug"
+            >
+              {product.name}
+            </h1>
+            <div className="flex items-center gap-2 flex-wrap text-xs text-slate-500">
+              <span className="font-medium text-orange-600">{product.category}</span>
+              {resolvedBrand && (
+                <>
+                  <span>•</span>
+                  <span className="font-bold text-slate-700">Brand: {resolvedBrand}</span>
+                </>
+              )}
+              {product.sku && (
+                <>
+                  <span>•</span>
+                  <span className="font-mono text-slate-600">Code: {product.sku}</span>
+                </>
+              )}
+            </div>
+          </div>
 
-                    <button
-                      type="button"
-                      onClick={handleIncrement}
-                      aria-label="Increase quantity by 1"
-                      className="w-9 h-9 min-h-[36px] flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 active:bg-slate-200 font-bold transition"
-                    >
-                      <Plus className="w-4 h-4" />
-                    </button>
-                  </div>
+          {/* 3. SHORT FACTUAL DESCRIPTION */}
+          <div id="product-detail-description-section" className="space-y-2">
+            <p
+              id="product-detail-short-description"
+              className="text-sm sm:text-base text-slate-700 leading-relaxed font-normal bg-slate-50/80 p-3.5 rounded-xl border border-slate-200/80"
+            >
+              {product.shortDescription}
+            </p>
+            {product.fullDescription && product.fullDescription !== product.shortDescription && (
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                {product.fullDescription}
+              </p>
+            )}
+          </div>
 
-                  {/* Quantity Presets */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <button
-                      type="button"
-                      onClick={() => handleQuickAdd(10)}
-                      className="min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 transition"
-                    >
-                      +10
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickAdd(50)}
-                      className="min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-bold bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 transition"
-                    >
-                      +50
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleQuickAdd(100)}
-                      className="min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-bold bg-orange-100 hover:bg-orange-200 border border-orange-300 text-orange-900 transition"
-                    >
-                      +100
-                    </button>
-                  </div>
-                </div>
+          {/* 4. KEY INFORMATION */}
+          <div id="product-detail-key-info-section" className="space-y-4 pt-1">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-2">
+              <h2 className="text-xs sm:text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
+                <Layers className="w-4 h-4 text-orange-600" />
+                <span>Key Information for B2B Procurement</span>
+              </h2>
+              <span className="text-[11px] font-semibold text-slate-500 hidden sm:inline">
+                Verified Industrial Supply Data
+              </span>
+            </div>
+
+            {/* B2B Procurement Attribute Cards */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+              
+              {/* Product Code / SKU */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 flex items-center gap-1">
+                  <Tag className="w-3 h-3 text-slate-400" />
+                  <span>Product Code / SKU</span>
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-slate-900 break-words">
+                  {product.sku ? product.sku : <span className="text-slate-500 font-normal">Available on request</span>}
+                </span>
               </div>
 
-              {/* Structured Specifications Table */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-xs sm:text-sm text-slate-900 flex items-center gap-1.5">
-                    <Shield className="w-4 h-4 text-orange-600" />
-                    <span>Technical Specifications & Compliance</span>
-                  </h4>
-                  <span className="text-[11px] text-slate-500">MTC Certificate Available</span>
+              {/* Category */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 flex items-center gap-1">
+                  <Layers className="w-3 h-3 text-slate-400" />
+                  <span>Category</span>
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-slate-900 truncate block">
+                  {product.category}
+                </span>
+              </div>
+
+              {/* Brand */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 flex items-center gap-1">
+                  <Building2 className="w-3 h-3 text-slate-400" />
+                  <span>Brand</span>
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-slate-900 truncate block">
+                  {resolvedBrand ? resolvedBrand : <span className="text-slate-500 font-normal">Available on request</span>}
+                </span>
+              </div>
+
+              {/* Unit */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 flex items-center gap-1">
+                  <Package className="w-3 h-3 text-slate-400" />
+                  <span>Unit</span>
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-slate-900 truncate block">
+                  {product.unit ? product.unit : <span className="text-slate-500 font-normal">Available on request</span>}
+                </span>
+              </div>
+
+              {/* Availability */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-slate-400" />
+                  <span>Availability</span>
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-emerald-800 break-words block">
+                  {product.availability ? product.availability : <span className="text-slate-500 font-normal">Available on request</span>}
+                </span>
+              </div>
+
+              {/* MOQ */}
+              <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block mb-0.5 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-slate-400" />
+                  <span>MOQ</span>
+                </span>
+                <span className="text-xs sm:text-sm font-bold text-slate-900 break-words block">
+                  {product.moq ? product.moq : <span className="text-slate-500 font-normal">Available on request</span>}
+                </span>
+              </div>
+
+            </div>
+
+            {/* Datasheet Download Row */}
+            <div className="p-3.5 rounded-xl bg-amber-50/70 border border-amber-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span className="text-xs sm:text-sm font-bold text-slate-900">
+                    Product Technical Datasheet
+                  </span>
+                  <span className="text-[10px] bg-amber-200 text-amber-900 font-bold px-1.5 py-0.2 rounded">
+                    TXT / Spec Sheet
+                  </span>
                 </div>
+                <p className="text-xs text-slate-600">
+                  {product.datasheetAvailable !== false
+                    ? 'Includes exact specifications, industrial standards, MTC guidelines & compliance details.'
+                    : 'Detailed engineering submittal available on request.'}
+                </p>
+              </div>
+
+              <button
+                id="product-download-datasheet-btn"
+                type="button"
+                onClick={handleDownloadDatasheet}
+                className="w-full sm:w-auto min-h-[40px] px-4 py-2 rounded-xl bg-white hover:bg-slate-50 border border-amber-300 text-slate-900 text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-2xs shrink-0 cursor-pointer active:scale-98"
+                title={`Download ${product.name} Technical Datasheet`}
+              >
+                <Download className="w-4 h-4 text-orange-600 shrink-0" />
+                <span>Download Datasheet</span>
+              </button>
+            </div>
+
+            {/* Key Specifications Table */}
+            {product.specifications && product.specifications.length > 0 && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5 text-orange-600" />
+                  <span>Key Specifications</span>
+                </h3>
 
                 <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-2xs">
                   <table className="w-full text-left text-xs border-collapse">
                     <thead>
                       <tr className="bg-slate-100 border-b border-slate-200 text-slate-700">
-                        <th className="py-2 px-3 font-bold w-1/3 border-r border-slate-200">Specification</th>
-                        <th className="py-2 px-3 font-bold">Details</th>
+                        <th className="py-2 px-3 font-bold w-1/3 sm:w-2/5 border-r border-slate-200">
+                          Specification
+                        </th>
+                        <th className="py-2 px-3 font-bold">
+                          Details
+                        </th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-200">
                       {parsedSpecs.map((spec, index) => (
-                        <tr key={index} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-2 px-3 font-semibold text-slate-700 border-r border-slate-200 bg-slate-50/50">
+                        <tr key={index} className="hover:bg-slate-50/80 transition-colors">
+                          <td className="py-2 px-3 font-semibold text-slate-700 border-r border-slate-200 bg-slate-50/40 align-top">
                             {spec.label}
                           </td>
-                          <td className="py-2 px-3 text-slate-800 break-words">
+                          <td className="py-2 px-3 text-slate-800 break-words align-top">
                             {spec.value}
                           </td>
                         </tr>
@@ -464,16 +638,191 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   </table>
                 </div>
               </div>
+            )}
+
+            {/* Industrial Applications (if available) */}
+            {product.commonUses && (
+              <div className="p-3 rounded-xl bg-orange-50/80 border border-orange-200 text-xs text-orange-950 space-y-1">
+                <div className="font-extrabold flex items-center gap-1.5 text-orange-900">
+                  <Sparkles className="w-3.5 h-3.5 text-orange-600 shrink-0" />
+                  <span>Recommended Industrial Applications:</span>
+                </div>
+                <p className="text-slate-800 leading-relaxed">
+                  {product.commonUses}
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 5. QUANTITY */}
+          <div id="product-detail-quantity-section" className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-1">
+              <label htmlFor={qtyInputId} className="text-xs sm:text-sm font-black text-slate-900 uppercase tracking-wider">
+                Quantity {product.unit ? `(${product.unit})` : ''}:
+              </label>
+              <span className="text-xs font-semibold text-emerald-700">
+                {product.moq ? `MOQ: ${product.moq}` : 'Flexible Quantity Support'}
+              </span>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5">
+              {/* Stepper with accessible 44px min touch targets */}
+              <div className="flex items-center bg-white border border-slate-300 rounded-xl p-1 shadow-2xs">
+                <button
+                  id="product-qty-decrement-btn"
+                  type="button"
+                  onClick={handleDecrement}
+                  aria-label="Decrease quantity by 1"
+                  className="w-10 h-10 min-h-[40px] flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 active:bg-slate-200 font-bold transition"
+                >
+                  <Minus className="w-4 h-4" />
+                </button>
+
+                <input
+                  id={qtyInputId}
+                  type="number"
+                  min="1"
+                  max="99999"
+                  value={quantity}
+                  onChange={handleQuantityInputChange}
+                  className="w-16 sm:w-20 text-center font-black text-base text-slate-900 border-none outline-none focus:ring-1 focus:ring-orange-500 rounded py-1 bg-transparent"
+                  aria-label="Procurement Quantity"
+                />
+
+                <button
+                  id="product-qty-increment-btn"
+                  type="button"
+                  onClick={handleIncrement}
+                  aria-label="Increase quantity by 1"
+                  className="w-10 h-10 min-h-[40px] flex items-center justify-center rounded-lg text-slate-700 hover:bg-slate-100 active:bg-slate-200 font-bold transition"
+                >
+                  <Plus className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Quick Preset Buttons */}
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() => handleQuickAdd(10)}
+                  className="min-h-[42px] px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 transition"
+                  title="Add 10 units"
+                >
+                  +10
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickAdd(50)}
+                  className="min-h-[42px] px-3 py-1.5 rounded-xl text-xs font-bold bg-white hover:bg-slate-200 border border-slate-300 text-slate-700 transition"
+                  title="Add 50 units"
+                >
+                  +50
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleQuickAdd(100)}
+                  className="min-h-[42px] px-3 py-1.5 rounded-xl text-xs font-bold bg-orange-100 hover:bg-orange-200 border border-orange-300 text-orange-900 transition"
+                  title="Add 100 units"
+                >
+                  +100
+                </button>
+              </div>
+
+              {rfqFeedback && (
+                <div className="w-full text-xs font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1.5 rounded-lg flex items-center gap-1.5 animate-in fade-in">
+                  <Check className="w-4 h-4 text-emerald-700 shrink-0" />
+                  <span>{rfqFeedback}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* CTAs IN STRICT HIERARCHICAL ORDER:
+              6. Request Quote
+              ↓
+              7. Add to RFQ
+              ↓
+              8. WhatsApp
+              ↓
+              9. Call
+          */}
+          <div id="product-detail-actions-section" className="space-y-3 pt-2">
+            <span className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider block">
+              Procurement Actions:
+            </span>
+
+            <div className="flex flex-col gap-2.5">
+              
+              {/* 6. REQUEST QUOTE (Primary CTA) */}
+              <button
+                id="product-request-quote-btn"
+                type="button"
+                onClick={handleRequestQuote}
+                className="w-full min-h-[48px] px-6 py-3 rounded-xl text-sm sm:text-base font-black text-white bg-orange-600 hover:bg-orange-500 active:bg-orange-700 transition flex items-center justify-center gap-2 shadow-md active:scale-99 cursor-pointer"
+              >
+                <FileText className="w-5 h-5 shrink-0" />
+                <span>Request Quote ({quantity} {product.unit ? product.unit : 'Units'})</span>
+              </button>
+
+              {/* 7. ADD TO RFQ (Secondary CTA) */}
+              {onAddToRfq && (
+                <button
+                  id="product-add-to-rfq-btn"
+                  type="button"
+                  onClick={handleAddToRfq}
+                  className={`w-full min-h-[48px] px-6 py-3 rounded-xl text-sm sm:text-base font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-99 ${
+                    isInRfq
+                      ? 'bg-emerald-100 text-emerald-950 border-2 border-emerald-400 hover:bg-emerald-200'
+                      : 'bg-slate-900 hover:bg-slate-800 text-white'
+                  }`}
+                >
+                  {isInRfq ? (
+                    <>
+                      <Check className="w-5 h-5 text-emerald-700 shrink-0" />
+                      <span>In RFQ Cart (Add +{quantity} more)</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-5 h-5 text-orange-400 shrink-0" />
+                      <span>Add to RFQ ({quantity} {product.unit ? product.unit : 'Units'})</span>
+                    </>
+                  )}
+                </button>
+              )}
+
+              {/* 8. WHATSAPP */}
+              <button
+                id="product-whatsapp-btn"
+                type="button"
+                onClick={handleWhatsApp}
+                className="w-full min-h-[48px] px-6 py-3 rounded-xl text-sm sm:text-base font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-99"
+                title="Send instant WhatsApp enquiry"
+              >
+                <MessageCircle className="w-5 h-5 fill-white/20 shrink-0" />
+                <span>WhatsApp ({quantity} {product.unit ? product.unit : 'Units'})</span>
+              </button>
+
+              {/* 9. CALL */}
+              <a
+                id="product-call-btn"
+                href={`tel:${COMPANY_INFO.phone}`}
+                onClick={handleCall}
+                className="w-full min-h-[48px] px-6 py-3 rounded-xl text-sm sm:text-base font-bold text-slate-950 bg-amber-400 hover:bg-amber-300 active:bg-amber-500 transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-99"
+                title={`Call ${COMPANY_INFO.contactPerson} at ${COMPANY_INFO.displayPhone}`}
+              >
+                <Phone className="w-5 h-5 text-slate-950 shrink-0" />
+                <span>Call: {COMPANY_INFO.displayPhone}</span>
+              </a>
 
             </div>
           </div>
 
-          {/* Related Products in Same Category */}
+          {/* Related Materials / Products Section */}
           {relatedProducts.length > 0 && (
             <div className="pt-4 border-t border-slate-200 space-y-2.5">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs sm:text-sm font-black text-slate-900">
-                  Related Materials & Safety Gear in this Category
+                <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">
+                  Related Materials in {product.category}
                 </h4>
                 <span className="text-[11px] text-slate-500">Click to inspect</span>
               </div>
@@ -488,11 +837,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         onSelectProduct(rel);
                       }
                     }}
-                    className="flex items-center gap-2.5 p-2 rounded-xl border border-slate-200 hover:border-orange-500 bg-slate-50 hover:bg-white text-left transition group shadow-2xs"
+                    className="flex items-center gap-2.5 p-2 rounded-xl border border-slate-200 hover:border-orange-500 bg-slate-50 hover:bg-white text-left transition group shadow-2xs cursor-pointer"
                   >
                     <img
                       src={rel.image}
                       alt={rel.name}
+                      width="48"
+                      height="48"
                       className="w-12 h-12 object-cover rounded-lg border border-slate-200 shrink-0"
                       referrerPolicy="no-referrer"
                     />
@@ -501,7 +852,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         {rel.name}
                       </p>
                       <p className="text-[10px] text-slate-500 truncate">
-                        {rel.category}
+                        {rel.unit ? `Unit: ${rel.unit}` : rel.category}
                       </p>
                     </div>
                     <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-orange-600 shrink-0" />
@@ -511,88 +862,17 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             </div>
           )}
 
-          {/* Supply Notice Bar */}
+          {/* Refinery Gate Pass & Fast Supply Note */}
           <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div>
               <span className="font-extrabold text-amber-300">Mathura Refinery Immediate Gate Delivery:</span>
-              <span className="text-slate-300 ml-1">Daily counter stock ready for IOCL gate-entry passes and civil fabrication contractors.</span>
-            </div>
-            <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700 shrink-0">
-              Standard GST Invoicing & Input Credit
-            </span>
-          </div>
-
-        </div>
-
-        {/* Modal Action Bar with Strict B2B Priority Hierarchy */}
-        <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 shrink-0">
-          
-          {/* Direct Calling Hotline Link */}
-          <div className="flex items-center justify-between sm:justify-start gap-2 text-xs">
-            <a
-              href={`tel:${COMPANY_INFO.phone}`}
-              className="inline-flex items-center gap-1.5 text-slate-700 hover:text-slate-900 font-bold py-1.5 px-2 rounded-lg hover:bg-slate-200 transition"
-              title={`Call ${COMPANY_INFO.contactPerson}`}
-            >
-              <Phone className="w-3.5 h-3.5 text-amber-600" />
-              <span>Call: {COMPANY_INFO.displayPhone}</span>
-            </a>
-
-            {rfqFeedback && (
-              <span className="text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-lg animate-in fade-in">
-                ✓ {rfqFeedback}
+              <span className="text-slate-300 ml-1">
+                Depot located at 15/1, UP SIDC Complex, Refinery Main Gate. Instant dispatch for IOCL gate entries & contractor turnaround works.
               </span>
-            )}
-          </div>
-
-          {/* Primary Action Buttons (All min 44px touch targets) */}
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2">
-            
-            {/* WhatsApp CTA */}
-            <button
-              type="button"
-              onClick={handleWhatsApp}
-              className="flex-1 sm:flex-none min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 transition flex items-center justify-center gap-1.5 shadow-xs"
-              title="Open WhatsApp with product details prefilled"
-            >
-              <MessageCircle className="w-4 h-4 fill-white/20" />
-              <span>WhatsApp ({quantity})</span>
-            </button>
-
-            {/* Bulk RFQ Cart CTA */}
-            {onAddToRfq && (
-              <button
-                type="button"
-                onClick={handleAddToRfqClick}
-                className={`flex-1 sm:flex-none min-h-[44px] px-3.5 py-2.5 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs ${
-                  isInRfq
-                    ? 'bg-emerald-100 text-emerald-900 border border-emerald-300 hover:bg-emerald-200'
-                    : 'bg-slate-900 hover:bg-slate-800 text-white'
-                }`}
-              >
-                {isInRfq ? (
-                  <>
-                    <Check className="w-4 h-4 text-emerald-700" />
-                    <span>In Bulk RFQ (+{quantity})</span>
-                  </>
-                ) : (
-                  <>
-                    <Plus className="w-4 h-4 text-orange-400" />
-                    <span>Add {quantity} to RFQ</span>
-                  </>
-                )}
-              </button>
-            )}
-
-            {/* Primary Action: Enquire Now Button */}
-            <button
-              type="button"
-              onClick={handleEnquireClick}
-              className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl text-xs font-black text-white bg-orange-600 hover:bg-orange-500 active:bg-orange-700 transition flex items-center justify-center gap-1.5 shadow-md active:scale-95"
-            >
-              <span>Enquire for {quantity} Units</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 bg-slate-800 px-2.5 py-1 rounded border border-slate-700 shrink-0 whitespace-nowrap">
+              GST Invoicing & Input Credit
+            </span>
           </div>
 
         </div>

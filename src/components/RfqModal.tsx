@@ -18,6 +18,7 @@ import {
 import { RfqItem, Language } from '../types';
 import { COMPANY_INFO } from '../data/companyData';
 import { TRANSLATIONS } from '../data/extraData';
+import { trackRfqSubmit, trackWhatsAppClick } from '../utils/analytics';
 
 interface RfqModalProps {
   isOpen: boolean;
@@ -163,6 +164,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
+    let generatedRef = '';
 
     try {
       const res = await fetch('/api/rfq', {
@@ -190,13 +192,30 @@ export const RfqModal: React.FC<RfqModalProps> = ({
       clearTimeout(timeoutId);
       const data = await res.json();
       if (res.ok && data.success) {
-        setRfqReference(data.rfqReference || '');
+        generatedRef = data.rfqReference || '';
+        setRfqReference(generatedRef);
       }
     } catch {
       clearTimeout(timeoutId);
       // Fail gracefully: user can dispatch to WhatsApp without interruption
     } finally {
       setIsSubmitting(false);
+
+      // Track rfq_submit in GA4
+      trackRfqSubmit({
+        itemCount: rfqItems.length,
+        totalQuantity,
+        hasCompany: Boolean(companyName.trim()),
+        requiresMtc: requestMtc,
+        rfqReference: generatedRef || rfqReference || undefined,
+      });
+
+      // Track WhatsApp dispatch
+      trackWhatsAppClick({
+        source: 'rfq_modal_submit',
+        context: 'bulk_rfq_dispatch',
+      });
+
       const message = generateBoqText();
       const encoded = encodeURIComponent(message);
       const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encoded}`;

@@ -1,3 +1,5 @@
+import { COMPANY_INFO } from '../data/companyData';
+
 /**
  * Site Configuration & Production URL Management
  * 
@@ -34,18 +36,18 @@ export const SITE_CONFIG = {
     return (import.meta.env?.VITE_GOOGLE_SITE_VERIFICATION as string) || '';
   },
 
-  // Company core identity
-  businessName: 'Rajdeep Enterprises',
-  proprietor: 'Raj Singh Tarkar',
-  phone: '09997993895',
-  secondaryPhone: '08923993895',
-  internationalPhone: '+919997993895',
-  whatsappNumber: '919997993895',
-  email: 'rjsinghtarkar@gmail.com',
-  address: '15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura, Uttar Pradesh - 281005',
-  landmark: 'Opposite Refinery Main Gate',
-  googleMapsUrl: 'https://www.google.com/maps/search/?api=1&query=Rajdeep+Enterprises,+15/1,+U.P.+S.I.D.C.+Complex,+Refinery+Main+Gate,+Mathura,+Uttar+Pradesh+-+281005',
-  directionsUrl: 'https://www.google.com/maps/dir/?api=1&destination=Rajdeep+Enterprises,+15/1,+U.P.+S.I.D.C.+Complex,+Refinery+Main+Gate,+Mathura,+Uttar+Pradesh+-+281005',
+  // Company core identity sourced directly from companyData (Single Source of Truth)
+  get businessName(): string { return COMPANY_INFO.name; },
+  get proprietor(): string { return COMPANY_INFO.contactPerson; },
+  get phone(): string { return COMPANY_INFO.phone; },
+  get secondaryPhone(): string { return COMPANY_INFO.secondaryPhone; },
+  get internationalPhone(): string { return `+91${COMPANY_INFO.phone.replace(/^0/, '')}`; },
+  get whatsappNumber(): string { return COMPANY_INFO.whatsappNumber; },
+  get email(): string { return COMPANY_INFO.email; },
+  get address(): string { return COMPANY_INFO.fullAddress; },
+  get landmark(): string { return COMPANY_INFO.landmark; },
+  get googleMapsUrl(): string { return COMPANY_INFO.googleMapsUrl; },
+  get directionsUrl(): string { return COMPANY_INFO.directionsUrl; },
 };
 
 /**

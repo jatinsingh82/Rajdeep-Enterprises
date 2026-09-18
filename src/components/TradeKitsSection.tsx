@@ -88,20 +88,21 @@ export const TradeKitsSection: React.FC<TradeKitsSectionProps> = ({
   };
 
   return (
-    <div id="trade-kits" className="py-4 sm:py-6 px-1 sm:px-4 w-full overflow-x-hidden">
-      <div className="w-full">
+    <section id="trade-kits" className="py-10 sm:py-14 md:py-16 bg-white border-t border-b border-slate-200 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="w-full">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider mb-3">
+        <div className="text-center max-w-3xl mx-auto mb-8 sm:mb-12">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-xs font-bold uppercase tracking-wider mb-2.5">
             <Briefcase className="w-3.5 h-3.5 text-orange-600" />
-            <span>Turnkey Workforce PPE Packages</span>
+            <span>Workforce Safety Bundles</span>
           </div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight">
             Trade-Specific PPE Kits Configurator
           </h2>
-          <div className="w-20 h-1 bg-orange-600 mx-auto mt-4 rounded-full"></div>
-          <p className="mt-4 text-sm sm:text-base text-slate-600 leading-relaxed">
+          <div className="w-16 h-1 bg-orange-600 mx-auto mt-3 rounded-full"></div>
+          <p className="mt-3 text-sm sm:text-base text-slate-600 leading-relaxed">
             Eliminate individual item guesswork. Equip your workforce with pre-approved industrial safety kits tailored to specific trade roles, certified to pass refinery & EPC safety inspector gate checks.
           </p>
         </div>
@@ -292,7 +293,8 @@ export const TradeKitsSection: React.FC<TradeKitsSectionProps> = ({
 
         </div>
 
+        </div>
       </div>
-    </div>
+    </section>
   );
 };

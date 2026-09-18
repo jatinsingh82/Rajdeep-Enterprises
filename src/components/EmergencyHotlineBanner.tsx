@@ -1,6 +1,7 @@
 import React from 'react';
 import { AlertCircle, Phone, Clock, Zap, ShieldCheck } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
+import { trackPhoneClick, trackCallbackRequest } from '../utils/analytics';
 
 interface EmergencyHotlineBannerProps {
   onOpenQuoteModal: (productName?: string) => void;
@@ -31,6 +32,7 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
             <a
               id="emergency-mobile-call-btn"
               href={`tel:${COMPANY_INFO.phone}`}
+              onClick={() => trackPhoneClick({ phoneNumber: COMPANY_INFO.phone, source: 'emergency_banner_mobile' })}
               className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs shadow-sm transition active:scale-95 min-h-[38px] text-center"
               title="Call Emergency Hotline"
               aria-label={`Call emergency hotline ${COMPANY_INFO.phone}`}
@@ -65,6 +67,7 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
         <div className="hidden md:flex items-center gap-2 shrink-0">
           <a
             href={`tel:${COMPANY_INFO.phone}`}
+            onClick={() => trackPhoneClick({ phoneNumber: COMPANY_INFO.phone, source: 'emergency_banner_desktop' })}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs transition shadow-sm active:scale-95 min-h-[36px]"
           >
             <Phone className="w-3.5 h-3.5" />
@@ -73,11 +76,18 @@ export const EmergencyHotlineBanner: React.FC<EmergencyHotlineBannerProps> = ({
 
           <button
             type="button"
-            onClick={() => onOpenQuoteModal("Urgent Emergency Breakdown PPE Supply")}
+            onClick={() => {
+              trackCallbackRequest({
+                source: 'emergency_hotline_banner',
+                phoneNumber: COMPANY_INFO.phone,
+                urgency: 'urgent_gate_dispatch'
+              });
+              onOpenQuoteModal("Urgent Emergency Breakdown PPE Supply - Callback Requested");
+            }}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 text-xs font-semibold transition active:scale-95 min-h-[36px]"
           >
             <Zap className="w-3.5 h-3.5 text-sky-400" />
-            <span>Request Fast Dispatch</span>
+            <span>Request Fast Dispatch / Callback</span>
           </button>
         </div>
 

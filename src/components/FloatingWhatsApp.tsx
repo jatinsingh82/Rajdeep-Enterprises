@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { MessageCircle, X } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
+import { trackWhatsAppClick } from '../utils/analytics';
 
 export const FloatingWhatsApp: React.FC = () => {
   const [showTooltip, setShowTooltip] = useState(true);
 
   const handleClick = () => {
+    trackWhatsAppClick({ source: 'floating_whatsapp_button', context: 'general_inquiry' });
     const message = encodeURIComponent(COMPANY_INFO.whatsappDefaultMessage);
     const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${message}`;
     window.open(url, '_blank');
