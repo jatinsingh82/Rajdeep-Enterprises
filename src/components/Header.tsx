@@ -76,8 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
   // Strictly sequential top-to-bottom scroll order matching page layout
   const navLinks = [
     { name: lang === 'en' ? 'About Us' : 'हमारे बारे में', href: '#about' },
-    { name: lang === 'en' ? 'Featured Products' : 'विशेष उत्पाद', href: '#featured-products' },
-    { name: lang === 'en' ? 'All Products' : 'सभी उत्पाद', href: '#products' },
+    { name: lang === 'en' ? 'Products' : 'उत्पाद सूची', href: '#products' },
     { name: lang === 'en' ? 'Why Choose Us' : 'हमें क्यों चुनें', href: '#principles' },
     { name: lang === 'en' ? 'Industries' : 'उद्योग', href: '#industries' },
     { name: lang === 'en' ? 'Location & Contact' : 'स्थान व संपर्क', href: '#location' },

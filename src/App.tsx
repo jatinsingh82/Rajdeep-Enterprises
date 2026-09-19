@@ -1,7 +1,6 @@
 import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
-import { EmergencyHotlineBanner } from './components/EmergencyHotlineBanner';
 import { AboutSection } from './components/AboutSection';
 import { ProductsSection } from './components/ProductsSection';
 import { IndustriesSection } from './components/IndustriesSection';
@@ -218,14 +217,6 @@ export default function App() {
     generateProductCataloguePdf();
   };
 
-  const handleViewAllProducts = () => {
-    handleCategoryChange('All Products');
-    const el = document.getElementById('products');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
   const rfqProductIds = rfqItems.map((item) => item.product.id);
 
   return (
@@ -245,14 +236,9 @@ export default function App() {
         onOpenVendorDossierModal={() => setIsVendorDossierOpen(true)}
       />
 
-      {/* 24/7 Site Emergency Hotline Banner */}
-      <EmergencyHotlineBanner
-        onOpenQuoteModal={handleOpenQuoteModal}
-      />
-
       {/* Main Page Sections - Organized in Strict Top-to-Bottom Sequential Order with ample bottom padding for mobile sticky CTA */}
       <main className="flex-1 pb-24 sm:pb-28 md:pb-0">
-        {/* 1. Hero Section with Real Shop Owner Front & Direct Contact */}
+        {/* 1. Hero Section with Direct Contact & Action Controls */}
         <Hero
           onOpenQuoteModal={handleOpenQuoteModal}
           onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
@@ -264,17 +250,7 @@ export default function App() {
           onOpenQuoteModal={() => handleOpenQuoteModal('General Company Quotation')}
         />
 
-        {/* 3. Featured Products: Curated Site Essentials (Concise 4-item on Mobile, Complete on Desktop) */}
-        <FeaturedProductsSection
-          onSelectProduct={handleSelectProduct}
-          onEnquire={handleEnquireFromProduct}
-          onAddToRfq={handleAddToRfq}
-          rfqProductIds={rfqProductIds}
-          onViewAllProducts={handleViewAllProducts}
-          lang={lang}
-        />
-
-        {/* 4. Our Products Catalogue (Safety, Gaskets, Stationery, Tools) */}
+        {/* 3. Products Catalogue (Safety, Gaskets, Stationery, Tools) */}
         <ProductsSection
           onSelectProduct={handleSelectProduct}
           onEnquire={handleEnquireFromProduct}
@@ -286,40 +262,35 @@ export default function App() {
           onSelectCategory={handleCategoryChange}
         />
 
-        {/* 5. Why Choose Us / Core Supply Principles */}
+        {/* 4. Why Choose Us / Core Supply Principles */}
         <WhyChooseUs
           onOpenQuoteModal={() => handleOpenQuoteModal('Industrial Partnership / Supplies')}
         />
 
-        {/* 6. Industries We Serve */}
+        {/* 5. Industries We Serve */}
         <IndustriesSection
           onEnquire={handleOpenQuoteModal}
         />
 
-        {/* 7. Whole India Supply & Any Quantity Logistics Section */}
+        {/* 6. Whole India Supply & Logistics */}
         <PanIndiaSupplySection
           lang={lang}
           onEnquire={handleOpenQuoteModal}
         />
 
-        {/* 8. Compliance & Technical Guides Hub */}
+        {/* 7. Compliance & Technical Guides Hub */}
         <ToolsAndGuidesHub
           onAddProductToRfq={handleAddToRfq}
           onOpenQuoteModal={handleOpenQuoteModal}
           lang={lang}
         />
 
-        {/* 9. Strong Call-To-Action Banner */}
-        <CtaBanner
-          onOpenQuoteModal={() => handleOpenQuoteModal('Immediate Quotation Request')}
-        />
-
-        {/* 10. Contact Rajdeep Enterprises & RFQ Form */}
+        {/* 8. Contact Rajdeep Enterprises & RFQ Form */}
         <ContactSection
           initialRequirement={selectedQuoteProduct}
         />
 
-        {/* 11. Location: Where Can You Find Us (Interactive Map & Directions) */}
+        {/* 9. Location: Where Can You Find Us (Interactive Map & Directions) */}
         <MapSection
           lang={lang}
         />
