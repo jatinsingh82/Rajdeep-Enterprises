@@ -302,24 +302,24 @@ export const Header: React.FC<HeaderProps> = ({
       {/* Main Navbar - Clean, breathable, compact height on mobile */}
       <nav
         className={`w-full bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all duration-200 overflow-x-hidden ${
-          isScrolled ? 'shadow-md py-2 sm:py-2.5' : 'shadow-xs py-2 sm:py-3'
+          isScrolled ? 'shadow-md py-1.5 sm:py-2.5' : 'shadow-xs py-1.5 sm:py-2.5'
         }`}
       >
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-7xl mx-auto px-2.5 xs:px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-1.5 sm:gap-4">
           {/* Brand Logo - Crisp, perfectly proportioned, no wrap or clipping */}
-          <a id="brand-logo-link" href="#home" className="flex items-center gap-2 sm:gap-2.5 group shrink-0 min-w-0">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-slate-900 flex items-center justify-center text-white border-2 border-orange-500 shadow-2xs shrink-0 group-hover:border-orange-400 transition-colors">
+          <a id="brand-logo-link" href="#home" className="flex items-center gap-1.5 sm:gap-2.5 group shrink-0 min-w-0">
+            <div className="w-7.5 h-7.5 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-slate-900 flex items-center justify-center text-white border sm:border-2 border-orange-500 shadow-2xs shrink-0 group-hover:border-orange-400 transition-colors">
               <div className="flex flex-col items-center justify-center">
-                <span className="font-black text-[11px] sm:text-xs tracking-tight text-white leading-none">RE</span>
-                <span className="text-[7px] font-mono font-bold text-orange-400 leading-none mt-0.5">B2B</span>
+                <span className="font-black text-[10px] sm:text-xs tracking-tight text-white leading-none">RE</span>
+                <span className="text-[6.5px] sm:text-[7px] font-mono font-bold text-orange-400 leading-none mt-0.5">B2B</span>
               </div>
             </div>
             <div className="shrink-0">
               <div className="flex items-center gap-1 leading-tight">
-                <span className="font-extrabold text-sm sm:text-base lg:text-lg tracking-tight text-slate-900 whitespace-nowrap">
+                <span className="font-extrabold text-[13px] min-[360px]:text-sm sm:text-base lg:text-lg tracking-tight text-slate-900 whitespace-nowrap">
                   RAJDEEP
                 </span>
-                <span className="font-bold text-sm sm:text-base lg:text-lg tracking-tight text-orange-600 whitespace-nowrap">
+                <span className="font-bold text-[13px] min-[360px]:text-sm sm:text-base lg:text-lg tracking-tight text-orange-600 whitespace-nowrap">
                   ENTERPRISES
                 </span>
               </div>
@@ -381,12 +381,18 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Mobile & Tablet Action Controls (< xl) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 xl:hidden shrink-0">
-            {/* Compact Quote/Enquiry button: Visible only when screen width allows comfortable breathing room (>= 380px), hidden on 320px-375px to prevent touching/overlap */}
+          <div className="flex items-center gap-1 sm:gap-2 xl:hidden shrink-0">
+            {/* Primary Quote/Enquiry button:
+                - Fits comfortably without crowding on >= 390px viewports (e.g., 390x844, 414x896, 430x932)
+                - Kept hidden on narrower devices (320px–375px) or when RFQ items are in cart, preventing any touching or overlapping
+                - The Quote action is always prominently available as the primary button inside the mobile drawer
+            */}
             <button
               id="mobile-header-quote-btn"
               onClick={() => onOpenQuoteModal()}
-              className="hidden min-[380px]:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 shadow-2xs transition active:scale-95 shrink-0"
+              className={`${
+                rfqCount > 0 ? 'hidden sm:inline-flex' : 'hidden min-[390px]:inline-flex'
+              } items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 shadow-2xs transition active:scale-95 shrink-0 min-h-[36px]`}
               title="Request Quotation"
               aria-label="Request quote"
             >
@@ -413,11 +419,11 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="mobile-menu-toggle-btn"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="w-11 h-11 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-800 hover:text-orange-600 active:bg-slate-200 rounded-xl hover:bg-slate-100 focus:outline-none transition-colors shrink-0"
+              className="w-10 h-10 min-h-[44px] min-w-[44px] flex items-center justify-center text-slate-800 hover:text-orange-600 active:bg-slate-200 rounded-xl hover:bg-slate-100 focus:outline-none transition-colors shrink-0"
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6 text-slate-800" /> : <Menu className="w-6 h-6 text-slate-800" />}
+              {mobileMenuOpen ? <X className="w-5.5 h-5.5 text-slate-800" /> : <Menu className="w-5.5 h-5.5 text-slate-800" />}
             </button>
           </div>
         </div>
@@ -432,9 +438,9 @@ export const Header: React.FC<HeaderProps> = ({
               aria-hidden="true"
             />
 
-            {/* Slide-out Drawer Panel */}
+            {/* Slide-out Drawer Panel - Constrained to prevent horizontal overflow on 320px+ */}
             <div
-              className="fixed inset-y-0 right-0 w-full max-w-[340px] sm:max-w-sm bg-white shadow-2xl flex flex-col h-[100dvh] max-h-screen overflow-hidden animate-in slide-in-from-right duration-200 z-10"
+              className="fixed inset-y-0 right-0 w-full max-w-[calc(100vw-1.5rem)] xs:max-w-[340px] sm:max-w-sm bg-white shadow-2xl flex flex-col h-[100dvh] max-h-screen overflow-hidden animate-in slide-in-from-right duration-200 z-10"
               role="dialog"
               aria-modal="true"
               aria-label="Mobile Navigation Menu"

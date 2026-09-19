@@ -110,26 +110,26 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
   }, [selectedCategory, searchQuery]);
 
   return (
-    <section id="products" className="pt-4 pb-8 sm:py-12 md:py-16 bg-white relative">
+    <section id="products" className="pt-3 pb-8 sm:py-12 md:py-16 bg-white relative">
       <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
         
         {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-3 sm:mb-8">
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2.5">
+        <div className="text-center max-w-3xl mx-auto mb-2.5 sm:mb-8">
+          <div className="inline-flex items-center gap-1.5 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-800 text-[10px] sm:text-xs font-bold uppercase tracking-wider mb-1 sm:mb-2.5">
             <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-orange-600 shrink-0" />
             <span>{lang === 'en' ? 'Our Products & Industrial Supplies' : 'हमारे उत्पाद एवं औद्योगिक आपूर्ति'}</span>
           </div>
-          <h2 className="text-xl sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
+          <h2 className="text-lg sm:text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight">
             {lang === 'en' ? 'Product Specifications & Supply Catalogue' : 'उत्पाद विनिर्देश एवं आपूर्ति कैटलॉग'}
           </h2>
-          <div className="w-10 sm:w-16 h-1 bg-orange-600 mx-auto mt-1.5 sm:mt-3 rounded-full"></div>
-          <p className="mt-1.5 sm:mt-3 text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed px-1 line-clamp-2 sm:line-clamp-none">
+          <div className="w-10 sm:w-16 h-0.5 sm:h-1 bg-orange-600 mx-auto mt-1 sm:mt-3 rounded-full"></div>
+          <p className="mt-1 sm:mt-3 text-xs sm:text-sm md:text-base text-slate-600 leading-relaxed px-1 line-clamp-2 sm:line-clamp-none">
             Safety accessories, welding consumables, Champion gaskets, site registers, stationery, power tools, and heavy machinery for refineries and workshops. Order any quantity with pan-India supply.
           </p>
         </div>
 
         {/* Search, Density Switcher & Category Controls */}
-        <div className="mb-3 sm:mb-7 space-y-2 sm:space-y-4">
+        <div className="mb-2.5 sm:mb-7 space-y-1.5 sm:space-y-4">
           
           {/* Search bar & Action Controls */}
           <div className="flex items-center justify-between gap-2 sm:gap-3">
@@ -357,7 +357,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
           <div
             className={`grid transition-all duration-200 ${
               density === 'mini'
-                ? 'grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5'
+                ? 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 sm:gap-3.5'
                 : density === 'detailed'
                 ? 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-2 sm:gap-5'
                 : 'grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 md:gap-5'
@@ -437,7 +437,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                       </span>
                       <h3
                         onClick={() => onSelectProduct(product)}
-                        className={`font-bold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors cursor-pointer line-clamp-2 min-h-[30px] sm:min-h-[36px] break-words ${
+                        className={`font-bold text-slate-900 leading-snug group-hover:text-orange-600 transition-colors cursor-pointer line-clamp-2 min-h-[28px] sm:min-h-[36px] break-words ${
                           density === 'mini'
                             ? 'text-[11px] sm:text-xs'
                             : density === 'compact'
@@ -451,7 +451,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
 
                       {/* B2B Procurement identifiers where real data exists */}
                       {(product.sku || product.brand || product.unit) && (
-                        <div className="flex items-center gap-1.5 flex-wrap text-[10px] text-slate-500 mt-1">
+                        <div className="flex items-center gap-1 sm:gap-1.5 flex-wrap text-[9px] sm:text-[10px] text-slate-500 mt-0.5 sm:mt-1">
                           {product.sku && (
                             <span className="font-mono bg-slate-100 text-slate-700 px-1 py-0.2 rounded border border-slate-200">
                               {product.sku}
@@ -491,13 +491,13 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
 
                     {/* Action Bar: Two clear buttons [ Enquire ] & [ WhatsApp ] */}
                     <div className={`border-t border-slate-100 flex flex-col gap-1 sm:gap-1.5 ${
-                      density === 'mini' ? 'mt-1 pt-1' : 'mt-2 pt-1.5'
+                      density === 'mini' ? 'mt-1 pt-1' : 'mt-1.5 pt-1.5 sm:mt-2 sm:pt-1.5'
                     }`}>
                       <div className="grid grid-cols-2 gap-1 sm:gap-1.5">
                         <button
                           id={`product-enquire-btn-${product.id}`}
                           onClick={() => onEnquire(product.name)}
-                          className="min-h-[32px] sm:min-h-[38px] rounded-lg font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 transition flex items-center justify-center gap-1 text-[10.5px] xs:text-[11px] sm:text-xs shadow-2xs active:scale-98 px-1 sm:px-2"
+                          className="min-h-[30px] sm:min-h-[38px] rounded-lg font-bold text-white bg-orange-600 hover:bg-orange-700 active:bg-orange-800 transition flex items-center justify-center gap-1 text-[10px] xs:text-[11px] sm:text-xs shadow-2xs active:scale-98 px-1 sm:px-2"
                           title={`Get Price for ${product.name}`}
                           type="button"
                         >
@@ -510,7 +510,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                           href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${waMessage}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="min-h-[32px] sm:min-h-[38px] rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center justify-center gap-1 text-[10.5px] xs:text-[11px] sm:text-xs shadow-2xs active:scale-98 px-1 sm:px-2"
+                          className="min-h-[30px] sm:min-h-[38px] rounded-lg font-bold text-white bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 transition flex items-center justify-center gap-1 text-[10px] xs:text-[11px] sm:text-xs shadow-2xs active:scale-98 px-1 sm:px-2"
                           title={`WhatsApp Rajdeep Enterprises for ${product.name}`}
                         >
                           <MessageCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
