@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
 import { AboutSection } from './components/AboutSection';
+import { FeaturedProductsSection } from './components/FeaturedProductsSection';
 import { ProductsSection } from './components/ProductsSection';
 import { IndustriesSection } from './components/IndustriesSection';
 import { PanIndiaSupplySection } from './components/PanIndiaSupplySection';
@@ -248,6 +249,15 @@ export default function App() {
         <AboutSection
           onOpenVisitingCard={() => setIsVisitingCardOpen(true)}
           onOpenQuoteModal={() => handleOpenQuoteModal('General Company Quotation')}
+        />
+
+        {/* Featured Products Section (Concise 3-4 products on mobile with View All Products CTA, full layout on desktop) */}
+        <FeaturedProductsSection
+          onSelectProduct={handleSelectProduct}
+          onEnquire={handleEnquireFromProduct}
+          onAddToRfq={handleAddToRfq}
+          rfqProductIds={rfqProductIds}
+          lang={lang}
         />
 
         {/* 3. Products Catalogue (Safety, Gaskets, Stationery, Tools) */}
