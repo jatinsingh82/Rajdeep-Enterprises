@@ -1,4 +1,5 @@
-import nodemailer, { SendMailOptions } from 'nodemailer';
+import nodemailer from 'nodemailer';
+import type { SendMailOptions } from 'nodemailer';
 
 /**
  * Server-Side Production Email Notification Service for Rajdeep Enterprises

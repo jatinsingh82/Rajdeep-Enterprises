@@ -1,8 +1,8 @@
-import { handleCors } from './lib/cors';
-import { checkRateLimit, getClientIp } from './lib/rateLimiter';
-import { validateRfqInput } from './lib/validation';
-import { persistLead, generateReferenceId, getActivePersistenceProvider } from './lib/persistence';
-import { sendNotificationEmail } from './lib/emailService';
+import { handleCors } from './lib/cors.ts';
+import { checkRateLimit, getClientIp } from './lib/rateLimiter.ts';
+import { validateRfqInput } from './lib/validation.ts';
+import { persistLead, generateReferenceId, getActivePersistenceProvider } from './lib/persistence.ts';
+import { sendNotificationEmail } from './lib/emailService.ts';
 
 export default async function handler(req: any, res: any) {
   // 1. Strict CORS & Preflight validation
