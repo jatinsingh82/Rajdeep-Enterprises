@@ -54,6 +54,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [honeypot, setHoneypot] = useState('');
   const [rfqReference, setRfqReference] = useState('');
+  const [apiError, setApiError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
       setSubmitted(false);
       setErrors({});
       setRfqReference('');
+      setApiError(null);
     } else {
       document.body.style.overflow = '';
     }
@@ -100,11 +102,14 @@ export const RfqModal: React.FC<RfqModalProps> = ({
     return Object.keys(errs).length === 0;
   };
 
-  const generateBoqText = () => {
+  const generateBoqText = (refId?: string) => {
     let text = `*REQUEST FOR QUOTATION (RFQ) - RAJDEEP ENTERPRISES*\n`;
     text += `*Supplying in Whole India Everywhere | Any Quantity*\n`;
     text += `*Proprietor:* ${COMPANY_INFO.contactPerson} (${COMPANY_INFO.phone} / ${COMPANY_INFO.secondaryPhone})\n`;
     text += `*Central Hub:* ${COMPANY_INFO.address}\n\n`;
+    if (refId) {
+      text += `• *Official RFQ Tracking ID:* ${refId}\n`;
+    }
     text += `*Buyer / Contractor Details:*\n`;
     text += `• Name: ${contractorName || 'Industrial Buyer'}\n`;
     if (companyName) text += `• Firm/Company: ${companyName}\n`;
@@ -131,36 +136,24 @@ export const RfqModal: React.FC<RfqModalProps> = ({
     return text;
   };
 
+  const handleDirectWhatsAppFallback = () => {
+    trackWhatsAppClick({
+      source: 'rfq_modal_fallback',
+      context: 'bulk_rfq_dispatch',
+    });
+    const message = generateBoqText();
+    const encoded = encodeURIComponent(message);
+    const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encoded}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
   const handleSendWhatsApp = async () => {
     if (!validateRfq()) {
       return;
     }
 
     setIsSubmitting(true);
-
-    // Persist RFQ submission in localStorage for audit
-    try {
-      const stored = JSON.parse(localStorage.getItem('rajdeep_rfqs') || '[]');
-      stored.push({
-        contractorName,
-        companyName,
-        phoneNumber,
-        emailAddress,
-        siteLocation,
-        notes,
-        extraItems,
-        requestMtc,
-        items: rfqItems.map((i) => ({
-          productId: i.product.id,
-          name: i.product.name,
-          quantity: i.quantity
-        })),
-        submittedAt: new Date().toISOString()
-      });
-      localStorage.setItem('rajdeep_rfqs', JSON.stringify(stored));
-    } catch {
-      // ignore
-    }
+    setApiError(null);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -194,33 +187,45 @@ export const RfqModal: React.FC<RfqModalProps> = ({
       if (res.ok && data.success) {
         generatedRef = data.rfqReference || '';
         setRfqReference(generatedRef);
+        setSubmitted(true);
+        setApiError(null);
+
+        // Track rfq_submit in GA4 (strictly anonymous, no PII)
+        trackRfqSubmit({
+          itemCount: rfqItems.length,
+          totalQuantity,
+          hasCompany: Boolean(companyName.trim()),
+          requiresMtc: requestMtc,
+          rfqReference: generatedRef || undefined,
+        });
+
+        // Track WhatsApp dispatch
+        trackWhatsAppClick({
+          source: 'rfq_modal_submit',
+          context: 'bulk_rfq_dispatch',
+        });
+
+        const message = generateBoqText(generatedRef);
+        const encoded = encodeURIComponent(message);
+        const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encoded}`;
+        window.open(url, '_blank', 'noopener,noreferrer');
+      } else {
+        setSubmitted(false);
+        setApiError(
+          data.error ||
+          'Server lead storage is unconfigured or unavailable. Your RFQ was not saved. Please send your BOQ directly via WhatsApp or Call.'
+        );
       }
-    } catch {
+    } catch (err: any) {
       clearTimeout(timeoutId);
-      // Fail gracefully: user can dispatch to WhatsApp without interruption
+      setSubmitted(false);
+      if (err?.name === 'AbortError') {
+        setApiError('Network connection timed out. Please send your BOQ directly on WhatsApp (+91-9997993895) or Call.');
+      } else {
+        setApiError('Unable to reach server. Please send your BOQ directly to Rajdeep Enterprises via WhatsApp or Call.');
+      }
     } finally {
       setIsSubmitting(false);
-
-      // Track rfq_submit in GA4
-      trackRfqSubmit({
-        itemCount: rfqItems.length,
-        totalQuantity,
-        hasCompany: Boolean(companyName.trim()),
-        requiresMtc: requestMtc,
-        rfqReference: generatedRef || rfqReference || undefined,
-      });
-
-      // Track WhatsApp dispatch
-      trackWhatsAppClick({
-        source: 'rfq_modal_submit',
-        context: 'bulk_rfq_dispatch',
-      });
-
-      const message = generateBoqText();
-      const encoded = encodeURIComponent(message);
-      const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encoded}`;
-      window.open(url, '_blank');
-      setSubmitted(true);
     }
   };
 
@@ -482,6 +487,29 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                   className="w-full px-3 py-2 rounded-xl border border-orange-300 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none bg-white text-base sm:text-xs text-slate-900 placeholder:text-slate-400"
                 />
               </div>
+
+              {/* API Failure / Notice Banner */}
+              {apiError && (
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-xs">RFQ Submission Notice</p>
+                      <p className="text-[11px] text-amber-900 mt-0.5 leading-relaxed">{apiError}</p>
+                    </div>
+                  </div>
+                  <div className="pt-1 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleDirectWhatsAppFallback}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-xs"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span>Send BOQ Directly via WhatsApp</span>
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Contractor Information Form */}
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">

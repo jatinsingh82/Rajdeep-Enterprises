@@ -84,7 +84,7 @@ export const TradeKitsSection: React.FC<TradeKitsSectionProps> = ({
     });
     msg += `\nPlease provide your best trade package quotation and delivery schedule.`;
 
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   };
 
   return (

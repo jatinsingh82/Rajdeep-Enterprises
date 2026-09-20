@@ -89,7 +89,7 @@ export const BrandingPreviewModal: React.FC<BrandingPreviewModalProps> = ({
     msg += `*Logo Position:* ${logoPlacement.toUpperCase()}\n`;
     msg += `\nPlease provide your best quotation with screen printing / reflective branding charges and dispatch timeline anywhere in India.`;
 
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   };
 
   return (

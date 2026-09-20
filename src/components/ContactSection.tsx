@@ -78,18 +78,6 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
     setIsSubmitting(true);
     setErrorMessage('');
 
-    // Always backup to local storage for zero data loss
-    try {
-      const stored = JSON.parse(localStorage.getItem('rajdeep_enquiries') || '[]');
-      stored.push({
-        ...formData,
-        submittedAt: new Date().toISOString()
-      });
-      localStorage.setItem('rajdeep_enquiries', JSON.stringify(stored));
-    } catch {
-      // ignore storage quota issues
-    }
-
     // Call server API with timeout controller (8s)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -122,38 +110,41 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
         generatedEnquiryId = data.enquiryId || '';
         setEnquiryReference(generatedEnquiryId);
         setSubmitSuccess(true);
+        setErrorMessage('');
+
+        // Track quote submission event (anonymous)
+        trackQuoteSubmit({
+          productName: formData.productRequirement,
+          category: 'Contact Form',
+          quantity: formData.quantity,
+          enquiryId: generatedEnquiryId || undefined,
+          hasCompany: Boolean(formData.companyName.trim()),
+        });
+
+        // If user requested callback, track callback_request (strictly anonymous)
+        if (requestCallback) {
+          trackCallbackRequest({
+            source: 'contact_form_callback_checkbox',
+            urgency: 'high',
+          });
+        }
       } else {
-        // Fallback gracefully without showing internal stack traces
-        setErrorMessage(data.error || 'Unable to submit enquiry right now. Your requirement has been saved locally. Please connect on WhatsApp.');
-        setSubmitSuccess(true); // Allow user to proceed via WhatsApp
+        setSubmitSuccess(false);
+        setErrorMessage(
+          data.error ||
+          'Server lead storage is unconfigured or unavailable. Your enquiry could not be saved. Please connect directly via WhatsApp or Call.'
+        );
       }
     } catch (err: any) {
       clearTimeout(timeoutId);
-      if (err.name === 'AbortError') {
-        setErrorMessage('Network timeout. Your requirement is saved locally. You can dispatch directly via WhatsApp.');
+      setSubmitSuccess(false);
+      if (err?.name === 'AbortError') {
+        setErrorMessage('Network connection timed out. Please contact Rajdeep Enterprises directly on WhatsApp (+91-9997993895) or Call.');
+      } else {
+        setErrorMessage('Unable to reach server. Please connect directly with our sales desk on WhatsApp or Call.');
       }
-      setSubmitSuccess(true);
     } finally {
       setIsSubmitting(false);
-
-      // Track quote submission event
-      trackQuoteSubmit({
-        productName: formData.productRequirement,
-        category: 'Contact Form',
-        quantity: formData.quantity,
-        enquiryId: generatedEnquiryId || undefined,
-        hasCompany: Boolean(formData.companyName.trim()),
-      });
-
-      // If user requested callback, track callback_request
-      if (requestCallback) {
-        trackCallbackRequest({
-          source: 'contact_form_callback_checkbox',
-          phoneNumber: formData.phoneNumber,
-          urgency: 'high',
-          notes: formData.productRequirement,
-        });
-      }
     }
   };
 
@@ -174,7 +165,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
       (requestCallback ? `*Urgent Callback:* Requested\n` : '') +
       `*Message:* ${formData.message || 'Please provide quotation and catalog.'}`
     );
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank');
+    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -438,9 +429,21 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
                   />
 
                   {errorMessage && (
-                    <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2">
-                      <AlertCircle className="w-4 h-4 shrink-0" />
-                      <span>{errorMessage}</span>
+                    <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs space-y-2">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                        <span className="font-medium leading-relaxed">{errorMessage}</span>
+                      </div>
+                      <div className="pt-1 flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={sendDirectWhatsApp}
+                          className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-1.5"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>Send Requirement via WhatsApp</span>
+                        </button>
+                      </div>
                     </div>
                   )}
 

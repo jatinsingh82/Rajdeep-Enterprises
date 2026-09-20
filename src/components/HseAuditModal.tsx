@@ -250,7 +250,7 @@ export const HseAuditModal: React.FC<HseAuditModalProps> = ({
       `*Urgent Items Needed:*\n${missingListText}\n\n` +
       `Please provide immediate dispatch to Mathura site with BIS/MTC certificates.`;
     
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank');
+    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
   };
 
   return (

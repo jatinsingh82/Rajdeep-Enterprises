@@ -345,7 +345,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     ].filter(Boolean).join('\n');
 
     const text = encodeURIComponent(messageLines);
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank');
+    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank', 'noopener,noreferrer');
   };
 
   // 4. Call Handler

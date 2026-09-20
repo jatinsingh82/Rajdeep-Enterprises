@@ -10,7 +10,7 @@ export const FloatingWhatsApp: React.FC = () => {
     trackWhatsAppClick({ source: 'floating_whatsapp_button', context: 'general_inquiry' });
     const message = encodeURIComponent(COMPANY_INFO.whatsappDefaultMessage);
     const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${message}`;
-    window.open(url, '_blank');
+    window.open(url, '_blank', 'noopener,noreferrer');
   };
 
   return (

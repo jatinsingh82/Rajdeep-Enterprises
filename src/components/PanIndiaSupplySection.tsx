@@ -61,7 +61,7 @@ export const PanIndiaSupplySection: React.FC<PanIndiaSupplySectionProps> = ({
       `*Delivery Location in India:* ${destinationCity || 'Whole India Supply'}\n\n` +
       `Please confirm availability, custom sourcing lead time, and best quotation.`
     );
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${message}`, '_blank');
+    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${message}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -238,7 +238,7 @@ export const PanIndiaSupplySection: React.FC<PanIndiaSupplySectionProps> = ({
                   <a
                     href={`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent('Hello Rajdeep Enterprises, I need custom safety sourcing or extra materials.')}`}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="w-full py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold flex items-center justify-center gap-1.5 transition"
                   >
                     <MessageCircle className="w-3 h-3" />

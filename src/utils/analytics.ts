@@ -154,22 +154,20 @@ export function trackWhatsAppClick(
 /**
  * 2. Call click
  * event name: phone_click
+ * Note: Keeps analytics strictly anonymous — NEVER passes phone numbers or PII.
  */
 export function trackPhoneClick(
-  phoneOrParams: string | { phoneNumber: string; source: string },
+  phoneOrParams?: string | { phoneNumber?: string; source: string },
   source?: string
 ): void {
-  if (typeof phoneOrParams === 'object') {
-    sendGA4Event('phone_click', {
-      phone_number: phoneOrParams.phoneNumber,
-      source: phoneOrParams.source,
-    });
-  } else {
-    sendGA4Event('phone_click', {
-      phone_number: phoneOrParams,
-      source: source || 'direct_link',
-    });
-  }
+  const resolvedSource =
+    typeof phoneOrParams === 'object'
+      ? phoneOrParams.source
+      : source || 'direct_call_button';
+
+  sendGA4Event('phone_click', {
+    source: resolvedSource,
+  });
 }
 
 // Alias for backwards-compatibility
@@ -379,6 +377,7 @@ export function trackDatasheetDownload(params: {
 /**
  * 11. Callback request
  * event name: callback_request
+ * Note: Keeps analytics strictly anonymous — NEVER passes customer phone numbers, names, or notes.
  */
 export function trackCallbackRequest(params: {
   source: string;
@@ -388,9 +387,7 @@ export function trackCallbackRequest(params: {
 }): void {
   sendGA4Event('callback_request', {
     source: params.source,
-    phone_number: params.phoneNumber || undefined,
     urgency: params.urgency || 'standard',
-    notes: params.notes || undefined,
   });
 }
 

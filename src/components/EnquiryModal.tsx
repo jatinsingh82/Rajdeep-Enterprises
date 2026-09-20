@@ -37,6 +37,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
   const [enquiryRef, setEnquiryRef] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
@@ -63,6 +64,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
       setSubmitted(false);
       setErrors({});
       setEnquiryRef('');
+      setApiError(null);
     } else {
       document.body.style.overflow = '';
     }
@@ -124,7 +126,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
       (notes ? `• *Notes:* ${notes}\n` : '') +
       `\nPlease share best competitive quotation with GST invoice terms.`
     );
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank');
+    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank', 'noopener,noreferrer');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -134,27 +136,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
     }
 
     setIsSubmitting(true);
-
-    // Save locally as reliable fallback
-    try {
-      const stored = JSON.parse(localStorage.getItem('rajdeep_enquiries') || '[]');
-      stored.push({
-        fullName: name,
-        companyName: company,
-        phoneNumber: phone,
-        emailAddress: email,
-        productRequirement: requirement,
-        category: productCategory,
-        quantity,
-        deliveryLocation,
-        extraItems,
-        message: notes,
-        submittedAt: new Date().toISOString()
-      });
-      localStorage.setItem('rajdeep_enquiries', JSON.stringify(stored));
-    } catch {
-      // ignore
-    }
+    setApiError(null);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 8000);
@@ -186,22 +168,34 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
       if (res.ok && data.success) {
         generatedEnquiryId = data.enquiryId || '';
         setEnquiryRef(generatedEnquiryId);
+        setSubmitted(true);
+        setApiError(null);
+
+        // Track quote_submit
+        trackQuoteSubmit({
+          productName: requirement,
+          category: productCategory,
+          quantity,
+          enquiryId: generatedEnquiryId || undefined,
+          hasCompany: Boolean(company.trim()),
+        });
+      } else {
+        setSubmitted(false);
+        setApiError(
+          data.error ||
+          'Server lead storage is unconfigured or unavailable. Your enquiry could not be saved. Please connect directly via WhatsApp or Call.'
+        );
       }
-    } catch {
+    } catch (err: any) {
       clearTimeout(timeoutId);
-      // Fail gracefully: local backup is saved, user can dispatch to WhatsApp
+      setSubmitted(false);
+      if (err?.name === 'AbortError') {
+        setApiError('Network connection timed out. Please send your enquiry directly via WhatsApp (+91-9997993895) or Call.');
+      } else {
+        setApiError('Unable to reach server. Please connect directly with our dispatch desk via WhatsApp or Call.');
+      }
     } finally {
       setIsSubmitting(false);
-      setSubmitted(true);
-
-      // Track quote_submit
-      trackQuoteSubmit({
-        productName: requirement,
-        category: productCategory,
-        quantity,
-        enquiryId: generatedEnquiryId || undefined,
-        hasCompany: Boolean(company.trim()),
-      });
     }
   };
 
@@ -291,6 +285,29 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3.5 text-left text-xs" noValidate>
+              {/* API Failure / Configuration Notice */}
+              {apiError && (
+                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 space-y-2">
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="font-bold text-xs">Submission Notice</p>
+                      <p className="text-[11px] text-amber-900 mt-0.5 leading-relaxed">{apiError}</p>
+                    </div>
+                  </div>
+                  <div className="pt-1 flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={handleWhatsAppInstant}
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span>Send Direct via WhatsApp</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               {/* Anti-spam honeypot input */}
               <input
                 type="text"

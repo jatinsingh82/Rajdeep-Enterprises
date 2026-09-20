@@ -79,6 +79,15 @@ export default function App() {
 
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
+
+    // Security & Privacy: Purge any legacy PII previously stored in client localStorage
+    try {
+      localStorage.removeItem('rajdeep_enquiries');
+      localStorage.removeItem('rajdeep_rfqs');
+    } catch {
+      // ignore
+    }
+
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
   const [rfqItems, setRfqItems] = useState<RfqItem[]>(() => {
