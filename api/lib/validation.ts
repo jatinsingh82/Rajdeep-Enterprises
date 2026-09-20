@@ -108,7 +108,7 @@ export function validateEnquiryInput(body: any): { valid: boolean; errors: strin
     errors.push(emailValidation.error || 'Invalid email address.');
   }
 
-  const productName = sanitizeText(body.productName || body.product || '', 200);
+  const productName = sanitizeText(body.productName || body.productRequirement || body.requirement || body.product || '', 200);
   if (!isCallback && !productName) {
     errors.push('Please specify the required product or material category.');
   }

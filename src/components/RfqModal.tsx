@@ -175,8 +175,11 @@ export const RfqModal: React.FC<RfqModalProps> = ({
           requestMtc,
           rfqItems: rfqItems.map((i) => ({
             name: i.product.name,
-            quantity: i.quantity
+            quantity: i.quantity,
+            id: i.product.id,
+            category: i.product.category
           })),
+          source: 'rfq_modal',
           website_hp: honeypot
         }),
         signal: controller.signal

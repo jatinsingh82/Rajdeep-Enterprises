@@ -97,6 +97,8 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
           emailAddress: formData.emailAddress,
           productRequirement: formData.productRequirement,
           quantity: formData.quantity,
+          isCallback: requestCallback,
+          source: 'contact_form',
           message: formData.message + (requestCallback ? ' [URGENT CALLBACK REQUESTED]' : ''),
           website_hp: honeypot // Anti-spam honeypot
         }),

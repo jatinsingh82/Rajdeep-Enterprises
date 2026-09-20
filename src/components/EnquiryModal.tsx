@@ -157,7 +157,8 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
           category: productCategory,
           quantity,
           deliveryLocation,
-          message: notes,
+          message: [notes, extraItems ? `Extra Items / Custom Sourcing: ${extraItems}` : ''].filter(Boolean).join('\n\n'),
+          source: 'enquiry_modal',
           website_hp: honeypot
         }),
         signal: controller.signal

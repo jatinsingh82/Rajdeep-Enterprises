@@ -43,7 +43,7 @@ export const COMPANY_INFO = {
   secondaryPhone: "08923993895",
   displaySecondaryPhone: "+91 89239 93895",
   whatsappNumber: "919997993895",
-  email: "rjsinghtarkar@gmail.com",
+  email: "rajdeepenterprises0047@gmail.com",
   address: "15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura, Uttar Pradesh",
   fullAddress: "15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura, Uttar Pradesh - 281005, India",
   landmark: "Refinery Main Gate (Mathura)",

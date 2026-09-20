@@ -1,7 +1,8 @@
 import { handleCors } from './lib/cors';
 import { checkRateLimit, getClientIp } from './lib/rateLimiter';
 import { validateRfqInput } from './lib/validation';
-import { persistLead } from './lib/persistence';
+import { persistLead, generateReferenceId, getActivePersistenceProvider } from './lib/persistence';
+import { sendNotificationEmail } from './lib/emailService';
 
 export default async function handler(req: any, res: any) {
   // 1. Strict CORS & Preflight validation
@@ -58,31 +59,59 @@ export default async function handler(req: any, res: any) {
     const clientIp = getClientIp(req);
     const userAgent = (req.headers?.['user-agent'] || '').slice(0, 200);
 
-    // 6. Real Server-Side Persistence
-    const persistenceResult = await persistLead('rfq', validation.data, {
-      clientIp,
-      userAgent,
+    // 6. Generate Unique Collision-Resistant Reference ID
+    const referenceId = generateReferenceId('rfq');
+
+    // 7. Optional Database Persistence (if configured)
+    const activeDb = getActivePersistenceProvider();
+    if (activeDb) {
+      try {
+        await persistLead('rfq', validation.data, { clientIp, userAgent });
+      } catch (err: any) {
+        console.warn('[Persistence] Background RFQ DB persist error:', err?.message);
+      }
+    }
+
+    // 8. Server-Side Gmail SMTP Email Notification to rajdeepenterprises0047@gmail.com
+    const emailResult = await sendNotificationEmail({
+      submissionType: 'RFQ',
+      customerName: validation.data.name,
+      companyName: validation.data.companyName,
+      customerEmail: validation.data.email,
+      customerPhone: validation.data.phone,
+      productName: `${validation.data.items.length} Products in Bill of Quantities`,
+      deliveryLocation: validation.data.deliverySite,
+      message: validation.data.notes,
+      submissionReference: referenceId,
+      submittedAt: new Date().toISOString(),
+      items: validation.data.items,
+      requestMtc: validation.data.requestMtc,
+      source: validation.data.source,
     });
 
-    if (!persistenceResult.success) {
-      const httpStatus = persistenceResult.code === 'PERSISTENCE_NOT_CONFIGURED' ? 503 : 500;
-      return res.status(httpStatus).json({
+    // 9. Fail-Closed Error Handling: Never show fake success if email delivery fails
+    if (!emailResult.success) {
+      const isConfigError = emailResult.code === 'SMTP_NOT_CONFIGURED';
+      const statusCode = isConfigError ? 503 : 500;
+      return res.status(statusCode).json({
         success: false,
-        code: persistenceResult.code || 'STORAGE_ERROR',
-        error:
-          persistenceResult.code === 'PERSISTENCE_NOT_CONFIGURED'
-            ? 'Server lead persistence is currently not configured. Your RFQ was not saved. Please send your Bill of Quantities directly to Rajdeep Enterprises on WhatsApp (+91 99979 93895) or Call.'
-            : 'Unable to save your RFQ to the database at this moment. Please forward your list directly to Rajdeep Enterprises via WhatsApp or Call.',
+        code: emailResult.code || 'EMAIL_DELIVERY_FAILED',
+        error: isConfigError
+          ? 'The notification service is currently undergoing configuration on the server. Your RFQ could not be emailed. Please send your Bill of Quantities directly to Rajdeep Enterprises on WhatsApp (+91 99979 93895) or Call.'
+          : 'Unable to deliver your RFQ notification via email at this moment. Please forward your list directly to Rajdeep Enterprises via WhatsApp (+91 99979 93895) or Call.',
+        whatsappDirect: `https://wa.me/919997993895?text=${encodeURIComponent(
+          `*Direct RFQ (${validation.data.items.length} items)*\nContractor: ${validation.data.name}\nPhone: ${validation.data.phone}`
+        )}`,
       });
     }
 
-    // 7. Confirmed Persistence Response
+    // 10. Successful Confirmed Delivery
     return res.status(200).json({
       success: true,
-      code: 'PERSISTENCE_SUCCESS',
-      rfqReference: persistenceResult.referenceId,
+      code: 'SUBMISSION_SUCCESS',
+      rfqReference: referenceId,
       message:
-        'Your Request for Quotation (RFQ) has been securely logged on our server. Our commercial desk will review your items and send a competitive GST estimate.',
+        'Your Request for Quotation (RFQ) notification has been delivered directly to Rajdeep Enterprises (rajdeepenterprises0047@gmail.com). Our commercial desk will review your items and send a competitive GST estimate.',
       itemCount: validation.data.items.length,
       timestamp: new Date().toISOString(),
     });
