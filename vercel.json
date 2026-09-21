@@ -4,8 +4,8 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "functions": {
-    "api/**/*.ts": {
-      "includeFiles": "api/lib/**"
+    "api/*.ts": {
+      "maxDuration": 15
     }
   },
   "headers": [

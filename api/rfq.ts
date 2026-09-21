@@ -1,13 +1,57 @@
-import { handleCors } from './lib/cors.js';
-import { checkRateLimit, getClientIp } from './lib/rateLimiter.js';
-import { validateRfqInput } from './lib/validation.js';
-import { persistLead, generateReferenceId, getActivePersistenceProvider } from './lib/persistence.js';
-import { sendNotificationEmail } from './lib/emailService.js';
+import nodemailer from 'nodemailer';
+
+const ALLOWED_ORIGINS: readonly string[] = [
+  'https://rajdeep-enterprises.vercel.app',
+  'https://rajdeepenterprises.in',
+  'https://www.rajdeepenterprises.in',
+];
+
+function handleCors(req: any, res: any): boolean {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+
+  const incomingOrigin = (req.headers?.origin || req.headers?.Origin || '') as string;
+  if (!incomingOrigin) {
+    return true;
+  }
+
+  const trimmedOrigin = incomingOrigin.trim().replace(/\/$/, '');
+  const isAllowed =
+    ALLOWED_ORIGINS.includes(trimmedOrigin) ||
+    (process.env.SITE_URL && trimmedOrigin === process.env.SITE_URL.trim().replace(/\/$/, '')) ||
+    (process.env.NODE_ENV !== 'production' &&
+      (trimmedOrigin.startsWith('http://localhost:') ||
+        trimmedOrigin.startsWith('http://127.0.0.1:') ||
+        trimmedOrigin.startsWith('http://0.0.0.0:')));
+
+  if (isAllowed) {
+    res.setHeader('Access-Control-Allow-Origin', trimmedOrigin);
+    res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, X-Requested-With');
+    res.setHeader('Access-Control-Max-Age', '86400');
+    res.setHeader('Vary', 'Origin');
+  } else {
+    res.status(403).json({ success: false, error: 'Origin not allowed by CORS policy.' });
+    return false;
+  }
+
+  if (req.method === 'OPTIONS') {
+    if (typeof res.status(204).end === 'function') {
+      res.status(204).end();
+    }
+    return false;
+  }
+
+  return true;
+}
+
+function sanitizeText(value: any, maxLength = 200): string {
+  if (typeof value !== 'string') return '';
+  return value.replace(/[<>]/g, '').trim().slice(0, maxLength);
+}
 
 export default async function handler(req: any, res: any) {
-  // 1. Strict CORS & Preflight validation
-  const corsProceed = handleCors(req, res);
-  if (!corsProceed) {
+  const corsOk = handleCors(req, res);
+  if (!corsOk) {
     return;
   }
 
@@ -19,25 +63,8 @@ export default async function handler(req: any, res: any) {
   }
 
   try {
-    // 2. Sliding Window Rate Limiting
-    const rateLimit = await checkRateLimit(req, res, {
-      windowMs: 10 * 60 * 1000,
-      maxRequests: 6,
-      endpointName: 'rfq',
-    });
-
-    if (!rateLimit.allowed) {
-      return res.status(429).json({
-        success: false,
-        error:
-          'Too many RFQ requests submitted from this connection. Please wait a moment or send your Bill of Quantities directly to Rajdeep Enterprises on WhatsApp (+91-9997993895).',
-      });
-    }
-
-    // 3. Payload Parsing
     const rawBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
 
-    // 4. Honeypot check
     if (rawBody.website_hp || rawBody.work_phone_hp) {
       return res.status(200).json({
         success: true,
@@ -46,80 +73,122 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // 5. Server-Side Input Validation & Sanitization
-    const validation = validateRfqInput(rawBody);
-    if (!validation.valid || !validation.data) {
-      return res.status(400).json({
+    const contractorName = sanitizeText(rawBody.contractorName || rawBody.name || '', 100);
+    const companyName = sanitizeText(rawBody.companyName || rawBody.company || '', 120) || 'Not Specified';
+    const phoneNumber = sanitizeText(rawBody.phoneNumber || rawBody.phone || '', 20).replace(/[^0-9+]/g, '');
+    const emailAddress = sanitizeText(rawBody.emailAddress || rawBody.email || '', 100);
+    const siteLocation = sanitizeText(rawBody.siteLocation || rawBody.location || '', 200) || 'Not Specified';
+    const notes = sanitizeText(rawBody.notes || rawBody.message || '', 2000) || 'None';
+    const requestMtc = Boolean(rawBody.requestMtc);
+    const rfqItems = Array.isArray(rawBody.rfqItems) ? rawBody.rfqItems : [];
+
+    if (!contractorName || contractorName.length < 2) {
+      return res.status(500).json({
         success: false,
-        error: validation.errors[0] || 'Invalid RFQ parameters provided.',
-        details: validation.errors,
+        error: 'Please provide a valid contractor/contact name (min 2 characters).',
       });
     }
 
-    const clientIp = getClientIp(req);
-    const userAgent = (req.headers?.['user-agent'] || '').slice(0, 200);
-
-    // 6. Generate Unique Collision-Resistant Reference ID
-    const referenceId = generateReferenceId('rfq');
-
-    // 7. Optional Database Persistence (if configured)
-    const activeDb = getActivePersistenceProvider();
-    if (activeDb) {
-      try {
-        await persistLead('rfq', validation.data, { clientIp, userAgent });
-      } catch (err: any) {
-        console.warn('[Persistence] Background RFQ DB persist error:', err?.message);
-      }
+    const digitsOnly = phoneNumber.replace(/\D/g, '');
+    if (!digitsOnly || digitsOnly.length < 10) {
+      return res.status(500).json({
+        success: false,
+        error: 'Please provide a valid 10-digit contact mobile number.',
+      });
     }
 
-    // 8. Server-Side Gmail SMTP Email Notification to rajdeepenterprises0047@gmail.com
-    const emailResult = await sendNotificationEmail({
-      submissionType: 'RFQ',
-      customerName: validation.data.name,
-      companyName: validation.data.companyName,
-      customerEmail: validation.data.email,
-      customerPhone: validation.data.phone,
-      productName: `${validation.data.items.length} Products in Bill of Quantities`,
-      deliveryLocation: validation.data.deliverySite,
-      message: validation.data.notes,
-      submissionReference: referenceId,
-      submittedAt: new Date().toISOString(),
-      items: validation.data.items,
-      requestMtc: validation.data.requestMtc,
-      source: validation.data.source,
+    const year = new Date().getFullYear();
+    const rand = Math.random().toString(36).substring(2, 10).toUpperCase();
+    const referenceId = `RFQ-${year}-${rand}`;
+
+    const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
+    const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
+    const smtpUser = process.env.SMTP_USER || 'rajdeepenterprises0047@gmail.com';
+    const smtpPass = process.env.SMTP_PASS;
+    const alertEmailTo = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
+
+    if (!smtpUser || !smtpPass) {
+      console.error('[RFQ] ERROR_STAGE=ENV_CHECK missing credentials');
+      return res.status(500).json({
+        success: false,
+        code: 'SMTP_NOT_CONFIGURED',
+        error:
+          'Email service is not configured on the server. Please forward your RFQ directly via WhatsApp (+91-9997993895).',
+      });
+    }
+
+    const isSecure = smtpPort === 465;
+    const transporter = nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: isSecure,
+      requireTLS: !isSecure,
+      auth: {
+        user: smtpUser,
+        pass: smtpPass,
+      },
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
 
-    // 9. Fail-Closed Error Handling: Never show fake success if email delivery fails
-    if (!emailResult.success) {
-      const isConfigError = emailResult.code === 'SMTP_NOT_CONFIGURED';
-      const statusCode = isConfigError ? 503 : 500;
-      return res.status(statusCode).json({
-        success: false,
-        code: emailResult.code || 'EMAIL_DELIVERY_FAILED',
-        error: isConfigError
-          ? 'The notification service is currently undergoing configuration on the server. Your RFQ could not be emailed. Please send your Bill of Quantities directly to Rajdeep Enterprises on WhatsApp (+91 99979 93895) or Call.'
-          : 'Unable to deliver your RFQ notification via email at this moment. Please forward your list directly to Rajdeep Enterprises via WhatsApp (+91 99979 93895) or Call.',
-        whatsappDirect: `https://wa.me/919997993895?text=${encodeURIComponent(
-          `*Direct RFQ (${validation.data.items.length} items)*\nContractor: ${validation.data.name}\nPhone: ${validation.data.phone}`
-        )}`,
-      });
-    }
+    const timestamp = new Date().toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      dateStyle: 'full',
+      timeStyle: 'medium',
+    });
 
-    // 10. Successful Confirmed Delivery
+    const itemsSummary = rfqItems
+      .map((item: any, idx: number) => `  ${idx + 1}. ${item.name || 'Item'} (Qty: ${item.quantity || 1})`)
+      .join('\n');
+
+    const textContent = `
+=====================================================
+NEW RFQ / BILL OF QUANTITIES — RAJDEEP ENTERPRISES
+=====================================================
+
+Reference:       ${referenceId}
+Timestamp (IST): ${timestamp}
+
+CONTRACTOR / COMPANY DETAILS:
+Name:            ${contractorName}
+Company:         ${companyName}
+Phone:           ${phoneNumber}
+Email:           ${emailAddress || 'Not Provided'}
+Delivery Site:   ${siteLocation}
+MTC Required:    ${requestMtc ? 'YES (Mill Test Certificate Required)' : 'Standard Supply'}
+
+ITEMS IN RFQ (${rfqItems.length}):
+${itemsSummary || '  (Custom item requirement detailed in notes)'}
+
+NOTES / SPECIFICATIONS:
+${notes}
+    `.trim();
+
+    await transporter.sendMail({
+      from: `"Rajdeep Enterprises Website" <${smtpUser}>`,
+      to: alertEmailTo,
+      replyTo: emailAddress ? `"${contractorName}" <${emailAddress}>` : undefined,
+      subject: `[RFQ] ${companyName} (${rfqItems.length} Items) - Ref ${referenceId}`,
+      text: textContent,
+      headers: {
+        'X-Entity-Ref-ID': referenceId,
+        'X-Submission-Type': 'RFQ',
+      },
+    });
+
     return res.status(200).json({
       success: true,
-      code: 'SUBMISSION_SUCCESS',
       rfqReference: referenceId,
-      message:
-        'Your Request for Quotation (RFQ) notification has been delivered directly to Rajdeep Enterprises (rajdeepenterprises0047@gmail.com). Our commercial desk will review your items and send a competitive GST estimate.',
-      itemCount: validation.data.items.length,
+      message: 'Your Request for Quotation (RFQ) has been delivered successfully.',
+      itemCount: rfqItems.length,
       timestamp: new Date().toISOString(),
     });
-  } catch {
+  } catch (err: any) {
+    console.error('[RFQ] ERROR_STAGE=EMAIL_DELIVERY_FAILED', err?.message);
     return res.status(500).json({
       success: false,
-      error:
-        'A server error occurred while processing your RFQ. Please connect with Rajdeep Enterprises directly on WhatsApp (+91-9997993895) or Call.',
+      error: 'Unable to deliver your RFQ email at this time. Please connect directly via WhatsApp (+91-9997993895).',
     });
   }
 }
