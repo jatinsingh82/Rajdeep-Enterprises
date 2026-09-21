@@ -5,6 +5,7 @@ import {
   Plus,
   Minus,
   Send,
+  Mail,
   MessageCircle,
   FileText,
   Check,
@@ -51,7 +52,10 @@ export const RfqModal: React.FC<RfqModalProps> = ({
   const [requestMtc, setRequestMtc] = useState(true);
   const [copied, setCopied] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submissionMethod, setSubmissionMethod] = useState<'email' | 'whatsapp'>('email');
+  const [isSubmittingEmail, setIsSubmittingEmail] = useState(false);
+  const [isSubmittingWhatsApp, setIsSubmittingWhatsApp] = useState(false);
+  const isSubmitting = isSubmittingEmail || isSubmittingWhatsApp;
   const [honeypot, setHoneypot] = useState('');
   const [rfqReference, setRfqReference] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
@@ -61,6 +65,9 @@ export const RfqModal: React.FC<RfqModalProps> = ({
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       setSubmitted(false);
+      setSubmissionMethod('email');
+      setIsSubmittingEmail(false);
+      setIsSubmittingWhatsApp(false);
       setErrors({});
       setRfqReference('');
       setApiError(null);
@@ -147,19 +154,24 @@ export const RfqModal: React.FC<RfqModalProps> = ({
     window.open(url, '_blank', 'noopener,noreferrer');
   };
 
-  const handleSendWhatsApp = async () => {
+  const handleSendEmail = async () => {
     if (!validateRfq()) {
       return;
     }
 
-    setIsSubmitting(true);
+    setIsSubmittingEmail(true);
     setApiError(null);
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
     let generatedRef = '';
 
     try {
+      const fullNotes = [
+        notes.trim(),
+        extraItems.trim() ? `Extra / Custom Items Requested: ${extraItems.trim()}` : ''
+      ].filter(Boolean).join('\n\n') || 'None';
+
       const res = await fetch('/api/rfq', {
         method: 'POST',
         headers: {
@@ -171,15 +183,17 @@ export const RfqModal: React.FC<RfqModalProps> = ({
           phoneNumber,
           emailAddress,
           siteLocation,
-          notes,
+          notes: fullNotes,
           requestMtc,
           rfqItems: rfqItems.map((i) => ({
             name: i.product.name,
             quantity: i.quantity,
             id: i.product.id,
+            sku: i.product.sku || i.product.id,
+            unit: i.product.unit || 'units',
             category: i.product.category
           })),
-          source: 'rfq_modal',
+          source: 'rfq_modal_email',
           website_hp: honeypot
         }),
         signal: controller.signal
@@ -190,6 +204,89 @@ export const RfqModal: React.FC<RfqModalProps> = ({
       if (res.ok && data.success) {
         generatedRef = data.rfqReference || '';
         setRfqReference(generatedRef);
+        setSubmissionMethod('email');
+        setSubmitted(true);
+        setApiError(null);
+
+        // Track rfq_submit in GA4 (strictly anonymous, no PII)
+        trackRfqSubmit({
+          itemCount: rfqItems.length,
+          totalQuantity,
+          hasCompany: Boolean(companyName.trim()),
+          requiresMtc: requestMtc,
+          rfqReference: generatedRef || undefined,
+        });
+      } else {
+        setSubmitted(false);
+        setApiError(
+          data.error ||
+          'Unable to deliver your RFQ email at this time. Please send your BOQ directly via WhatsApp (+91-9997993895) or Call.'
+        );
+      }
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      setSubmitted(false);
+      if (err?.name === 'AbortError') {
+        setApiError('Network connection timed out while sending RFQ email. Please send your BOQ directly on WhatsApp (+91-9997993895) or Call.');
+      } else {
+        setApiError('Unable to reach server. Please send your BOQ directly to Rajdeep Enterprises via WhatsApp (+91-9997993895) or Call.');
+      }
+    } finally {
+      setIsSubmittingEmail(false);
+    }
+  };
+
+  const handleSendWhatsApp = async () => {
+    if (!validateRfq()) {
+      return;
+    }
+
+    setIsSubmittingWhatsApp(true);
+    setApiError(null);
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+    let generatedRef = '';
+
+    try {
+      const fullNotes = [
+        notes.trim(),
+        extraItems.trim() ? `Extra / Custom Items Requested: ${extraItems.trim()}` : ''
+      ].filter(Boolean).join('\n\n') || 'None';
+
+      const res = await fetch('/api/rfq', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          contractorName,
+          companyName,
+          phoneNumber,
+          emailAddress,
+          siteLocation,
+          notes: fullNotes,
+          requestMtc,
+          rfqItems: rfqItems.map((i) => ({
+            name: i.product.name,
+            quantity: i.quantity,
+            id: i.product.id,
+            sku: i.product.sku || i.product.id,
+            unit: i.product.unit || 'units',
+            category: i.product.category
+          })),
+          source: 'rfq_modal_whatsapp',
+          website_hp: honeypot
+        }),
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const data = await res.json();
+      if (res.ok && data.success) {
+        generatedRef = data.rfqReference || '';
+        setRfqReference(generatedRef);
+        setSubmissionMethod('whatsapp');
         setSubmitted(true);
         setApiError(null);
 
@@ -228,7 +325,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
         setApiError('Unable to reach server. Please send your BOQ directly to Rajdeep Enterprises via WhatsApp or Call.');
       }
     } finally {
-      setIsSubmitting(false);
+      setIsSubmittingWhatsApp(false);
     }
   };
 
@@ -284,7 +381,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                 <CheckCircle2 className="w-8 h-8" />
               </div>
               <h3 className="text-lg sm:text-xl font-black text-slate-900">
-                Bulk RFQ Submitted Successfully!
+                {submissionMethod === 'email' ? 'RFQ Email Dispatched Successfully!' : 'Bulk RFQ Submitted Successfully!'}
               </h3>
               {rfqReference && (
                 <div className="inline-block px-3.5 py-1 bg-emerald-100 text-emerald-900 rounded-lg text-xs font-mono font-bold">
@@ -296,6 +393,14 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                   <strong>Contact Person:</strong> {contractorName} {companyName && `(${companyName})`}
                 </p>
                 <p>
+                  <strong>Phone / WhatsApp:</strong> {phoneNumber}
+                </p>
+                {emailAddress && (
+                  <p>
+                    <strong>Email Address:</strong> {emailAddress}
+                  </p>
+                )}
+                <p>
                   <strong>Destination:</strong> {siteLocation}
                 </p>
                 <p>
@@ -306,16 +411,24 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                 </p>
               </div>
               <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
-                Your Bill of Quantities has been submitted to <strong className="text-slate-900">{COMPANY_INFO.contactPerson}</strong>. Our dispatch desk is calculating the most competitive bulk GST pricing for you.
+                {submissionMethod === 'email' ? (
+                  <>
+                    Your Bill of Quantities has been emailed directly to our central desk at <strong className="text-slate-900">rajdeepenterprises0047@gmail.com</strong>. Our quotation desk will prepare your competitive bulk GST pricing and reach out.
+                  </>
+                ) : (
+                  <>
+                    Your Bill of Quantities has been submitted to <strong className="text-slate-900">{COMPANY_INFO.contactPerson}</strong>. Our dispatch desk is calculating the most competitive bulk GST pricing for you.
+                  </>
+                )}
               </p>
               <div className="flex flex-col sm:flex-row gap-2.5 justify-center pt-3 max-w-md mx-auto">
                 <button
                   type="button"
-                  onClick={handleSendWhatsApp}
+                  onClick={handleDirectWhatsAppFallback}
                   className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
                 >
                   <MessageCircle className="w-4 h-4 fill-white/20" />
-                  <span>Re-send on WhatsApp</span>
+                  <span>{submissionMethod === 'email' ? 'Also Connect on WhatsApp' : 'Re-send on WhatsApp'}</span>
                 </button>
                 <button
                   type="button"
@@ -598,6 +711,30 @@ export const RfqModal: React.FC<RfqModalProps> = ({
 
                   <div>
                     <label className="block text-slate-700 font-bold mb-1">
+                      Email Address <span className="text-slate-400 font-normal text-[11px]">(Optional - for quotation reply)</span>
+                    </label>
+                    <input
+                      type="email"
+                      placeholder="e.g. contractor@example.com"
+                      value={emailAddress}
+                      onChange={(e) => {
+                        setEmailAddress(e.target.value);
+                        if (errors.email) setErrors({ ...errors, email: '' });
+                      }}
+                      className={`w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border ${
+                        errors.email ? 'border-red-500 bg-red-50/50' : 'border-slate-300 bg-white'
+                      } focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none text-base sm:text-xs text-slate-900`}
+                    />
+                    {errors.email && (
+                      <p className="text-red-600 text-[11px] mt-1 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>{errors.email}</span>
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="sm:col-span-2">
+                    <label className="block text-slate-700 font-bold mb-1">
                       Delivery Destination (Pan-India)
                     </label>
                     <input
@@ -647,29 +784,40 @@ export const RfqModal: React.FC<RfqModalProps> = ({
 
         {/* Footer Actions */}
         {!submitted && rfqItems.length > 0 && (
-          <div className="p-3.5 sm:p-4 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+          <div className="p-3 sm:p-4 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
             <div className="text-xs text-slate-600 text-center sm:text-left">
               Direct Quotation dispatched to <strong className="text-slate-900">{COMPANY_INFO.contactPerson}</strong>
             </div>
 
-            <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
               <button
                 type="button"
                 onClick={handleCopyBoq}
-                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition"
+                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition active:scale-98"
+                title="Copy Bill of Quantities text to clipboard"
               >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <FileText className="w-3.5 h-3.5 text-slate-500" />}
-                <span>{copied ? 'Copied BOQ' : 'Copy BOQ'}</span>
+                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> : <FileText className="w-3.5 h-3.5 text-slate-500 shrink-0" />}
+                <span className="whitespace-nowrap">{copied ? 'Copied BOQ' : 'Copy BOQ'}</span>
+              </button>
+
+              <button
+                type="button"
+                disabled={isSubmitting}
+                onClick={handleSendEmail}
+                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:opacity-75 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-sm transition active:scale-98"
+              >
+                <Mail className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">{isSubmittingEmail ? 'Sending RFQ...' : 'Send RFQ by Email'}</span>
               </button>
 
               <button
                 type="button"
                 disabled={isSubmitting}
                 onClick={handleSendWhatsApp}
-                className="w-full sm:w-auto min-h-[46px] inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-75 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-sm transition"
+                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-75 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-sm transition active:scale-98"
               >
-                <MessageCircle className="w-4 h-4 fill-white/20" />
-                <span>{isSubmitting ? 'Logging RFQ...' : 'Send Bulk RFQ on WhatsApp'}</span>
+                <MessageCircle className="w-4 h-4 fill-white/20 shrink-0" />
+                <span className="whitespace-nowrap">{isSubmittingWhatsApp ? 'Logging RFQ...' : 'Send RFQ via WhatsApp'}</span>
               </button>
             </div>
           </div>
