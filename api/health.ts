@@ -1,5 +1,5 @@
-import { handleCors } from './lib/cors.ts';
-import { getActivePersistenceProvider } from './lib/persistence.ts';
+import { handleCors } from './lib/cors.js';
+import { getActivePersistenceProvider } from './lib/persistence.js';
 
 export default function handler(req: any, res: any) {
   const corsProceed = handleCors(req, res);
