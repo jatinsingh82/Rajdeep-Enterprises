@@ -19,6 +19,8 @@ export default async function handler(req: any, res: any) {
     });
   }
 
+  console.info(`[Enquiry] STAGE=REQUEST_RECEIVED method=${req.method}`);
+
   try {
     // 2. Sliding Window Rate Limiting (Durable Redis or in-process fallback)
     const rateLimit = await checkRateLimit(req, res, {
@@ -28,6 +30,7 @@ export default async function handler(req: any, res: any) {
     });
 
     if (!rateLimit.allowed) {
+      console.warn(`[Enquiry] STAGE=RATE_LIMIT_EXCEEDED`);
       return res.status(429).json({
         success: false,
         error:
@@ -35,11 +38,25 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // 3. Payload Parsing
-    const rawBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
+    // 3. Payload Parsing (Safe against invalid JSON)
+    let rawBody: any = {};
+    if (typeof req.body === 'string') {
+      try {
+        rawBody = req.body.trim() ? JSON.parse(req.body) : {};
+      } catch (parseErr: any) {
+        console.error(`[Enquiry] ERROR_STAGE=REQUEST_PARSING: Invalid JSON body`, parseErr?.message);
+        return res.status(400).json({
+          success: false,
+          error: 'Malformed JSON payload.',
+        });
+      }
+    } else if (req.body && typeof req.body === 'object') {
+      rawBody = req.body;
+    }
 
     // 4. Honeypot spam trap
     if (rawBody.website_hp || rawBody.work_phone_hp) {
+      console.info(`[Enquiry] STAGE=HONEYPOT_TRAPPED`);
       return res.status(200).json({
         success: true,
         enquiryId: 'ENQ-REC-HONEY',
@@ -50,6 +67,7 @@ export default async function handler(req: any, res: any) {
     // 5. Server-Side Input Validation & Sanitization
     const validation = validateEnquiryInput(rawBody);
     if (!validation.valid || !validation.data) {
+      console.warn(`[Enquiry] ERROR_STAGE=VALIDATION_FAILED: ${validation.errors.join('; ')}`);
       return res.status(400).json({
         success: false,
         error: validation.errors[0] || 'Invalid input provided.',
@@ -73,6 +91,8 @@ export default async function handler(req: any, res: any) {
     } else if (validation.data.productName && !validation.data.productName.toLowerCase().includes('general')) {
       submissionType = 'Quote';
     }
+
+    console.info(`[Enquiry] STAGE=VALIDATION_PASSED referenceId=${referenceId} submissionType=${submissionType}`);
 
     // 7. Optional Database Persistence (if configured)
     const activeDb = getActivePersistenceProvider();
@@ -106,7 +126,8 @@ export default async function handler(req: any, res: any) {
     // 9. Fail-Closed Error Handling: Never show fake success if email delivery fails
     if (!emailResult.success) {
       const isConfigError = emailResult.code === 'SMTP_NOT_CONFIGURED';
-      const statusCode = isConfigError ? 503 : 500;
+      console.error(`[Enquiry] ERROR_STAGE=EMAIL_DELIVERY_FAILED code=${emailResult.code}`);
+      const statusCode = isConfigError ? 503 : 502;
       return res.status(statusCode).json({
         success: false,
         code: emailResult.code || 'EMAIL_DELIVERY_FAILED',
@@ -120,6 +141,7 @@ export default async function handler(req: any, res: any) {
     }
 
     // 10. Successful Confirmed Delivery
+    console.info(`[Enquiry] STAGE=EMAIL_DELIVERY_SUCCESS referenceId=${referenceId}`);
     return res.status(200).json({
       success: true,
       code: 'SUBMISSION_SUCCESS',
@@ -128,10 +150,16 @@ export default async function handler(req: any, res: any) {
         'Your enquiry notification has been delivered directly to Rajdeep Enterprises (rajdeepenterprises0047@gmail.com). Our team will review your requirement and reach out shortly.',
       timestamp: new Date().toISOString(),
     });
-  } catch {
+  } catch (err: any) {
+    const errorName = err?.name || 'Error';
+    const errorCode = err?.code || 'UNKNOWN';
+    const errorMessage = err?.message || 'Unknown server error';
+    console.error(`[Enquiry] ERROR_STAGE=UNHANDLED_EXCEPTION code=${errorCode} name=${errorName}: ${errorMessage}`);
+
     // Production safety: Never leak stack traces, internal paths, or environment variables
     return res.status(500).json({
       success: false,
+      code: 'SERVER_EXCEPTION',
       error:
         'A server error occurred while processing your enquiry. Please reach out to Rajdeep Enterprises directly on WhatsApp (+91-9997993895) or Call.',
     });

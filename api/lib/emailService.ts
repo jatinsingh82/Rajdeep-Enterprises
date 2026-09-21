@@ -129,30 +129,44 @@ function getEmailSubject(type: NotificationEmailPayload['submissionType']): stri
  * Check if server-side SMTP is properly configured
  */
 export function isSmtpConfigured(): boolean {
-  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const user = process.env.SMTP_USER || 'rajdeepenterprises0047@gmail.com';
-  const pass = process.env.SMTP_PASS;
-  return Boolean(host && user && pass && pass.trim().length > 0);
+  const host = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
+  const user = (process.env.SMTP_USER || 'rajdeepenterprises0047@gmail.com').trim();
+  const pass = (process.env.SMTP_PASS || '').trim();
+  return Boolean(host && user && pass);
 }
 
 /**
  * Send an email notification to rajdeepenterprises0047@gmail.com
  */
 export async function sendNotificationEmail(payload: NotificationEmailPayload): Promise<EmailSendResult> {
-  const host = process.env.SMTP_HOST || 'smtp.gmail.com';
-  const port = parseInt(process.env.SMTP_PORT || '587', 10);
-  const user = process.env.SMTP_USER || 'rajdeepenterprises0047@gmail.com';
-  const pass = process.env.SMTP_PASS;
-  const to = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
+  const host = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
+  const rawPort = process.env.SMTP_PORT?.trim();
+  const parsedPort = rawPort ? parseInt(rawPort, 10) : 587;
+  const port = isNaN(parsedPort) ? 587 : parsedPort;
+  const user = (process.env.SMTP_USER || 'rajdeepenterprises0047@gmail.com').trim();
+  const pass = (process.env.SMTP_PASS || '').trim();
+  const to = (process.env.ALERT_EMAIL_TO || user).trim();
 
-  if (!pass || pass.trim() === '') {
-    console.warn('[EmailService] SMTP_PASS is not configured in server environment variables.');
+  const hasHost = Boolean(host);
+  const hasPort = Boolean(port);
+  const hasUser = Boolean(user);
+  const hasPass = Boolean(pass);
+  const hasAlertTo = Boolean(to);
+
+  if (!hasPass || !hasUser) {
+    console.warn(
+      `[EmailService] ERROR_STAGE=ENV_CHECK_FAILED - Required SMTP environment variables are missing (hasHost=${hasHost}, hasPort=${hasPort}, hasUser=${hasUser}, hasPass=${hasPass}, hasAlertTo=${hasAlertTo})`
+    );
     return {
       success: false,
       code: 'SMTP_NOT_CONFIGURED',
-      error: 'SMTP notification service is not configured on the server. Please set SMTP_PASS in server environment.',
+      error: 'SMTP notification service is not configured on the server. Please verify SMTP_USER and SMTP_PASS in server environment.',
     };
   }
+
+  console.info(
+    `[EmailService] STAGE=ENV_CHECK_PASSED (hasHost=${hasHost}, hasPort=${hasPort}, hasUser=${hasUser}, hasPass=${hasPass}, hasAlertTo=${hasAlertTo}, host=${host}, port=${port})`
+  );
 
   // Deduplication check: Prevent duplicate email dispatches for identical submissions within 90 seconds
   cleanExpiredSubmissions();
@@ -411,10 +425,11 @@ export async function sendNotificationEmail(payload: NotificationEmailPayload): 
   `;
 
   try {
+    const isSecure = port === 465;
     const transporter = nodemailer.createTransport({
       host,
       port,
-      secure: port === 465, // true for 465, false for other ports like 587
+      secure: isSecure, // true for 465, false for other ports like 587
       auth: {
         user,
         pass,
@@ -423,7 +438,12 @@ export async function sendNotificationEmail(payload: NotificationEmailPayload): 
         rejectUnauthorized: true,
         minVersion: 'TLSv1.2',
       },
+      connectionTimeout: 8000,
+      greetingTimeout: 8000,
+      socketTimeout: 10000,
     });
+
+    console.info(`[EmailService] STAGE=SMTP_INIT_PASSED host=${host} port=${port} secure=${isSecure}`);
 
     const mailOptions: SendMailOptions = {
       from: `"Rajdeep Enterprises Website" <${user}>`,
@@ -438,8 +458,9 @@ export async function sendNotificationEmail(payload: NotificationEmailPayload): 
       mailOptions.replyTo = customerName ? `"${customerName}" <${customerEmail}>` : customerEmail;
     }
 
+    console.info(`[EmailService] STAGE=EMAIL_SEND_STARTED reference=${reference} submissionType=${payload.submissionType}`);
     const info = await transporter.sendMail(mailOptions);
-    console.info(`[EmailService] Notification successfully sent for ${reference}. MessageId: ${info.messageId}`);
+    console.info(`[EmailService] STAGE=EMAIL_SEND_SUCCEEDED reference=${reference} messageId=${info.messageId}`);
 
     // Register fingerprint in deduplication cache
     recentSubmissions.set(fingerprint, {
@@ -456,7 +477,11 @@ export async function sendNotificationEmail(payload: NotificationEmailPayload): 
   } catch (err: any) {
     // Crucial security requirement: Never leak credentials or internal details
     const sanitizedErrorMsg = err?.message ? String(err.message).replace(pass, '***') : 'Unknown SMTP error';
-    console.error(`[EmailService] SMTP delivery failure for ${reference}:`, sanitizedErrorMsg);
+    const errorCode = err?.code || 'UNKNOWN';
+    const errorName = err?.name || 'Error';
+    console.error(
+      `[EmailService] ERROR_STAGE=EMAIL_SEND_FAILED reference=${reference} code=${errorCode} name=${errorName}: ${sanitizedErrorMsg}`
+    );
 
     return {
       success: false,
