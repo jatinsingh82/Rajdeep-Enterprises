@@ -17,7 +17,8 @@ import {
   Clock,
   Layers,
   CheckCircle2,
-  ChevronRight
+  ChevronRight,
+  ShoppingCart
 } from 'lucide-react';
 import { Product } from '../types';
 import { COMPANY_INFO, PRODUCTS } from '../data/companyData';
@@ -315,7 +316,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         quantity,
       });
       const unitLabel = product.unit ? product.unit : 'units';
-      setRfqFeedback(`Added ${quantity} ${unitLabel} to RFQ`);
+      setRfqFeedback(`Added ${quantity} ${unitLabel} to Cart!`);
       setTimeout(() => {
         setRfqFeedback(null);
       }, 2500);
@@ -764,10 +765,10 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 <span>Request Quote ({quantity} {product.unit ? product.unit : 'Units'})</span>
               </button>
 
-              {/* 7. ADD TO RFQ (Secondary CTA) */}
+              {/* 7. ADD TO CART (Secondary CTA) */}
               {onAddToRfq && (
                 <button
-                  id="product-add-to-rfq-btn"
+                  id="product-add-to-cart-btn"
                   type="button"
                   onClick={handleAddToRfq}
                   className={`w-full min-h-[48px] px-6 py-3 rounded-xl text-sm sm:text-base font-bold transition flex items-center justify-center gap-2 shadow-xs cursor-pointer active:scale-99 ${
@@ -779,12 +780,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   {isInRfq ? (
                     <>
                       <Check className="w-5 h-5 text-emerald-700 shrink-0" />
-                      <span>In RFQ Cart (Add +{quantity} more)</span>
+                      <span>In Cart (Add +{quantity} more)</span>
                     </>
                   ) : (
                     <>
-                      <Plus className="w-5 h-5 text-orange-400 shrink-0" />
-                      <span>Add to RFQ ({quantity} {product.unit ? product.unit : 'Units'})</span>
+                      <ShoppingCart className="w-5 h-5 text-orange-400 shrink-0" />
+                      <span>Add to Cart ({quantity} {product.unit ? product.unit : 'Units'})</span>
                     </>
                   )}
                 </button>

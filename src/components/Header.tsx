@@ -490,8 +490,26 @@ export const Header: React.FC<HeaderProps> = ({
                 {/* Primary Action Buttons */}
                 <div className="space-y-2">
                   <div className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider px-1">
-                    Direct Quote & Contact
+                    Direct Actions
                   </div>
+
+                  {/* View Cart Button */}
+                  <button
+                    id="mobile-drawer-cart-btn"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      onOpenRfqModal();
+                    }}
+                    className="min-h-[44px] w-full flex items-center justify-between py-2.5 px-4 rounded-xl font-bold text-sm text-slate-900 bg-slate-100 hover:bg-slate-200 border border-slate-300 transition"
+                  >
+                    <div className="flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4 text-orange-600" />
+                      <span>{t.rfqCart}</span>
+                    </div>
+                    <span className="px-2 py-0.5 rounded-full bg-orange-600 text-white text-xs font-mono font-bold">
+                      {rfqCount} {rfqCount === 1 ? 'item' : 'items'}
+                    </span>
+                  </button>
 
                   {/* Request Official Quote */}
                   <button

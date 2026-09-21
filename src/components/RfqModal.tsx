@@ -12,9 +12,13 @@ import {
   AlertCircle,
   ShoppingBag,
   ArrowRight,
+  ArrowLeft,
   ShieldCheck,
   CheckCircle2,
-  Phone
+  Phone,
+  ShoppingCart,
+  UserCheck,
+  Truck
 } from 'lucide-react';
 import { RfqItem, Language } from '../types';
 import { COMPANY_INFO } from '../data/companyData';
@@ -42,6 +46,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
   onClearCart,
   lang
 }) => {
+  const [step, setStep] = useState<'cart' | 'checkout'>('cart');
   const [contractorName, setContractorName] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -65,6 +70,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
     if (isOpen) {
       document.body.style.overflow = 'hidden';
       setSubmitted(false);
+      setStep('cart');
       setSubmissionMethod('email');
       setIsSubmittingEmail(false);
       setIsSubmittingWhatsApp(false);
@@ -336,6 +342,23 @@ export const RfqModal: React.FC<RfqModalProps> = ({
     setTimeout(() => setCopied(false), 2500);
   };
 
+  const handleProceedToCheckout = () => {
+    if (rfqItems.length === 0) return;
+    setStep('checkout');
+    const modalBody = document.getElementById('rfq-modal-body');
+    if (modalBody) {
+      modalBody.scrollTop = 0;
+    }
+  };
+
+  const handleBackToCart = () => {
+    setStep('cart');
+    const modalBody = document.getElementById('rfq-modal-body');
+    if (modalBody) {
+      modalBody.scrollTop = 0;
+    }
+  };
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-200"
@@ -346,48 +369,149 @@ export const RfqModal: React.FC<RfqModalProps> = ({
       <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[92vh] flex flex-col shadow-2xl border border-slate-200 overflow-hidden">
         
         {/* Header */}
-        <div className="p-4 sm:p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
+        <div className="p-3.5 sm:p-5 bg-slate-900 text-white flex items-center justify-between border-b border-slate-800 shrink-0">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-orange-600/30 border border-orange-500/40 text-orange-400 flex items-center justify-center">
-              <ShoppingBag className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-orange-600/30 border border-orange-500/40 text-orange-400 flex items-center justify-center shrink-0">
+              {submitted ? (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              ) : step === 'checkout' ? (
+                <UserCheck className="w-5 h-5 text-orange-400" />
+              ) : (
+                <ShoppingCart className="w-5 h-5 text-orange-400" />
+              )}
             </div>
             <div>
-              <h2 id="rfq-modal-title" className="font-extrabold text-base sm:text-xl text-white tracking-tight flex items-center gap-2">
-                <span>{t.rfqTitle}</span>
-                <span className="text-xs bg-orange-600 text-white font-mono px-2 py-0.5 rounded-full">
-                  {rfqItems.length} products ({totalQuantity} units)
+              <h2 id="rfq-modal-title" className="font-extrabold text-sm sm:text-lg text-white tracking-tight flex items-center gap-2">
+                <span>
+                  {submitted
+                    ? (lang === 'en' ? 'Order Request Dispatched' : 'आर्डर अनुरोध भेजा गया')
+                    : step === 'checkout'
+                    ? (lang === 'en' ? 'Checkout — Customer Details' : 'चेकआउट — ग्राहक विवरण')
+                    : (lang === 'en' ? 'Procurement Cart' : 'सामग्री कार्ट')}
                 </span>
+                {!submitted && rfqItems.length > 0 && (
+                  <span className="text-[11px] bg-orange-600 text-white font-mono px-2 py-0.5 rounded-full">
+                    {rfqItems.length} {rfqItems.length === 1 ? 'item' : 'items'} ({totalQuantity} units)
+                  </span>
+                )}
               </h2>
               <p className="text-[11px] sm:text-xs text-amber-300 font-medium mt-0.5">
-                🇮🇳 Supplying in Whole India Everywhere • Any Quantity Supplied • Custom Extra Items On Demand
+                {submitted
+                  ? 'Dispatched directly to Rajdeep Enterprises Central Supply Desk'
+                  : step === 'checkout'
+                  ? 'Enter delivery destination & contractor contact for Rajdeep Enterprises'
+                  : '🇮🇳 Supplying in Whole India Everywhere • Any Quantity Supplied • Custom Sourcing'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition"
-            aria-label="Close RFQ Modal"
+            className="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition shrink-0"
+            aria-label="Close Cart Modal"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Workflow Step Progress Bar */}
+        {rfqItems.length > 0 && (
+          <div className="bg-slate-800 border-b border-slate-700/80 px-4 py-2.5 text-xs shrink-0">
+            <div className="flex items-center justify-between max-w-xl mx-auto gap-2">
+              {/* Step 1: Cart */}
+              <button
+                type="button"
+                onClick={() => !submitted && handleBackToCart()}
+                className={`flex items-center gap-1.5 transition ${
+                  step === 'cart' && !submitted
+                    ? 'text-orange-400 font-bold'
+                    : submitted || step === 'checkout'
+                    ? 'text-emerald-400 font-semibold cursor-pointer hover:underline'
+                    : 'text-slate-400'
+                }`}
+              >
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                  step === 'cart' && !submitted
+                    ? 'bg-orange-500 text-white ring-2 ring-orange-400/30'
+                    : submitted || step === 'checkout'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-slate-300'
+                }`}>
+                  {submitted || step === 'checkout' ? <Check className="w-3 h-3" /> : '1'}
+                </span>
+                <span className="hidden xs:inline">1. Cart (Items & Qty)</span>
+                <span className="xs:hidden">1. Cart</span>
+              </button>
+
+              <div className={`flex-1 h-0.5 ${step === 'checkout' || submitted ? 'bg-emerald-500' : 'bg-slate-700'}`} />
+
+              {/* Step 2: Checkout */}
+              <button
+                type="button"
+                onClick={() => !submitted && rfqItems.length > 0 && handleProceedToCheckout()}
+                disabled={rfqItems.length === 0 || submitted}
+                className={`flex items-center gap-1.5 transition ${
+                  step === 'checkout' && !submitted
+                    ? 'text-orange-400 font-bold'
+                    : submitted
+                    ? 'text-emerald-400 font-semibold'
+                    : 'text-slate-400 disabled:opacity-50'
+                }`}
+              >
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                  step === 'checkout' && !submitted
+                    ? 'bg-orange-500 text-white ring-2 ring-orange-400/30'
+                    : submitted
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-slate-700 text-slate-300'
+                }`}>
+                  {submitted ? <Check className="w-3 h-3" /> : '2'}
+                </span>
+                <span className="hidden xs:inline">2. Checkout (Details)</span>
+                <span className="xs:hidden">2. Checkout</span>
+              </button>
+
+              <div className={`flex-1 h-0.5 ${submitted ? 'bg-emerald-500' : 'bg-slate-700'}`} />
+
+              {/* Step 3: Order to Rajdeep Enterprises */}
+              <div className={`flex items-center gap-1.5 ${
+                submitted ? 'text-emerald-400 font-bold' : 'text-slate-400'
+              }`}>
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 ${
+                  submitted ? 'bg-emerald-500 text-white ring-2 ring-emerald-400/40' : 'bg-slate-700 text-slate-300'
+                }`}>
+                  {submitted ? <Check className="w-3 h-3" /> : '3'}
+                </span>
+                <span className="hidden xs:inline">3. Rajdeep Enterprises</span>
+                <span className="xs:hidden">3. Order</span>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Content Area */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
+        <div id="rfq-modal-body" className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5">
           
           {submitted ? (
-            <div className="text-center py-8 space-y-4">
+            /* STEP 3: ORDER CONFIRMATION / RAJDEEP ENTERPRISES */
+            <div className="text-center py-6 space-y-4">
               <div className="w-14 h-14 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto shadow-xs">
                 <CheckCircle2 className="w-8 h-8" />
               </div>
-              <h3 className="text-lg sm:text-xl font-black text-slate-900">
-                {submissionMethod === 'email' ? 'RFQ Email Dispatched Successfully!' : 'Bulk RFQ Submitted Successfully!'}
-              </h3>
+              <div>
+                <h3 className="text-lg sm:text-xl font-black text-slate-900">
+                  {submissionMethod === 'email' ? 'Order Request Emailed to Rajdeep Enterprises!' : 'Order Request Submitted to Rajdeep Enterprises!'}
+                </h3>
+                <p className="text-xs text-emerald-700 font-semibold mt-1">
+                  Transmitted directly to Central Hub • Refinery Main Gate, Mathura
+                </p>
+              </div>
+
               {rfqReference && (
                 <div className="inline-block px-3.5 py-1 bg-emerald-100 text-emerald-900 rounded-lg text-xs font-mono font-bold">
-                  RFQ Tracking ID: {rfqReference}
+                  Order Reference: {rfqReference}
                 </div>
               )}
+
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 max-w-md mx-auto text-left space-y-2">
                 <p>
                   <strong>Contact Person:</strong> {contractorName} {companyName && `(${companyName})`}
@@ -407,60 +531,74 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                   <strong>Total Procurement:</strong> {rfqItems.length} products / {totalQuantity} units
                 </p>
                 <p>
-                  <strong>MTC Certificate:</strong> {requestMtc ? 'Requested' : 'Standard'}
+                  <strong>MTC Certificate:</strong> {requestMtc ? 'Requested (Signed MTC & BIS conformity)' : 'Standard Invoice'}
                 </p>
               </div>
+
               <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
                 {submissionMethod === 'email' ? (
                   <>
-                    Your Bill of Quantities has been emailed directly to our central desk at <strong className="text-slate-900">rajdeepenterprises0047@gmail.com</strong>. Our quotation desk will prepare your competitive bulk GST pricing and reach out.
+                    Your complete order and customer details have been emailed directly to our central desk at <strong className="text-slate-900">rajdeepenterprises0047@gmail.com</strong>. Rajdeep Enterprises (Proprietor: <strong className="text-slate-900">{COMPANY_INFO.contactPerson}</strong>) will review your items and reach out promptly with official GST pricing and delivery schedule.
                   </>
                 ) : (
                   <>
-                    Your Bill of Quantities has been submitted to <strong className="text-slate-900">{COMPANY_INFO.contactPerson}</strong>. Our dispatch desk is calculating the most competitive bulk GST pricing for you.
+                    Your complete order details have been submitted to <strong className="text-slate-900">{COMPANY_INFO.contactPerson}</strong> at Rajdeep Enterprises. Our dispatch desk is calculating your official GST pricing and door-delivery transit schedule.
                   </>
                 )}
               </p>
+
               <div className="flex flex-col sm:flex-row gap-2.5 justify-center pt-3 max-w-md mx-auto">
                 <button
                   type="button"
                   onClick={handleDirectWhatsAppFallback}
-                  className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
+                  className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 fill-white/20" />
-                  <span>{submissionMethod === 'email' ? 'Also Connect on WhatsApp' : 'Re-send on WhatsApp'}</span>
+                  <span>{submissionMethod === 'email' ? 'Also Connect on WhatsApp' : 'Open WhatsApp Chat'}</span>
                 </button>
+                <a
+                  href={`tel:${COMPANY_INFO.phone}`}
+                  className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <Phone className="w-4 h-4 text-orange-400" />
+                  <span>Call: {COMPANY_INFO.phone}</span>
+                </a>
                 <button
                   type="button"
                   onClick={onClose}
-                  className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition"
+                  className="w-full sm:w-auto min-h-[44px] px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-bold transition cursor-pointer"
                 >
-                  Close & Continue Browsing
+                  Close & Browse
                 </button>
               </div>
             </div>
           ) : rfqItems.length === 0 ? (
+            /* EMPTY CART */
             <div className="py-12 text-center text-slate-500 space-y-3">
-              <ShoppingBag className="w-12 h-12 text-slate-300 mx-auto" />
+              <ShoppingCart className="w-12 h-12 text-slate-300 mx-auto" />
               <h3 className="font-bold text-slate-800 text-base">{t.rfqEmpty}</h3>
               <p className="text-xs max-w-sm mx-auto text-slate-500">
-                Click "+ Add to Bulk RFQ" on any product in the catalogue or product detail page to request consolidated pricing.
+                Click "+ Add to Cart" on any product in the catalogue to build your procurement list.
               </p>
               <button
                 type="button"
                 onClick={onClose}
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition shadow-xs"
+                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 text-white text-xs font-bold transition shadow-xs cursor-pointer"
               >
                 <span>Browse Products Catalogue</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
-          ) : (
+          ) : step === 'cart' ? (
+            /* STEP 1: 🛒 CART (ITEMS + QUANTITY) */
             <>
               {/* Selected Products Procurement Cart Table */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider pb-1 border-b border-slate-100">
-                  <span>Selected Products ({rfqItems.length})</span>
+                  <span className="flex items-center gap-1.5 text-slate-900">
+                    <ShoppingCart className="w-3.5 h-3.5 text-orange-600" />
+                    <span>Cart Items ({rfqItems.length} products)</span>
+                  </span>
                   <div className="flex items-center gap-3">
                     <span className="text-[11px] text-emerald-600 normal-case font-semibold hidden sm:inline">
                       Order Any Quantity (No Minimums)
@@ -468,7 +606,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                     <button
                       type="button"
                       onClick={onClearCart}
-                      className="text-red-500 hover:text-red-700 flex items-center gap-1 normal-case font-medium text-xs transition"
+                      className="text-red-500 hover:text-red-700 flex items-center gap-1 normal-case font-medium text-xs transition cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                       <span>Clear All</span>
@@ -476,7 +614,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                   </div>
                 </div>
 
-                <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
                   {rfqItems.map((item) => (
                     <div
                       key={item.product.id}
@@ -497,6 +635,10 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                           <span className="text-orange-600 font-semibold truncate">
                             {item.product.badge || item.product.category}
                           </span>
+                          <span className="text-slate-400">•</span>
+                          <span className="text-slate-600 font-mono font-medium">
+                            Unit: {item.product.unit || 'units'}
+                          </span>
                         </div>
                       </div>
 
@@ -506,7 +648,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                           <button
                             type="button"
                             onClick={() => onUpdateQuantity(item.product.id, -1)}
-                            className="w-7 h-7 min-h-[28px] flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 font-bold transition"
+                            className="w-7 h-7 min-h-[28px] flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 font-bold transition cursor-pointer"
                             aria-label={`Decrease quantity of ${item.product.name}`}
                           >
                             <Minus className="w-3.5 h-3.5" />
@@ -533,7 +675,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                           <button
                             type="button"
                             onClick={() => onUpdateQuantity(item.product.id, 1)}
-                            className="w-7 h-7 min-h-[28px] flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 font-bold transition"
+                            className="w-7 h-7 min-h-[28px] flex items-center justify-center rounded text-slate-600 hover:bg-slate-100 font-bold transition cursor-pointer"
                             aria-label={`Increase quantity of ${item.product.name}`}
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -545,7 +687,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                           <button
                             type="button"
                             onClick={() => onUpdateQuantity(item.product.id, 10)}
-                            className="px-1.5 py-1 rounded text-[10px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition"
+                            className="px-1.5 py-1 rounded text-[10px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition cursor-pointer"
                             title="Add 10 more"
                           >
                             +10
@@ -553,7 +695,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                           <button
                             type="button"
                             onClick={() => onUpdateQuantity(item.product.id, 50)}
-                            className="px-1.5 py-1 rounded text-[10px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition"
+                            className="px-1.5 py-1 rounded text-[10px] font-bold bg-slate-200 hover:bg-slate-300 text-slate-700 transition cursor-pointer"
                             title="Add 50 more"
                           >
                             +50
@@ -561,7 +703,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                           <button
                             type="button"
                             onClick={() => onUpdateQuantity(item.product.id, 100)}
-                            className="px-1.5 py-1 rounded text-[10px] font-bold bg-orange-100 hover:bg-orange-200 text-orange-800 transition"
+                            className="px-1.5 py-1 rounded text-[10px] font-bold bg-orange-100 hover:bg-orange-200 text-orange-800 transition cursor-pointer"
                             title="Add 100 more"
                           >
                             +100
@@ -571,8 +713,8 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                         <button
                           type="button"
                           onClick={() => onRemoveItem(item.product.id)}
-                          className="p-1.5 text-slate-400 hover:text-red-500 transition ml-1"
-                          aria-label={`Remove ${item.product.name} from RFQ`}
+                          className="p-1.5 text-slate-400 hover:text-red-500 transition ml-1 cursor-pointer"
+                          aria-label={`Remove ${item.product.name} from Cart`}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -604,6 +746,69 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                 />
               </div>
 
+              {/* Material Test Certificate (MTC) Toggle */}
+              <label className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/80 border border-emerald-200/90 cursor-pointer hover:bg-emerald-50 transition">
+                <input
+                  type="checkbox"
+                  checked={requestMtc}
+                  onChange={(e) => setRequestMtc(e.target.checked)}
+                  className="w-4 h-4 text-emerald-600 rounded mt-0.5 accent-emerald-600 cursor-pointer shrink-0"
+                />
+                <div className="text-xs">
+                  <span className="font-black text-emerald-950 block">
+                    Enclose Signed Material Test Certificate (MTC) & BIS Batch Conformity
+                  </span>
+                  <span className="text-[11px] text-emerald-800 leading-relaxed block mt-0.5">
+                    Required for refinery entry gate permits (IOCL, GAIL, HPCL, L&T sites). We attach physical test reports with stamped invoice.
+                  </span>
+                </div>
+              </label>
+
+              {/* Cart Summary Bar */}
+              <div className="p-3.5 rounded-xl bg-slate-100 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="flex items-center gap-2 text-slate-700">
+                  <Truck className="w-4 h-4 text-sky-600 shrink-0" />
+                  <span><strong>Pan-India Doorstep Dispatch:</strong> Sourced directly from Mathura Refinery Main Gate depot</span>
+                </div>
+                <div className="text-slate-900 font-extrabold text-right">
+                  Total Units: <span className="text-orange-600 font-mono text-sm">{totalQuantity}</span>
+                </div>
+              </div>
+            </>
+          ) : (
+            /* STEP 2: 📋 CHECKOUT (CUSTOMER DETAILS) */
+            <>
+              {/* Order Recap Banner */}
+              <div className="p-3.5 rounded-xl bg-slate-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                <div>
+                  <div className="text-xs font-bold text-orange-400 flex items-center gap-1.5 uppercase tracking-wide">
+                    <ShoppingCart className="w-3.5 h-3.5" />
+                    <span>Order Summary ({rfqItems.length} Products, {totalQuantity} Units)</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1.5 mt-1.5">
+                    {rfqItems.map((item) => (
+                      <span
+                        key={item.product.id}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-800 border border-slate-700 text-[11px] text-slate-200"
+                      >
+                        <span className="font-medium truncate max-w-[140px]">{item.product.name}</span>
+                        <span className="font-mono text-orange-400 font-bold">x{item.quantity}</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleBackToCart}
+                  className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-sky-300 text-xs font-bold transition border border-slate-700 shrink-0 cursor-pointer"
+                  title="Modify cart items or quantities"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Edit Items</span>
+                </button>
+              </div>
+
               {/* API Failure / Notice Banner */}
               {apiError && (
                 <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-300 text-amber-950 space-y-2">
@@ -618,7 +823,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                     <button
                       type="button"
                       onClick={handleDirectWhatsAppFallback}
-                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-xs"
+                      className="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-xs cursor-pointer"
                     >
                       <MessageCircle className="w-3.5 h-3.5" />
                       <span>Send BOQ Directly via WhatsApp</span>
@@ -629,9 +834,14 @@ export const RfqModal: React.FC<RfqModalProps> = ({
 
               {/* Contractor Information Form */}
               <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                  Contractor / Buyer Details for Invoicing & Dispatch
-                </h4>
+                <div className="border-b border-slate-200 pb-2">
+                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    Customer & Dispatch Details
+                  </h4>
+                  <p className="text-[11px] text-slate-500 mt-0.5">
+                    Your details will be forwarded directly to Rajdeep Enterprises for official quotation & GST billing.
+                  </p>
+                </div>
 
                 {/* Anti-spam honeypot input */}
                 <input
@@ -711,7 +921,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
 
                   <div>
                     <label className="block text-slate-700 font-bold mb-1">
-                      Email Address <span className="text-slate-400 font-normal text-[11px]">(Optional - for quotation reply)</span>
+                      Email Address <span className="text-slate-400 font-normal text-[11px]">(Optional - for order quotation reply)</span>
                     </label>
                     <input
                       type="email"
@@ -759,24 +969,6 @@ export const RfqModal: React.FC<RfqModalProps> = ({
                     className="w-full min-h-[44px] px-3.5 py-2.5 rounded-xl border border-slate-300 bg-white focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none text-base sm:text-xs text-slate-900"
                   />
                 </div>
-
-                {/* Material Test Certificate (MTC) Toggle */}
-                <label className="flex items-start gap-2.5 p-3 rounded-xl bg-emerald-50/80 border border-emerald-200/90 cursor-pointer hover:bg-emerald-50 transition">
-                  <input
-                    type="checkbox"
-                    checked={requestMtc}
-                    onChange={(e) => setRequestMtc(e.target.checked)}
-                    className="w-4 h-4 text-emerald-600 rounded mt-0.5 accent-emerald-600 cursor-pointer shrink-0"
-                  />
-                  <div className="text-xs">
-                    <span className="font-black text-emerald-950 block">
-                      Enclose Signed Material Test Certificate (MTC) & BIS Batch Conformity
-                    </span>
-                    <span className="text-[11px] text-emerald-800 leading-relaxed block mt-0.5">
-                      Required for refinery entry gate permits (IOCL, GAIL, HPCL, L&T sites). We attach physical test reports with stamped invoice.
-                    </span>
-                  </div>
-                </label>
               </div>
             </>
           )}
@@ -785,41 +977,77 @@ export const RfqModal: React.FC<RfqModalProps> = ({
         {/* Footer Actions */}
         {!submitted && rfqItems.length > 0 && (
           <div className="p-3 sm:p-4 bg-slate-100 border-t border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 shrink-0">
-            <div className="text-xs text-slate-600 text-center sm:text-left">
-              Direct Quotation dispatched to <strong className="text-slate-900">{COMPANY_INFO.contactPerson}</strong>
-            </div>
+            {step === 'cart' ? (
+              /* FOOTER FOR STEP 1: CART */
+              <>
+                <div className="flex items-center gap-2 justify-between sm:justify-start">
+                  <button
+                    type="button"
+                    onClick={handleCopyBoq}
+                    className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition active:scale-98 cursor-pointer"
+                    title="Copy Bill of Quantities text to clipboard"
+                  >
+                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> : <FileText className="w-3.5 h-3.5 text-slate-500 shrink-0" />}
+                    <span className="whitespace-nowrap">{copied ? 'Copied BOQ' : 'Copy BOQ'}</span>
+                  </button>
 
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={handleCopyBoq}
-                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition active:scale-98"
-                title="Copy Bill of Quantities text to clipboard"
-              >
-                {copied ? <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" /> : <FileText className="w-3.5 h-3.5 text-slate-500 shrink-0" />}
-                <span className="whitespace-nowrap">{copied ? 'Copied BOQ' : 'Copy BOQ'}</span>
-              </button>
+                  <button
+                    type="button"
+                    onClick={onClearCart}
+                    className="min-h-[44px] inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-xs font-semibold text-red-600 hover:text-red-700 hover:bg-red-50 transition cursor-pointer"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Clear Cart</span>
+                  </button>
+                </div>
 
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleSendEmail}
-                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:opacity-75 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-sm transition active:scale-98"
-              >
-                <Mail className="w-4 h-4 shrink-0" />
-                <span className="whitespace-nowrap">{isSubmittingEmail ? 'Sending RFQ...' : 'Send RFQ by Email'}</span>
-              </button>
+                <button
+                  type="button"
+                  id="rfq-proceed-to-checkout-btn"
+                  onClick={handleProceedToCheckout}
+                  className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white text-xs sm:text-sm font-extrabold shadow-sm transition active:scale-98 cursor-pointer"
+                >
+                  <span>Proceed to Checkout ({totalQuantity} Units)</span>
+                  <ArrowRight className="w-4 h-4 shrink-0" />
+                </button>
+              </>
+            ) : (
+              /* FOOTER FOR STEP 2: CHECKOUT */
+              <>
+                <button
+                  type="button"
+                  onClick={handleBackToCart}
+                  className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs font-bold text-slate-700 transition active:scale-98 cursor-pointer"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+                  <span>Back to Cart</span>
+                </button>
 
-              <button
-                type="button"
-                disabled={isSubmitting}
-                onClick={handleSendWhatsApp}
-                className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-75 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-sm transition active:scale-98"
-              >
-                <MessageCircle className="w-4 h-4 fill-white/20 shrink-0" />
-                <span className="whitespace-nowrap">{isSubmittingWhatsApp ? 'Logging RFQ...' : 'Send RFQ via WhatsApp'}</span>
-              </button>
-            </div>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    id="rfq-send-email-btn"
+                    disabled={isSubmitting}
+                    onClick={handleSendEmail}
+                    className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:opacity-75 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-sm transition active:scale-98 cursor-pointer"
+                  >
+                    <Mail className="w-4 h-4 shrink-0" />
+                    <span className="whitespace-nowrap">{isSubmittingEmail ? 'Sending Order...' : 'Request Order by Email'}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    id="rfq-send-whatsapp-btn"
+                    disabled={isSubmitting}
+                    onClick={handleSendWhatsApp}
+                    className="w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 disabled:opacity-75 disabled:cursor-not-allowed text-white text-xs sm:text-sm font-bold shadow-sm transition active:scale-98 cursor-pointer"
+                  >
+                    <MessageCircle className="w-4 h-4 fill-white/20 shrink-0" />
+                    <span className="whitespace-nowrap">{isSubmittingWhatsApp ? 'Submitting Order...' : 'Order via WhatsApp'}</span>
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

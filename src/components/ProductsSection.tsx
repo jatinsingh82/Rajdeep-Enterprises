@@ -397,7 +397,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                       </div>
                     )}
 
-                    {/* RFQ Quick Toggle on Image */}
+                    {/* Cart Quick Toggle on Image */}
                     {onAddToRfq && (
                       <button
                         type="button"
@@ -405,8 +405,8 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                           e.stopPropagation();
                           onAddToRfq(product);
                         }}
-                        aria-label={rfqProductIds.includes(product.id) ? "In RFQ Cart" : "Add to RFQ Cart"}
-                        title={rfqProductIds.includes(product.id) ? "In RFQ Cart" : "Add to RFQ Cart"}
+                        aria-label={rfqProductIds.includes(product.id) ? "In Cart" : "Add to Cart"}
+                        title={rfqProductIds.includes(product.id) ? "In Cart" : "Add to Cart"}
                         className={`absolute top-1.5 right-1.5 z-10 p-1 sm:p-1.5 rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-1 ${
                           rfqProductIds.includes(product.id)
                             ? 'bg-emerald-600 text-white'
@@ -418,7 +418,7 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                         ) : (
                           <Plus className="w-3 h-3 text-slate-700 shrink-0" />
                         )}
-                        <span className="text-[9px] font-extrabold pr-0.5 hidden xs:inline">RFQ</span>
+                        <span className="text-[9px] font-extrabold pr-0.5 hidden xs:inline">Cart</span>
                       </button>
                     )}
 
@@ -531,12 +531,12 @@ export const ProductsSection: React.FC<ProductsSectionProps> = ({
                           {rfqProductIds.includes(product.id) ? (
                             <>
                               <Check className="w-3 h-3 text-emerald-600" />
-                              <span>Added to RFQ</span>
+                              <span>Added to Cart</span>
                             </>
                           ) : (
                             <>
                               <Plus className="w-3 h-3 text-slate-500" />
-                              <span>+ Add to RFQ</span>
+                              <span>+ Add to Cart</span>
                             </>
                           )}
                         </button>

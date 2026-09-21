@@ -124,8 +124,8 @@ export const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = (
                         e.stopPropagation();
                         onAddToRfq(product);
                       }}
-                      aria-label={isAddedToRfq ? "In RFQ Cart" : "Add to RFQ Cart"}
-                      title={isAddedToRfq ? "In RFQ Cart" : "Add to RFQ Cart"}
+                      aria-label={isAddedToRfq ? "In Cart" : "Add to Cart"}
+                      title={isAddedToRfq ? "In Cart" : "Add to Cart"}
                       className={`absolute top-1.5 right-1.5 z-10 p-1 sm:p-1.5 rounded-lg text-xs font-bold transition shadow-xs flex items-center gap-0.5 ${
                         isAddedToRfq
                           ? 'bg-emerald-600 text-white'
@@ -137,7 +137,7 @@ export const FeaturedProductsSection: React.FC<FeaturedProductsSectionProps> = (
                       ) : (
                         <Plus className="w-3 h-3 text-slate-700 shrink-0" />
                       )}
-                      <span className="text-[9px] font-extrabold pr-0.5 hidden min-[380px]:inline">RFQ</span>
+                      <span className="text-[9px] font-extrabold pr-0.5 hidden min-[380px]:inline">Cart</span>
                     </button>
                   )}
 
