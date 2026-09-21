@@ -153,9 +153,13 @@ export async function sendNotificationEmail(payload: NotificationEmailPayload): 
   const hasPass = Boolean(pass);
   const hasAlertTo = Boolean(to);
 
+  console.info(
+    `[EmailService] STAGE=ENV_CHECK (hasHost=${hasHost}, hasPort=${hasPort}, hasUser=${hasUser}, hasPass=${hasPass}, hasAlertTo=${hasAlertTo}, host=${host}, port=${port})`
+  );
+
   if (!hasPass || !hasUser) {
     console.warn(
-      `[EmailService] ERROR_STAGE=ENV_CHECK_FAILED - Required SMTP environment variables are missing (hasHost=${hasHost}, hasPort=${hasPort}, hasUser=${hasUser}, hasPass=${hasPass}, hasAlertTo=${hasAlertTo})`
+      `[EmailService] ERROR_STAGE=ENV_CHECK - Required SMTP environment variables are missing (hasHost=${hasHost}, hasPort=${hasPort}, hasUser=${hasUser}, hasPass=${hasPass}, hasAlertTo=${hasAlertTo})`
     );
     return {
       success: false,
@@ -163,10 +167,6 @@ export async function sendNotificationEmail(payload: NotificationEmailPayload): 
       error: 'SMTP notification service is not configured on the server. Please verify SMTP_USER and SMTP_PASS in server environment.',
     };
   }
-
-  console.info(
-    `[EmailService] STAGE=ENV_CHECK_PASSED (hasHost=${hasHost}, hasPort=${hasPort}, hasUser=${hasUser}, hasPass=${hasPass}, hasAlertTo=${hasAlertTo}, host=${host}, port=${port})`
-  );
 
   // Deduplication check: Prevent duplicate email dispatches for identical submissions within 90 seconds
   cleanExpiredSubmissions();
@@ -426,10 +426,12 @@ export async function sendNotificationEmail(payload: NotificationEmailPayload): 
 
   try {
     const isSecure = port === 465;
+    const requireTLS = !isSecure; // requireTLS: true for port 587 (Gmail STARTTLS)
     const transporter = nodemailer.createTransport({
       host,
       port,
-      secure: isSecure, // true for 465, false for other ports like 587
+      secure: isSecure, // false for 587, true for 465
+      requireTLS,
       auth: {
         user,
         pass,
@@ -438,12 +440,12 @@ export async function sendNotificationEmail(payload: NotificationEmailPayload): 
         rejectUnauthorized: true,
         minVersion: 'TLSv1.2',
       },
-      connectionTimeout: 8000,
-      greetingTimeout: 8000,
-      socketTimeout: 10000,
+      connectionTimeout: 10000,
+      greetingTimeout: 10000,
+      socketTimeout: 15000,
     });
 
-    console.info(`[EmailService] STAGE=SMTP_INIT_PASSED host=${host} port=${port} secure=${isSecure}`);
+    console.info(`[EmailService] STAGE=MAILER_INITIALIZED host=${host} port=${port} secure=${isSecure} requireTLS=${requireTLS}`);
 
     const mailOptions: SendMailOptions = {
       from: `"Rajdeep Enterprises Website" <${user}>`,

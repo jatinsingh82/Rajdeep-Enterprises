@@ -127,7 +127,7 @@ export default async function handler(req: any, res: any) {
     if (!emailResult.success) {
       const isConfigError = emailResult.code === 'SMTP_NOT_CONFIGURED';
       console.error(`[Enquiry] ERROR_STAGE=EMAIL_DELIVERY_FAILED code=${emailResult.code}`);
-      const statusCode = isConfigError ? 503 : 502;
+      const statusCode = isConfigError ? 503 : 500;
       return res.status(statusCode).json({
         success: false,
         code: emailResult.code || 'EMAIL_DELIVERY_FAILED',

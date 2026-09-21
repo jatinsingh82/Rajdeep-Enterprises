@@ -116,7 +116,7 @@ export function validateEnquiryInput(body: any): { valid: boolean; errors: strin
   const companyName = sanitizeText(body.companyName || body.company || '', 120);
   const category = sanitizeText(body.category || 'General Industrial Supplies', 100);
   const quantity = sanitizeText(body.quantity || '1', 50);
-  const siteLocation = sanitizeText(body.siteLocation || body.location || '', 200);
+  const siteLocation = sanitizeText(body.deliveryLocation || body.siteLocation || body.location || '', 200);
   const notes = sanitizeText(body.notes || body.message || '', 2000);
   const urgency = sanitizeText(body.urgency || 'standard', 30);
   const source = sanitizeText(body.source || 'website_enquiry_form', 50);
