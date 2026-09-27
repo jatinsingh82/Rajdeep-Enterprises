@@ -54,6 +54,10 @@ function devApiPlugin(): Plugin {
             const { default: handler } = await import('./api/callback');
             return handler(req, augmentedRes);
           }
+          if (url === '/api/chat') {
+            const { default: handler } = await import('./api/chat');
+            return handler(req, augmentedRes);
+          }
         } catch {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json');
