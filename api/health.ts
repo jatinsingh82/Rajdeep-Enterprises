@@ -13,10 +13,11 @@ export default function handler(req: any, res: any) {
     const isAllowed =
       ALLOWED_ORIGINS.includes(trimmed) ||
       (process.env.SITE_URL && trimmed === process.env.SITE_URL.trim().replace(/\/$/, '')) ||
-      (process.env.NODE_ENV !== 'production' &&
-        (trimmed.startsWith('http://localhost:') ||
-          trimmed.startsWith('http://127.0.0.1:') ||
-          trimmed.startsWith('http://0.0.0.0:')));
+      trimmed.startsWith('http://localhost:') ||
+      trimmed.startsWith('http://127.0.0.1:') ||
+      trimmed.startsWith('http://0.0.0.0:') ||
+      trimmed.endsWith('.run.app') ||
+      trimmed.endsWith('.googleusercontent.com');
 
     if (isAllowed) {
       res.setHeader('Access-Control-Allow-Origin', trimmed);

@@ -13,6 +13,7 @@ import { ContactSection } from './components/ContactSection';
 import { Footer } from './components/Footer';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { MobileBottomActionBar } from './components/MobileBottomActionBar';
+import { RajdeepChatbot } from './components/chatbot/RajdeepChatbot';
 import { Product, RfqItem, Language } from './types';
 import { generateProductCataloguePdf } from './utils/pdfGenerator';
 import { initAnalytics, trackRfqAddItem, trackCatalogueDownload } from './utils/analytics';
@@ -327,6 +328,9 @@ export default function App() {
 
       {/* Floating WhatsApp Quick Action Button (shown on tablet/desktop) */}
       <FloatingWhatsApp />
+
+      {/* Floating Rajdeep AI Chatbot Assistant */}
+      <RajdeepChatbot />
 
       {/* Mobile-Only Fixed Bottom Action Bar (Call, WhatsApp, Directions) */}
       <MobileBottomActionBar />

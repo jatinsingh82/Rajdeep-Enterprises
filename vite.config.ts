@@ -50,6 +50,10 @@ function devApiPlugin(): Plugin {
             const { default: handler } = await import('./api/rfq');
             return handler(req, augmentedRes);
           }
+          if (url === '/api/callback') {
+            const { default: handler } = await import('./api/callback');
+            return handler(req, augmentedRes);
+          }
         } catch {
           res.statusCode = 500;
           res.setHeader('Content-Type', 'application/json');
@@ -95,6 +99,7 @@ export default defineConfig(() => {
     server: {
       port: 3000,
       host: '0.0.0.0',
+      allowedHosts: true,
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // File watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
