@@ -50,6 +50,26 @@ function sanitizeText(value: any, maxLength = 200): string {
   return value.replace(/[<>]/g, '').trim().slice(0, maxLength);
 }
 
+function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
+// In-memory sliding window cache for duplicate submission prevention (e.g. rapid double clicks)
+interface RecentSubmission {
+  timestamp: number;
+  referenceId: string;
+}
+const recentSubmissions = new Map<string, RecentSubmission>();
+
+function cleanExpiredSubmissions(): void {
+  const cutoff = Date.now() - 90 * 1000; // 90 seconds
+  for (const [key, record] of recentSubmissions.entries()) {
+    if (record.timestamp < cutoff) {
+      recentSubmissions.delete(key);
+    }
+  }
+}
+
 export default async function handler(req: any, res: any) {
   const corsOk = handleCors(req, res);
   if (!corsOk) {
@@ -66,57 +86,367 @@ export default async function handler(req: any, res: any) {
   try {
     const rawBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body || {};
 
+    // 1. Anti-spam Honeypot Check
     if (rawBody.website_hp || rawBody.work_phone_hp) {
       return res.status(200).json({
         success: true,
-        rfqReference: 'RFQ-REC-HONEY',
-        message: 'Your RFQ has been received.',
+        rfqReference: 'RE-RFQ-HONEY',
+        message: 'Your enquiry has been received.',
       });
     }
 
-    const contractorName = sanitizeText(rawBody.contractorName || rawBody.name || '', 100);
-    const companyName = sanitizeText(rawBody.companyName || rawBody.company || '', 120) || 'Not Specified';
-    const phoneNumber = sanitizeText(rawBody.phoneNumber || rawBody.phone || '', 20).replace(/[^0-9+]/g, '');
+    const source = sanitizeText(rawBody.source || '', 50);
+    const isAiChatbot = source === 'Rajdeep AI Chatbot' || Boolean(rawBody.product || rawBody.material);
+
+    // 2. Extract common and AI-specific fields
+    const contractorName = sanitizeText(rawBody.customerName || rawBody.contractorName || rawBody.name || '', 100);
+    const companyName = sanitizeText(rawBody.companyName || rawBody.company || '', 120);
+    const phoneNumber = sanitizeText(rawBody.phoneNumber || rawBody.phone || '', 30);
     const emailAddress = sanitizeText(rawBody.emailAddress || rawBody.email || '', 100);
-    const siteLocation = sanitizeText(rawBody.siteLocation || rawBody.location || '', 200) || 'Not Specified';
-    const notes = sanitizeText(rawBody.notes || rawBody.message || '', 2000) || 'None';
+    const siteLocation = sanitizeText(rawBody.deliveryLocation || rawBody.siteLocation || rawBody.location || '', 200);
+    const notes = sanitizeText(rawBody.additionalNotes || rawBody.notes || rawBody.message || '', 2000);
     const requestMtc = Boolean(rawBody.requestMtc);
     const rfqItems = Array.isArray(rawBody.rfqItems) ? rawBody.rfqItems : [];
 
+    // AI RFQ specific attributes
+    const product = sanitizeText(rawBody.product || '', 150);
+    const material = sanitizeText(rawBody.material || '', 100);
+    const grade = sanitizeText(rawBody.grade || '', 50);
+    const quantity = sanitizeText(rawBody.quantity || '', 50);
+    const unit = sanitizeText(rawBody.unit || '', 30);
+    const thickness = sanitizeText(rawBody.thickness || '', 50);
+    const dimensions = sanitizeText(rawBody.dimensions || '', 80);
+    const specifications = sanitizeText(rawBody.specifications || '', 250);
+    const application = sanitizeText(rawBody.application || '', 200);
+    const requiredBy = sanitizeText(rawBody.requiredBy || '', 80);
+
+    // 3. Server-side Validation
     if (!contractorName || contractorName.length < 2) {
-      return res.status(500).json({
+      return res.status(400).json({
         success: false,
-        error: 'Please provide a valid contractor/contact name (min 2 characters).',
+        error: 'Please provide a valid contact person name (min 2 characters).',
       });
     }
 
     const digitsOnly = phoneNumber.replace(/\D/g, '');
-    if (!digitsOnly || digitsOnly.length < 10) {
-      return res.status(500).json({
+    const hasValidPhone = digitsOnly.length >= 10;
+    const hasValidEmail = emailAddress ? isValidEmail(emailAddress) : false;
+
+    if (emailAddress && !hasValidEmail) {
+      return res.status(400).json({
         success: false,
-        error: 'Please provide a valid 10-digit contact mobile number.',
+        error: 'Please provide a valid email address.',
       });
     }
 
-    const year = new Date().getFullYear();
-    const rand = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const referenceId = `RFQ-${year}-${rand}`;
+    if (!hasValidPhone && !hasValidEmail) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide a valid 10-digit mobile number or email address.',
+      });
+    }
 
+    // Ensure requirement is not empty
+    const hasRequirement = isAiChatbot
+      ? Boolean(product || material || notes)
+      : rfqItems.length > 0 || Boolean(notes);
+
+    if (!hasRequirement) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please specify the product or material requirement.',
+      });
+    }
+
+    // 4. Collision-Resistant Reference ID Generation (Section 10)
+    const now = new Date();
+    const dateStr = now.toISOString().slice(0, 10).replace(/-/g, '');
+    const randDigits = Math.floor(100000 + Math.random() * 900000);
+    const referenceId = `RE-RFQ-${dateStr}-${randDigits}`;
+
+    // 5. Deduplication check (Section 9)
+    cleanExpiredSubmissions();
+    const dedupeKey = `${contractorName}:${digitsOnly}:${product}:${material}:${quantity}:${notes}`.toLowerCase();
+    const existing = recentSubmissions.get(dedupeKey);
+    if (existing && Date.now() - existing.timestamp < 60 * 1000) {
+      return res.status(200).json({
+        success: true,
+        rfqReference: existing.referenceId,
+        message: 'Your enquiry has been submitted successfully.',
+        isDuplicate: true,
+      });
+    }
+
+    // Register fingerprint
+    recentSubmissions.set(dedupeKey, {
+      timestamp: Date.now(),
+      referenceId,
+    });
+
+    // 6. SMTP Configuration (Server-Side Only)
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
     const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
     const smtpUser = process.env.SMTP_USER || 'rajdeepenterprises0047@gmail.com';
     const smtpPass = process.env.SMTP_PASS;
     const alertEmailTo = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
 
+    // Preview / Sandbox simulation when SMTP_PASS is omitted in local dev
     if (!smtpUser || !smtpPass) {
       console.warn(`[RFQ] STAGE=PREVIEW_MODE missing credentials. Simulating successful RFQ delivery for referenceId=${referenceId}`);
       return res.status(200).json({
         success: true,
         rfqReference: referenceId,
-        message: 'Your Request for Quotation (RFQ) has been delivered successfully.',
-        itemCount: rfqItems.length,
+        message: 'Your enquiry has been submitted successfully.',
         timestamp: new Date().toISOString(),
       });
+    }
+
+    const timestamp = new Date().toLocaleString('en-IN', {
+      timeZone: 'Asia/Kolkata',
+      dateStyle: 'full',
+      timeStyle: 'medium',
+    });
+
+    let subject = '';
+    let textContent = '';
+    let htmlContent = '';
+
+    if (isAiChatbot) {
+      // ----------------------------------------------------
+      // SECTION 6 COMPLIANT FORMAT: RAJDEEP AI CHATBOT RFQ
+      // ----------------------------------------------------
+      const displayProduct = product || material || 'Industrial Material Supply';
+      subject = `New RFQ from Rajdeep AI — ${displayProduct}`;
+
+      // Build text body - ONLY include fields that contain information
+      const textLines: string[] = [
+        'RAJDEEP ENTERPRISES',
+        'NEW WEBSITE RFQ',
+        '',
+        'Customer Information',
+        '--------------------',
+        `Name: ${contractorName}`,
+      ];
+
+      if (companyName) textLines.push(`Company: ${companyName}`);
+      if (phoneNumber) textLines.push(`Phone: ${phoneNumber}`);
+      if (emailAddress) textLines.push(`Email: ${emailAddress}`);
+
+      textLines.push('', 'Requirement', '-----------');
+      if (product) textLines.push(`Product: ${product}`);
+      if (material) textLines.push(`Material: ${material}`);
+      if (grade) textLines.push(`Grade: ${grade}`);
+      if (quantity) textLines.push(`Quantity: ${quantity}`);
+      if (unit) textLines.push(`Unit: ${unit}`);
+      if (thickness) textLines.push(`Thickness: ${thickness}`);
+      if (dimensions) textLines.push(`Dimensions: ${dimensions}`);
+      if (specifications) textLines.push(`Specifications: ${specifications}`);
+      if (application) textLines.push(`Application: ${application}`);
+
+      if (siteLocation || requiredBy) {
+        textLines.push('', 'Delivery', '--------');
+        if (siteLocation) textLines.push(`Delivery Location: ${siteLocation}`);
+        if (requiredBy) textLines.push(`Required By: ${requiredBy}`);
+      }
+
+      if (notes) {
+        textLines.push('', 'Additional Information', '----------------------', `Additional Notes: ${notes}`);
+      }
+
+      textLines.push('', 'Source:', 'Rajdeep AI Chatbot', '', 'RFQ Status:', 'Confirmed by Customer', '', `Reference ID: ${referenceId}`, `Submitted At: ${timestamp}`);
+
+      textContent = textLines.join('\n');
+
+      // Helper function for HTML table rows
+      const htmlRow = (label: string, val: string | undefined) => {
+        if (!val || !val.trim()) return '';
+        return `<tr><td style="padding:7px 12px;background:#f8fafc;font-weight:600;width:35%;border:1px solid #e2e8f0;color:#475569;">${label}</td><td style="padding:7px 12px;border:1px solid #e2e8f0;font-weight:600;color:#0f172a;">${val}</td></tr>`;
+      };
+
+      htmlContent = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>${subject}</title></head>
+<body style="margin:0;padding:24px;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
+  <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #cbd5e1;border-radius:10px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+    
+    <div style="background-color:#0f172a;padding:22px 28px;border-bottom:4px solid #ea580c;">
+      <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#f97316;text-transform:uppercase;margin-bottom:4px;">
+        Rajdeep Enterprises • Website RFQ
+      </div>
+      <h1 style="margin:0;font-size:20px;color:#ffffff;font-weight:700;">
+        ${subject}
+      </h1>
+      <p style="margin:6px 0 0;font-size:12px;color:#94a3b8;">
+        Ref: <strong style="color:#ffffff;">${referenceId}</strong> &bull; ${timestamp}
+      </p>
+    </div>
+
+    <div style="padding:28px;">
+
+      <h2 style="margin:0 0 12px;font-size:14px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
+        Customer Information
+      </h2>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px;">
+        ${htmlRow('Name', contractorName)}
+        ${htmlRow('Company', companyName)}
+        ${htmlRow('Phone / WhatsApp', phoneNumber)}
+        ${htmlRow('Email', emailAddress)}
+      </table>
+
+      <h2 style="margin:0 0 12px;font-size:14px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
+        Requirement Details
+      </h2>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px;">
+        ${htmlRow('Product', product)}
+        ${htmlRow('Material', material)}
+        ${htmlRow('Grade', grade)}
+        ${htmlRow('Quantity', quantity ? `${quantity}${unit ? ` ${unit}` : ''}` : undefined)}
+        ${htmlRow('Thickness', thickness)}
+        ${htmlRow('Dimensions', dimensions)}
+        ${htmlRow('Specifications', specifications)}
+        ${htmlRow('Application', application)}
+      </table>
+
+      ${(siteLocation || requiredBy) ? `
+      <h2 style="margin:0 0 12px;font-size:14px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
+        Delivery Information
+      </h2>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px;">
+        ${htmlRow('Delivery Location', siteLocation)}
+        ${htmlRow('Required By', requiredBy)}
+      </table>` : ''}
+
+      ${notes ? `
+      <h2 style="margin:0 0 10px;font-size:14px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
+        Additional Information
+      </h2>
+      <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:12px 16px;margin-bottom:20px;font-size:13px;line-height:1.5;color:#1e293b;white-space:pre-wrap;">${notes}</div>` : ''}
+
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#475569;">
+        <div><strong>Source:</strong> Rajdeep AI Chatbot</div>
+        <div style="margin-top:4px;"><strong>RFQ Status:</strong> Confirmed by Customer</div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div style="background:#fff7ed;border:1px solid #ffedd5;border-radius:8px;padding:16px;text-align:center;">
+        <p style="margin:0 0 12px;font-size:13px;color:#9a3412;font-weight:600;">
+          Direct action links for this RFQ:
+        </p>
+        ${phoneNumber ? `
+        <a href="tel:${phoneNumber}" style="display:inline-block;background:#0f172a;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">
+          📞 Call Customer (${phoneNumber})
+        </a>
+        <a href="https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(contractorName)},%20thank%20you%20for%20your%20enquiry%20(${encodeURIComponent(referenceId)})%20with%20Rajdeep%20Enterprises." style="display:inline-block;background:#16a34a;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">
+          💬 WhatsApp Customer
+        </a>` : ''}
+        ${emailAddress ? `<a href="mailto:${emailAddress}?subject=Rajdeep%20Enterprises%20-%20Quotation%20for%20RFQ%20${referenceId}&body=Dear%20${encodeURIComponent(contractorName)}," style="display:inline-block;background:#2563eb;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">✉️ Reply via Email</a>` : ''}
+      </div>
+
+    </div>
+
+    <div style="background:#f8fafc;padding:16px 28px;border-top:1px solid #e2e8f0;font-size:11px;color:#64748b;text-align:center;">
+      Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 281005<br>
+      GSTIN: 09AAPFR9321B1Z2 • Support: +91-9997993895 • rajdeepenterprises0047@gmail.com
+    </div>
+
+  </div>
+</body>
+</html>`.trim();
+    } else {
+      // ----------------------------------------------------
+      // PRESERVED EXISTING FORMAT: WEBSITE CART / BULK RFQ
+      // ----------------------------------------------------
+      subject = `[Bulk RFQ] ${companyName || contractorName} (${rfqItems.length} Items) - Ref ${referenceId}`;
+
+      const itemsTextSummary = rfqItems
+        .map((item: any, idx: number) => {
+          const pName = sanitizeText(item.name || 'Industrial Product', 150);
+          const pSku = sanitizeText(item.sku || item.id || 'N/A', 80);
+          const pQty = sanitizeText(String(item.quantity || 1), 30);
+          const pUnit = sanitizeText(item.unit || 'units', 30);
+          const pCategory = sanitizeText(item.category || 'Industrial Supplies', 80);
+          return `  ${idx + 1}. Product: ${pName}\n     • SKU / ID: ${pSku}\n     • Quantity: ${pQty} ${pUnit}\n     • Category: ${pCategory}`;
+        })
+        .join('\n\n');
+
+      textContent = `
+=====================================================
+SUBMISSION TYPE: BULK RFQ — RAJDEEP ENTERPRISES
+=====================================================
+
+RFQ Reference:   ${referenceId}
+Submission Type: Bulk RFQ
+Timestamp (IST): ${timestamp}
+
+CUSTOMER DETAILS:
+-----------------------------------------------------
+Customer Name:   ${contractorName}
+Company:         ${companyName || 'Not Specified'}
+Email:           ${emailAddress || 'Not Provided'}
+Phone:           ${phoneNumber}
+Location:        ${siteLocation || 'Not Specified'}
+
+REQUIREMENTS & SPECIFICATIONS:
+-----------------------------------------------------
+Requirements:    ${notes || 'None'}
+MTC Certificate: ${requestMtc ? 'YES - Required for site gate entry' : 'Standard GST Supply'}
+
+PRODUCTS IN RFQ (${rfqItems.length} items):
+-----------------------------------------------------
+${itemsTextSummary || '  (No catalogue items attached; see requirements)'}
+
+=====================================================
+Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 281005
+      `.trim();
+
+      const itemsHtmlRows = rfqItems
+        .map((item: any, idx: number) => {
+          const pName = sanitizeText(item.name || 'Industrial Product', 150);
+          const pSku = sanitizeText(item.sku || item.id || 'N/A', 80);
+          const pQty = sanitizeText(String(item.quantity || 1), 30);
+          const pUnit = sanitizeText(item.unit || 'units', 30);
+          const pCategory = sanitizeText(item.category || 'Industrial Supplies', 80);
+          return `<tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:10px 12px;font-weight:600;color:#0f172a;vertical-align:top;">${idx + 1}. ${pName}</td><td style="padding:10px 12px;color:#475569;font-family:monospace;font-size:12px;vertical-align:top;">${pSku}</td><td style="padding:10px 12px;font-weight:700;color:#ea580c;vertical-align:top;">${pQty} ${pUnit}</td><td style="padding:10px 12px;color:#334155;vertical-align:top;">${pCategory}</td></tr>`;
+        })
+        .join('');
+
+      htmlContent = `
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>${subject}</title></head>
+<body style="margin:0;padding:24px;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
+  <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
+    <div style="background-color:#0f172a;padding:24px 28px;border-bottom:4px solid #ea580c;">
+      <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:#f97316;text-transform:uppercase;margin-bottom:4px;">Submission Type: Bulk RFQ</div>
+      <h1 style="margin:0;font-size:22px;color:#ffffff;font-weight:700;">New Bulk RFQ: ${referenceId}</h1>
+      <p style="margin:6px 0 0;font-size:13px;color:#94a3b8;">Submitted on ${timestamp} (IST)</p>
+    </div>
+    <div style="padding:28px;">
+      <h2 style="margin:0 0 14px;font-size:15px;color:#0f172a;text-transform:uppercase;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">1. Customer & Contractor Details</h2>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:14px;">
+        <tr><td style="padding:8px 12px;background:#f8fafc;font-weight:600;width:35%;border:1px solid #e2e8f0;">Customer Name</td><td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:700;color:#0f172a;">${contractorName}</td></tr>
+        <tr><td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">Company / Firm</td><td style="padding:8px 12px;border:1px solid #e2e8f0;color:#334155;">${companyName || 'Not Specified'}</td></tr>
+        <tr><td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">Phone Number</td><td style="padding:8px 12px;border:1px solid #e2e8f0;"><a href="tel:${phoneNumber}" style="color:#2563eb;font-weight:700;text-decoration:none;">${phoneNumber}</a></td></tr>
+        <tr><td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">Email Address</td><td style="padding:8px 12px;border:1px solid #e2e8f0;">${emailAddress ? `<a href="mailto:${emailAddress}" style="color:#2563eb;text-decoration:none;font-weight:600;">${emailAddress}</a>` : '<span style="color:#94a3b8;">Not Provided</span>'}</td></tr>
+        <tr><td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">Delivery Location</td><td style="padding:8px 12px;border:1px solid #e2e8f0;color:#334155;">${siteLocation || 'Not Specified'}</td></tr>
+        <tr><td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">MTC Certificate</td><td style="padding:8px 12px;border:1px solid #e2e8f0;color:${requestMtc ? '#059669;font-weight:700;' : '#334155;'}">${requestMtc ? 'YES - Required for site gate entry' : 'Standard GST Supply'}</td></tr>
+      </table>
+      <h2 style="margin:0 0 14px;font-size:15px;color:#0f172a;text-transform:uppercase;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">2. Selected RFQ Products (${rfqItems.length} Items)</h2>
+      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;border:1px solid #e2e8f0;">
+        <thead><tr style="background:#f8fafc;text-align:left;border-bottom:2px solid #cbd5e1;"><th style="padding:10px 12px;">Product</th><th style="padding:10px 12px;">SKU</th><th style="padding:10px 12px;">Qty</th><th style="padding:10px 12px;">Category</th></tr></thead>
+        <tbody>${itemsHtmlRows || '<tr><td colspan="4" style="padding:12px;text-align:center;color:#64748b;">No catalogue items selected</td></tr>'}</tbody>
+      </table>
+      <h2 style="margin:0 0 10px;font-size:15px;color:#0f172a;text-transform:uppercase;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">3. Requirements & Notes</h2>
+      <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:14px 16px;margin-bottom:24px;font-size:14px;line-height:1.6;color:#1e293b;white-space:pre-wrap;">${notes || 'None'}</div>
+    </div>
+    <div style="background:#f8fafc;padding:16px 28px;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b;text-align:center;">
+      Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 281005<br>
+      GSTIN: 09AAPFR9321B1Z2 • Support: +91-9997993895 • rajdeepenterprises0047@gmail.com
+    </div>
+  </div>
+</body>
+</html>`.trim();
     }
 
     const isSecure = smtpPort === 465;
@@ -134,212 +464,30 @@ export default async function handler(req: any, res: any) {
       socketTimeout: 15000,
     });
 
-    const timestamp = new Date().toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      dateStyle: 'full',
-      timeStyle: 'medium',
-    });
-
-    const itemsTextSummary = rfqItems
-      .map((item: any, idx: number) => {
-        const pName = sanitizeText(item.name || 'Industrial Product', 150);
-        const pSku = sanitizeText(item.sku || item.id || 'N/A', 80);
-        const pQty = sanitizeText(String(item.quantity || 1), 30);
-        const pUnit = sanitizeText(item.unit || 'units', 30);
-        const pCategory = sanitizeText(item.category || 'Industrial Supplies', 80);
-        return `  ${idx + 1}. Product: ${pName}
-     • SKU / Product ID: ${pSku}
-     • Quantity: ${pQty} ${pUnit}
-     • Category: ${pCategory}`;
-      })
-      .join('\n\n');
-
-    const textContent = `
-=====================================================
-SUBMISSION TYPE: BULK RFQ — RAJDEEP ENTERPRISES
-=====================================================
-
-RFQ Reference:   ${referenceId}
-Submission Type: Bulk RFQ
-Timestamp (IST): ${timestamp}
-
-CUSTOMER DETAILS:
------------------------------------------------------
-Customer Name:   ${contractorName}
-Company:         ${companyName}
-Email:           ${emailAddress || 'Not Provided'}
-Phone:           ${phoneNumber}
-Location:        ${siteLocation}
-
-REQUIREMENTS & SPECIFICATIONS:
------------------------------------------------------
-Requirements:    ${notes}
-MTC Certificate: ${requestMtc ? 'YES - Required for site gate entry' : 'Standard GST Supply'}
-
-PRODUCTS IN RFQ (${rfqItems.length} items):
------------------------------------------------------
-${itemsTextSummary || '  (No catalogue items attached; see requirements)'}
-
-=====================================================
-Direct Reply:    ${emailAddress ? `Reply to this email to reach ${contractorName} (${emailAddress})` : 'Contact via Phone or WhatsApp'}
-Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 281005
-    `.trim();
-
-    const itemsHtmlRows = rfqItems
-      .map((item: any, idx: number) => {
-        const pName = sanitizeText(item.name || 'Industrial Product', 150);
-        const pSku = sanitizeText(item.sku || item.id || 'N/A', 80);
-        const pQty = sanitizeText(String(item.quantity || 1), 30);
-        const pUnit = sanitizeText(item.unit || 'units', 30);
-        const pCategory = sanitizeText(item.category || 'Industrial Supplies', 80);
-        return `
-        <tr style="border-bottom:1px solid #e2e8f0;">
-          <td style="padding:10px 12px;font-weight:600;color:#0f172a;vertical-align:top;">${idx + 1}. ${pName}</td>
-          <td style="padding:10px 12px;color:#475569;font-family:monospace;font-size:12px;vertical-align:top;">${pSku}</td>
-          <td style="padding:10px 12px;font-weight:700;color:#f97316;vertical-align:top;">${pQty} ${pUnit}</td>
-          <td style="padding:10px 12px;color:#334155;vertical-align:top;">${pCategory}</td>
-        </tr>`;
-      })
-      .join('');
-
-    const htmlContent = `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <title>Bulk RFQ Notification - ${referenceId}</title>
-</head>
-<body style="margin:0;padding:24px;background-color:#f1f5f9;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#0f172a;">
-  <div style="max-width:680px;margin:0 auto;background:#ffffff;border:1px solid #cbd5e1;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);">
-    
-    <!-- Header Banner -->
-    <div style="background-color:#0f172a;padding:24px 28px;border-bottom:4px solid #f97316;">
-      <div style="font-size:12px;font-weight:700;letter-spacing:1px;color:#f97316;text-transform:uppercase;margin-bottom:4px;">
-        Submission Type: Bulk RFQ
-      </div>
-      <h1 style="margin:0;font-size:22px;color:#ffffff;font-weight:700;">
-        New Bulk RFQ: ${referenceId}
-      </h1>
-      <p style="margin:6px 0 0;font-size:13px;color:#94a3b8;">
-        Submitted on ${timestamp} (IST)
-      </p>
-    </div>
-
-    <div style="padding:28px;">
-
-      <!-- Customer Details -->
-      <h2 style="margin:0 0 14px;font-size:15px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
-        1. Customer & Contractor Details
-      </h2>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:14px;">
-        <tr>
-          <td style="padding:8px 12px;background:#f8fafc;font-weight:600;width:35%;border:1px solid #e2e8f0;">Customer Name</td>
-          <td style="padding:8px 12px;border:1px solid #e2e8f0;font-weight:700;color:#0f172a;">${contractorName}</td>
-        </tr>
-        <tr>
-          <td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">Company / Firm</td>
-          <td style="padding:8px 12px;border:1px solid #e2e8f0;color:#334155;">${companyName}</td>
-        </tr>
-        <tr>
-          <td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">Phone Number</td>
-          <td style="padding:8px 12px;border:1px solid #e2e8f0;">
-            <a href="tel:${phoneNumber}" style="color:#2563eb;font-weight:700;text-decoration:none;">${phoneNumber}</a>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">Email Address</td>
-          <td style="padding:8px 12px;border:1px solid #e2e8f0;">
-            ${emailAddress ? `<a href="mailto:${emailAddress}" style="color:#2563eb;text-decoration:none;font-weight:600;">${emailAddress}</a>` : '<span style="color:#94a3b8;">Not Provided</span>'}
-          </td>
-        </tr>
-        <tr>
-          <td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">Delivery Location</td>
-          <td style="padding:8px 12px;border:1px solid #e2e8f0;color:#334155;">${siteLocation}</td>
-        </tr>
-        <tr>
-          <td style="padding:8px 12px;background:#f8fafc;font-weight:600;border:1px solid #e2e8f0;">MTC Certificate</td>
-          <td style="padding:8px 12px;border:1px solid #e2e8f0;color:${requestMtc ? '#059669;font-weight:700;' : '#334155;'}">
-            ${requestMtc ? 'YES - Required for site gate entry' : 'Standard GST Supply'}
-          </td>
-        </tr>
-      </table>
-
-      <!-- Products in RFQ -->
-      <h2 style="margin:0 0 14px;font-size:15px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
-        2. Selected RFQ Products (${rfqItems.length} Items)
-      </h2>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:24px;font-size:13px;border:1px solid #e2e8f0;">
-        <thead>
-          <tr style="background:#f8fafc;text-align:left;border-bottom:2px solid #cbd5e1;">
-            <th style="padding:10px 12px;font-weight:700;color:#334155;">Product Name</th>
-            <th style="padding:10px 12px;font-weight:700;color:#334155;">SKU / ID</th>
-            <th style="padding:10px 12px;font-weight:700;color:#334155;">Quantity</th>
-            <th style="padding:10px 12px;font-weight:700;color:#334155;">Category</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${itemsHtmlRows || '<tr><td colspan="4" style="padding:12px;text-align:center;color:#64748b;">No catalogue items selected</td></tr>'}
-        </tbody>
-      </table>
-
-      <!-- Requirements / Specifications -->
-      <h2 style="margin:0 0 10px;font-size:15px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
-        3. Requirements & Notes
-      </h2>
-      <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:14px 16px;margin-bottom:24px;font-size:14px;line-height:1.6;color:#1e293b;white-space:pre-wrap;">${notes}</div>
-
-      <!-- Quick Actions -->
-      <div style="background:#fff7ed;border:1px solid #ffedd5;border-radius:6px;padding:16px;text-align:center;">
-        <p style="margin:0 0 12px;font-size:13px;color:#9a3412;font-weight:600;">
-          Direct action links for this Bulk RFQ:
-        </p>
-        <a href="tel:${phoneNumber}" style="display:inline-block;background:#0f172a;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">
-          📞 Call Customer (${phoneNumber})
-        </a>
-        <a href="https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(contractorName)},%20thank%20you%20for%20your%20Bulk%20RFQ%20(${encodeURIComponent(referenceId)})%20with%20Rajdeep%20Enterprises." style="display:inline-block;background:#16a34a;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">
-          💬 WhatsApp Customer
-        </a>
-        ${emailAddress ? `<a href="mailto:${emailAddress}?subject=Rajdeep%20Enterprises%20-%20Quotation%20for%20RFQ%20${referenceId}&body=Dear%20${encodeURIComponent(contractorName)}," style="display:inline-block;background:#2563eb;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">✉️ Reply via Email</a>` : ''}
-      </div>
-
-    </div>
-
-    <!-- Footer -->
-    <div style="background:#f8fafc;padding:16px 28px;border-top:1px solid #e2e8f0;font-size:12px;color:#64748b;text-align:center;">
-      Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 281005<br>
-      GSTIN: 09AAPFR9321B1Z2 • Support: +91-9997993895 • rajdeepenterprises0047@gmail.com
-    </div>
-
-  </div>
-</body>
-</html>
-    `.trim();
-
     await transporter.sendMail({
       from: `"Rajdeep Enterprises Website" <${smtpUser}>`,
       to: alertEmailTo,
       replyTo: emailAddress ? `"${contractorName}" <${emailAddress}>` : undefined,
-      subject: `[Bulk RFQ] ${companyName !== 'Not Specified' ? companyName : contractorName} (${rfqItems.length} Items) - Ref ${referenceId}`,
+      subject,
       text: textContent,
       html: htmlContent,
       headers: {
         'X-Entity-Ref-ID': referenceId,
-        'X-Submission-Type': 'Bulk RFQ',
+        'X-Submission-Type': isAiChatbot ? 'Rajdeep AI RFQ' : 'Bulk RFQ',
       },
     });
 
     return res.status(200).json({
       success: true,
       rfqReference: referenceId,
-      message: 'Your Request for Quotation (RFQ) has been delivered successfully.',
-      itemCount: rfqItems.length,
+      message: 'Your enquiry has been submitted successfully.',
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
     console.error('[RFQ] ERROR_STAGE=EMAIL_DELIVERY_FAILED', err?.message);
     return res.status(500).json({
       success: false,
-      error: 'Unable to deliver your RFQ email at this time. Please connect directly via WhatsApp (+91-9997993895).',
+      error: 'We couldn\'t submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.',
     });
   }
 }

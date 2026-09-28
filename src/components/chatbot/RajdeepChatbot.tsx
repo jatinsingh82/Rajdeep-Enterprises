@@ -4,6 +4,7 @@ import { ChatMessage, ChatStatus, StructuredRfq } from '../../types/chat';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatSuggestions } from './ChatSuggestions';
 import { sendChatMessage } from '../../services/chatService';
+import { submitAiRfq } from '../../services/rfqService';
 
 function formatCurrentTime(): string {
   return new Date().toLocaleTimeString('en-IN', {
@@ -27,6 +28,7 @@ export const RajdeepChatbot: React.FC = () => {
   const [status, setStatus] = useState<ChatStatus>('idle');
   const [showTooltip, setShowTooltip] = useState(true);
   const [currentRfq, setCurrentRfq] = useState<StructuredRfq | null>(null);
+  const [isSubmittingRfq, setIsSubmittingRfq] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -45,7 +47,7 @@ export const RajdeepChatbot: React.FC = () => {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, messages, status]);
+  }, [isOpen, messages, status, isSubmittingRfq]);
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -63,10 +65,18 @@ export const RajdeepChatbot: React.FC = () => {
     actionOverride?: 'confirm' | 'edit' | 'cancel'
   ) => {
     const text = (textToSend || inputVal).trim();
-    if ((!text && !actionOverride) || status === 'loading') return;
+    if ((!text && !actionOverride) || status === 'loading' || isSubmittingRfq) return;
+
+    // Route explicit confirmation to real submission workflow
+    if (actionOverride === 'confirm' || text.toLowerCase() === 'confirm rfq' || text.toLowerCase() === 'confirm quotation') {
+      if (currentRfq && (currentRfq.status === 'ready_for_review' || currentRfq.customerName)) {
+        await handleConfirmRfq();
+        return;
+      }
+    }
 
     const userMessageText =
-      text || (actionOverride === 'confirm' ? 'Confirm RFQ' : actionOverride === 'cancel' ? 'Cancel my quotation' : 'Edit details');
+      text || (actionOverride === 'cancel' ? 'Cancel my quotation' : 'Edit details');
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -93,12 +103,13 @@ export const RajdeepChatbot: React.FC = () => {
         setCurrentRfq(updatedRfq);
       }
 
-      // Attach structured RFQ to AI message if ready for review, confirmed, or cancelled
+      // Attach structured RFQ to AI message if ready for review, confirmed, cancelled, or error
       const shouldAttachRfq = Boolean(
         updatedRfq &&
         (updatedRfq.status === 'ready_for_review' ||
          updatedRfq.status === 'confirmed' ||
-         updatedRfq.status === 'cancelled')
+         updatedRfq.status === 'cancelled' ||
+         updatedRfq.submissionError)
       );
 
       const aiMessage: ChatMessage = {
@@ -125,8 +136,82 @@ export const RajdeepChatbot: React.FC = () => {
     }
   };
 
-  const handleConfirmRfq = () => {
-    handleSendMessage('Confirm RFQ', 'confirm');
+  /**
+   * Real Submission Workflow for Rajdeep AI RFQ (Section 3, 7, 8, 9, 10)
+   * Dispatches RFQ to /api/rfq, handles duplication prevention, reports real status
+   */
+  const handleConfirmRfq = async () => {
+    if (!currentRfq || isSubmittingRfq) return;
+
+    setIsSubmittingRfq(true);
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text: 'Confirm RFQ',
+      timestamp: formatCurrentTime(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    try {
+      const result = await submitAiRfq({ rfq: currentRfq });
+
+      if (result.success) {
+        const confirmedRfq: StructuredRfq = {
+          ...currentRfq,
+          status: 'confirmed',
+          rfqReference: result.rfqReference,
+          submissionError: undefined,
+        };
+        setCurrentRfq(confirmedRfq);
+
+        const aiMessage: ChatMessage = {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: `Your enquiry has been submitted successfully.\n\nReference: ${result.rfqReference || 'RE-RFQ'}\n\nThe Rajdeep Enterprises team will review your requirement and contact you using the details provided.`,
+          timestamp: formatCurrentTime(),
+          rfq: confirmedRfq,
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+      } else {
+        const failedRfq: StructuredRfq = {
+          ...currentRfq,
+          submissionError:
+            result.error ||
+            "We couldn't submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.",
+        };
+        setCurrentRfq(failedRfq);
+
+        const aiMessage: ChatMessage = {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: "We couldn't submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.",
+          timestamp: formatCurrentTime(),
+          isError: true,
+          rfq: failedRfq,
+        };
+        setMessages((prev) => [...prev, aiMessage]);
+      }
+    } catch {
+      const failedRfq: StructuredRfq = {
+        ...currentRfq,
+        submissionError:
+          "We couldn't submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.",
+      };
+      setCurrentRfq(failedRfq);
+
+      const aiMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: "We couldn't submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.",
+        timestamp: formatCurrentTime(),
+        isError: true,
+        rfq: failedRfq,
+      };
+      setMessages((prev) => [...prev, aiMessage]);
+    } finally {
+      setIsSubmittingRfq(false);
+    }
   };
 
   const handleEditRfq = () => {
@@ -141,6 +226,7 @@ export const RajdeepChatbot: React.FC = () => {
 
   const handleResetChat = () => {
     setCurrentRfq(null);
+    setIsSubmittingRfq(false);
     setMessages([
       {
         ...INITIAL_MESSAGE,
@@ -285,18 +371,22 @@ export const RajdeepChatbot: React.FC = () => {
                 onConfirmRfq={handleConfirmRfq}
                 onEditRfq={handleEditRfq}
                 onCancelRfq={handleCancelRfq}
-                isActionDisabled={status === 'loading'}
+                onRetryRfq={handleConfirmRfq}
+                isSubmitting={isSubmittingRfq}
+                isActionDisabled={status === 'loading' || isSubmittingRfq}
               />
             ))}
 
             {/* Typing / Loading Indicator */}
-            {status === 'loading' && (
+            {(status === 'loading' || isSubmittingRfq) && (
               <div className="flex items-end gap-2.5 my-2.5 justify-start">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-orange-500/60 flex items-center justify-center text-orange-400">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl rounded-bl-xs px-4 py-3 text-slate-300 shadow-sm flex items-center gap-1.5">
-                  <span className="text-xs text-slate-400 mr-1">Rajdeep AI is thinking</span>
+                  <span className="text-xs text-slate-400 mr-1">
+                    {isSubmittingRfq ? 'Submitting your RFQ to Rajdeep Enterprises' : 'Rajdeep AI is thinking'}
+                  </span>
                   <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
                   <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
                   <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" />
@@ -310,7 +400,7 @@ export const RajdeepChatbot: React.FC = () => {
           {/* Suggested Questions Area */}
           <ChatSuggestions
             onSelectSuggestion={(q) => handleSendMessage(q)}
-            disabled={status === 'loading'}
+            disabled={status === 'loading' || isSubmittingRfq}
           />
 
           {/* Message Input Area */}
@@ -329,13 +419,13 @@ export const RajdeepChatbot: React.FC = () => {
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDownInput}
                 placeholder="Ask about products or request an RFQ..."
-                disabled={status === 'loading'}
+                disabled={status === 'loading' || isSubmittingRfq}
                 className="flex-1 bg-slate-900 text-slate-100 placeholder-slate-500 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition disabled:opacity-50"
                 aria-label="Message to Rajdeep AI"
               />
               <button
                 type="submit"
-                disabled={!inputVal.trim() || status === 'loading'}
+                disabled={!inputVal.trim() || status === 'loading' || isSubmittingRfq}
                 className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition shadow-md cursor-pointer"
                 aria-label="Send message"
               >
@@ -345,7 +435,7 @@ export const RajdeepChatbot: React.FC = () => {
 
             {/* Disclaimer required by user brief */}
             <p className="mt-2 text-[10px] text-slate-500 text-center leading-tight select-none">
-              AI-assisted quotations are prepared for team review. Final pricing, availability, and delivery are confirmed directly by Rajdeep Enterprises.
+              AI-assisted quotations are submitted to the Rajdeep Enterprises team. Final pricing, availability, and delivery are confirmed directly by our sales desk.
             </p>
           </div>
         </div>

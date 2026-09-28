@@ -8,6 +8,8 @@ interface ChatMessageItemProps {
   onConfirmRfq?: (rfq: StructuredRfq) => void;
   onEditRfq?: (rfq: StructuredRfq) => void;
   onCancelRfq?: (rfq: StructuredRfq) => void;
+  onRetryRfq?: (rfq: StructuredRfq) => void;
+  isSubmitting?: boolean;
   isActionDisabled?: boolean;
 }
 
@@ -16,6 +18,8 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   onConfirmRfq,
   onEditRfq,
   onCancelRfq,
+  onRetryRfq,
+  isSubmitting = false,
   isActionDisabled = false,
 }) => {
   const isUser = message.sender === 'user';
@@ -93,6 +97,8 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
               onConfirm={onConfirmRfq ? () => onConfirmRfq(message.rfq!) : undefined}
               onEdit={onEditRfq ? () => onEditRfq(message.rfq!) : undefined}
               onCancel={onCancelRfq ? () => onCancelRfq(message.rfq!) : undefined}
+              onRetry={onRetryRfq ? () => onRetryRfq(message.rfq!) : undefined}
+              isSubmitting={isSubmitting}
               disabled={isActionDisabled}
             />
           )}

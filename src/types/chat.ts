@@ -21,6 +21,8 @@ export interface StructuredRfq {
   additionalNotes?: string;
   boqProvided?: boolean;
   status: RfqStatus;
+  rfqReference?: string;
+  submissionError?: string;
 }
 
 export interface ChatMessage {
