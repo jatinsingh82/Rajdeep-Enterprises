@@ -1,12 +1,23 @@
 import React from 'react';
-import { ChatMessage } from '../../types/chat';
+import { ChatMessage, StructuredRfq } from '../../types/chat';
 import { Bot, User, AlertCircle } from 'lucide-react';
+import { RfqSummaryCard } from './RfqSummaryCard';
 
 interface ChatMessageItemProps {
   message: ChatMessage;
+  onConfirmRfq?: (rfq: StructuredRfq) => void;
+  onEditRfq?: (rfq: StructuredRfq) => void;
+  onCancelRfq?: (rfq: StructuredRfq) => void;
+  isActionDisabled?: boolean;
 }
 
-export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => {
+export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
+  message,
+  onConfirmRfq,
+  onEditRfq,
+  onCancelRfq,
+  isActionDisabled = false,
+}) => {
   const isUser = message.sender === 'user';
 
   // Format simple markdown (bold **text**, bullets •, newlines)
@@ -52,12 +63,12 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => 
 
       {/* Bubble Container */}
       <div
-        className={`max-w-[82%] sm:max-w-[78%] flex flex-col ${
+        className={`max-w-[88%] sm:max-w-[80%] flex flex-col ${
           isUser ? 'items-end' : 'items-start'
         }`}
       >
         <div
-          className={`rounded-2xl px-4 py-2.5 text-[13px] sm:text-sm leading-relaxed shadow-sm ${
+          className={`rounded-2xl px-4 py-2.5 text-[13px] sm:text-sm leading-relaxed shadow-sm w-full ${
             isUser
               ? 'bg-orange-600 text-white rounded-br-xs font-medium'
               : message.isError
@@ -74,6 +85,17 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ message }) => 
           <div className="break-words select-text">
             {renderFormattedText(message.text)}
           </div>
+
+          {/* Structured RFQ summary card if present */}
+          {message.rfq && (
+            <RfqSummaryCard
+              rfq={message.rfq}
+              onConfirm={onConfirmRfq ? () => onConfirmRfq(message.rfq!) : undefined}
+              onEdit={onEditRfq ? () => onEditRfq(message.rfq!) : undefined}
+              onCancel={onCancelRfq ? () => onCancelRfq(message.rfq!) : undefined}
+              disabled={isActionDisabled}
+            />
+          )}
         </div>
 
         {/* Timestamp */}

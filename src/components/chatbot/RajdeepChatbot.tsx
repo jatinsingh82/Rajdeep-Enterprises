@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Bot, X, Send, RotateCcw, Sparkles } from 'lucide-react';
-import { ChatMessage, ChatStatus } from '../../types/chat';
+import { ChatMessage, ChatStatus, StructuredRfq } from '../../types/chat';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatSuggestions } from './ChatSuggestions';
 import { sendChatMessage } from '../../services/chatService';
@@ -16,7 +16,7 @@ function formatCurrentTime(): string {
 const INITIAL_MESSAGE: ChatMessage = {
   id: 'welcome-message',
   sender: 'ai',
-  text: `Hello! 👋\nI'm Rajdeep AI, the Rajdeep Enterprises assistant.\nI can help you with products, materials, quotations, enquiries, and company information.\nHow can I help you today?`,
+  text: `Hello! 👋\nI'm Rajdeep AI, the Rajdeep Enterprises sales and quotation assistant.\nI can help you explore industrial safety PPE, Champion gaskets, welding consumables, and prepare an enquiry/RFQ for your materials.\nHow can I help you today?`,
   timestamp: formatCurrentTime(),
 };
 
@@ -26,6 +26,7 @@ export const RajdeepChatbot: React.FC = () => {
   const [inputVal, setInputVal] = useState('');
   const [status, setStatus] = useState<ChatStatus>('idle');
   const [showTooltip, setShowTooltip] = useState(true);
+  const [currentRfq, setCurrentRfq] = useState<StructuredRfq | null>(null);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -39,7 +40,6 @@ export const RajdeepChatbot: React.FC = () => {
   useEffect(() => {
     if (isOpen) {
       scrollToBottom();
-      // Focus input when opened on non-touch devices
       const timer = setTimeout(() => {
         inputRef.current?.focus();
       }, 100);
@@ -58,14 +58,20 @@ export const RajdeepChatbot: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  const handleSendMessage = async (textToSend?: string) => {
+  const handleSendMessage = async (
+    textToSend?: string,
+    actionOverride?: 'confirm' | 'edit' | 'cancel'
+  ) => {
     const text = (textToSend || inputVal).trim();
-    if (!text || status === 'loading') return;
+    if ((!text && !actionOverride) || status === 'loading') return;
+
+    const userMessageText =
+      text || (actionOverride === 'confirm' ? 'Confirm RFQ' : actionOverride === 'cancel' ? 'Cancel my quotation' : 'Edit details');
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
       sender: 'user',
-      text,
+      text: userMessageText,
       timestamp: formatCurrentTime(),
     };
 
@@ -76,9 +82,24 @@ export const RajdeepChatbot: React.FC = () => {
 
     try {
       const response = await sendChatMessage({
-        message: text,
+        message: userMessageText,
         history: newHistory,
+        currentRfq,
+        action: actionOverride,
       });
+
+      const updatedRfq = response.rfq !== undefined ? response.rfq : currentRfq;
+      if (updatedRfq !== undefined) {
+        setCurrentRfq(updatedRfq);
+      }
+
+      // Attach structured RFQ to AI message if ready for review, confirmed, or cancelled
+      const shouldAttachRfq = Boolean(
+        updatedRfq &&
+        (updatedRfq.status === 'ready_for_review' ||
+         updatedRfq.status === 'confirmed' ||
+         updatedRfq.status === 'cancelled')
+      );
 
       const aiMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
@@ -86,6 +107,7 @@ export const RajdeepChatbot: React.FC = () => {
         text: response.text,
         timestamp: formatCurrentTime(),
         isError: response.isError,
+        rfq: shouldAttachRfq ? updatedRfq! : undefined,
       };
 
       setMessages((prev) => [...prev, aiMessage]);
@@ -103,7 +125,22 @@ export const RajdeepChatbot: React.FC = () => {
     }
   };
 
+  const handleConfirmRfq = () => {
+    handleSendMessage('Confirm RFQ', 'confirm');
+  };
+
+  const handleEditRfq = () => {
+    inputRef.current?.focus();
+    setInputVal('');
+    handleSendMessage('I would like to edit details of my enquiry.', 'edit');
+  };
+
+  const handleCancelRfq = () => {
+    handleSendMessage('Cancel my quotation', 'cancel');
+  };
+
   const handleResetChat = () => {
+    setCurrentRfq(null);
     setMessages([
       {
         ...INITIAL_MESSAGE,
@@ -141,7 +178,7 @@ export const RajdeepChatbot: React.FC = () => {
                 e.stopPropagation();
                 setShowTooltip(false);
               }}
-              className="text-slate-400 hover:text-slate-200 ml-1"
+              className="text-slate-400 hover:text-slate-200 ml-1 cursor-pointer"
               aria-label="Dismiss tooltip"
             >
               <X className="w-3 h-3" />
@@ -168,7 +205,7 @@ export const RajdeepChatbot: React.FC = () => {
             <span className="text-xs font-bold text-white tracking-wide leading-tight flex items-center gap-1">
               Rajdeep AI
               <span className="inline-block px-1 py-0.2 text-[9px] bg-orange-500/20 text-orange-400 rounded font-semibold border border-orange-500/30">
-                PRO
+                SALES & RFQ
               </span>
             </span>
             <span className="text-[10px] text-slate-400 leading-tight">Instant Assistant</span>
@@ -185,7 +222,7 @@ export const RajdeepChatbot: React.FC = () => {
           aria-label="Rajdeep AI Chat Assistant"
           className="fixed z-50 flex flex-col bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200
             inset-x-2 bottom-2 h-[88vh] max-h-[640px] rounded-2xl
-            sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[420px] sm:h-[600px] sm:max-h-[85vh]"
+            sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[440px] sm:h-[620px] sm:max-h-[85vh]"
         >
           {/* Header */}
           <header className="relative bg-slate-950 text-white px-4 py-3.5 border-b border-slate-800 flex items-center justify-between shrink-0">
@@ -207,7 +244,7 @@ export const RajdeepChatbot: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 truncate">
-                  Rajdeep Enterprises Assistant
+                  Sales & RFQ Assistant • Rajdeep Enterprises
                 </p>
               </div>
             </div>
@@ -242,7 +279,14 @@ export const RajdeepChatbot: React.FC = () => {
             aria-live="polite"
           >
             {messages.map((msg) => (
-              <ChatMessageItem key={msg.id} message={msg} />
+              <ChatMessageItem
+                key={msg.id}
+                message={msg}
+                onConfirmRfq={handleConfirmRfq}
+                onEditRfq={handleEditRfq}
+                onCancelRfq={handleCancelRfq}
+                isActionDisabled={status === 'loading'}
+              />
             ))}
 
             {/* Typing / Loading Indicator */}
@@ -284,7 +328,7 @@ export const RajdeepChatbot: React.FC = () => {
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDownInput}
-                placeholder="Ask Rajdeep AI anything..."
+                placeholder="Ask about products or request an RFQ..."
                 disabled={status === 'loading'}
                 className="flex-1 bg-slate-900 text-slate-100 placeholder-slate-500 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition disabled:opacity-50"
                 aria-label="Message to Rajdeep AI"
@@ -301,7 +345,7 @@ export const RajdeepChatbot: React.FC = () => {
 
             {/* Disclaimer required by user brief */}
             <p className="mt-2 text-[10px] text-slate-500 text-center leading-tight select-none">
-              AI-generated responses may not always be accurate. For final pricing, availability and quotations, please contact Rajdeep Enterprises.
+              AI-assisted quotations are prepared for team review. Final pricing, availability, and delivery are confirmed directly by Rajdeep Enterprises.
             </p>
           </div>
         </div>
