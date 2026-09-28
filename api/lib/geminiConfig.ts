@@ -1,10 +1,10 @@
 /**
  * Centralized Gemini AI Configuration for Rajdeep AI
  * 
- * Default model: 'gemini-3.8-flash' (current, fast, robust general text model)
+ * Default model: 'gemini-flash-latest' (current, fast, robust general text model)
  * Overridable via process.env.GEMINI_MODEL
  */
-export const GEMINI_MODEL: string = process.env.GEMINI_MODEL || 'gemini-3.8-flash';
+export const GEMINI_MODEL: string = process.env.GEMINI_MODEL || 'gemini-flash-latest';
 
 /**
  * Official Initial System Instruction for Rajdeep AI

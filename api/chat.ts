@@ -1,3 +1,8 @@
+import dotenv from 'dotenv';
+import path from 'path';
+
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
 import { GoogleGenAI } from '@google/genai';
 import { handleCors } from './lib/cors';
 import { GEMINI_MODEL, RAJDEEP_AI_SYSTEM_INSTRUCTION } from './lib/geminiConfig';
@@ -43,7 +48,7 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // 4. API Key Verification (Server-Side Only)
+    // Remove debugCode from missing key check
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       console.warn('[ChatAPI] GEMINI_API_KEY is not configured in the server environment.');
@@ -90,11 +95,6 @@ export default async function handler(req: any, res: any) {
     // 6. Initialize Gemini SDK
     const ai = new GoogleGenAI({
       apiKey,
-      httpOptions: {
-        headers: {
-          'User-Agent': 'aistudio-build',
-        },
-      },
     });
 
     // 7. Generate response from Gemini
