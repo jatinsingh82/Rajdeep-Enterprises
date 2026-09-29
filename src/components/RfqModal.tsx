@@ -24,6 +24,7 @@ import { RfqItem, Language } from '../types';
 import { COMPANY_INFO } from '../data/companyData';
 import { TRANSLATIONS } from '../data/extraData';
 import { trackRfqSubmit, trackWhatsAppClick } from '../utils/analytics';
+import { openExternalLink } from '../utils/linkUtils';
 
 interface RfqModalProps {
   isOpen: boolean;
@@ -157,7 +158,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
     const message = generateBoqText();
     const encoded = encodeURIComponent(message);
     const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encoded}`;
-    window.open(url, '_blank', 'noopener,noreferrer');
+    openExternalLink(url);
   };
 
   const handleSendEmail = async () => {
@@ -314,7 +315,7 @@ export const RfqModal: React.FC<RfqModalProps> = ({
         const message = generateBoqText(generatedRef);
         const encoded = encodeURIComponent(message);
         const url = `https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encoded}`;
-        window.open(url, '_blank', 'noopener,noreferrer');
+        openExternalLink(url);
       } else {
         setSubmitted(false);
         setApiError(

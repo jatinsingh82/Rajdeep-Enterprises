@@ -21,6 +21,23 @@ const INITIAL_MESSAGE: ChatMessage = {
   timestamp: formatCurrentTime(),
 };
 
+function cleanProductName(name?: string): string | undefined {
+  if (!name) return undefined;
+  let cleaned = name.trim();
+  cleaned = cleaned.replace(
+    /^(?:(?:i|we)\s+(?:need|want|require|am\s+looking\s+for|are\s+looking\s+for|would\s+like)|looking\s+for|requirement\s+(?:for|of)|quote\s+for|inquiry\s+for|enquiry\s+for|do\s+you\s+(?:have|supply|sell)|can\s+you\s+(?:supply|arrange|source|provide|give)|please\s+give\s+me|give\s+me|send\s+me|i\s+would\s+like|i\s+have\s+noted)\s+/i,
+    ''
+  );
+  cleaned = cleaned.replace(/^(?:a|an|some|the)\s+/i, '');
+  cleaned = cleaned.replace(/[.!?]+$/, '').trim();
+  if (cleaned.length > 0) {
+    if (cleaned.toLowerCase() === 'tape' || cleaned.toLowerCase() === 'tapes') return 'Tape';
+    if (cleaned.toLowerCase() === 'envelope' || cleaned.toLowerCase() === 'envelopes') return 'Envelopes';
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+  return name;
+}
+
 export const RajdeepChatbot: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([INITIAL_MESSAGE]);
@@ -28,6 +45,47 @@ export const RajdeepChatbot: React.FC = () => {
   const [status, setStatus] = useState<ChatStatus>('idle');
   const [showTooltip, setShowTooltip] = useState(true);
   const [currentRfq, setCurrentRfq] = useState<StructuredRfq | null>(null);
+  const currentRfqRef = useRef<StructuredRfq | null>(null);
+  const isSubmittingRef = useRef<boolean>(false);
+
+  // Sync ref with state
+  useEffect(() => {
+    currentRfqRef.current = currentRfq;
+  }, [currentRfq]);
+
+  // Safe merge helper to ensure known fields are never overwritten by empty strings
+  const updateRfqState = (newRfq: StructuredRfq | null) => {
+    if (!newRfq) {
+      currentRfqRef.current = null;
+      setCurrentRfq(null);
+      return;
+    }
+    const prev = currentRfqRef.current;
+    const merged: StructuredRfq = {
+      ...(prev || {}),
+      ...newRfq,
+      customerName: newRfq.customerName?.trim() || prev?.customerName,
+      companyName: newRfq.companyName?.trim() || prev?.companyName,
+      phone: newRfq.phone?.trim() || prev?.phone,
+      email: newRfq.email?.trim() || prev?.email,
+      product: cleanProductName(newRfq.product?.trim()) || cleanProductName(prev?.product),
+      material: newRfq.material?.trim() || prev?.material,
+      grade: newRfq.grade?.trim() || prev?.grade,
+      quantity: newRfq.quantity?.trim() || prev?.quantity,
+      unit: newRfq.unit?.trim() || prev?.unit,
+      thickness: newRfq.thickness?.trim() || prev?.thickness,
+      dimensions: newRfq.dimensions?.trim() || prev?.dimensions,
+      specifications: newRfq.specifications?.trim() || prev?.specifications,
+      brand: newRfq.brand?.trim() || prev?.brand,
+      size: newRfq.size?.trim() || prev?.size,
+      deliveryLocation: newRfq.deliveryLocation?.trim() || prev?.deliveryLocation,
+      additionalNotes: newRfq.additionalNotes?.trim() || prev?.additionalNotes,
+      items: newRfq.items && newRfq.items.length > 0 ? newRfq.items : prev?.items,
+      status: newRfq.status || prev?.status || 'draft',
+    };
+    currentRfqRef.current = merged;
+    setCurrentRfq(merged);
+  };
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -59,100 +117,16 @@ export const RajdeepChatbot: React.FC = () => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen]);
 
-  const handleSendMessage = async (
-    textToSend?: string,
-    actionOverride?: 'confirm' | 'edit' | 'cancel' | 'send_requirement'
-  ) => {
-    const text = (textToSend || inputVal).trim();
-    if ((!text && !actionOverride) || status === 'loading' || status === 'submitting') return;
-
-    // Detect action intent from message text if not explicitly overridden
-    let effectiveAction = actionOverride;
-    if (!effectiveAction) {
-      const lower = text.toLowerCase();
-      if (lower === 'confirm & send' || lower === 'confirm rfq' || lower === 'confirm quotation' || lower === 'confirm') {
-        effectiveAction = 'confirm';
-      } else if (lower.includes('cancel my quotation') || lower === 'cancel rfq' || lower === 'cancel' || lower === 'cancel my requirement') {
-        effectiveAction = 'cancel';
-      } else if (lower === 'edit' || lower === 'edit details' || lower === 'edit rfq') {
-        effectiveAction = 'edit';
-      } else if (lower === 'send requirement') {
-        effectiveAction = 'send_requirement';
-      }
-    }
-
-    // Intercept confirm action to execute actual submission if ready
-    if (effectiveAction === 'confirm') {
-      await handleConfirmAndSubmit();
-      return;
-    }
-
-    const userMessageText =
-      text || (effectiveAction === 'cancel' ? 'Cancel requirement' : effectiveAction === 'send_requirement' ? 'Send Requirement' : 'Edit details');
-
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      sender: 'user',
-      text: userMessageText,
-      timestamp: formatCurrentTime(),
-    };
-
-    const newHistory = [...messages, userMessage];
-    setMessages(newHistory);
-    setInputVal('');
-    setStatus('loading');
-
-    try {
-      const response = await sendChatMessage({
-        message: userMessageText,
-        history: newHistory,
-        currentRfq,
-        action: effectiveAction,
-      });
-
-      const updatedRfq = response.rfq !== undefined ? response.rfq : currentRfq;
-      if (updatedRfq !== undefined) {
-        setCurrentRfq(updatedRfq);
-      }
-
-      // Attach structured RFQ to AI message if ready for review, ready to submit, or confirmed
-      const shouldAttachRfq = Boolean(
-        updatedRfq &&
-        (updatedRfq.status === 'ready_for_review' ||
-         updatedRfq.status === 'ready_to_submit' ||
-         updatedRfq.status === 'submitted' ||
-         updatedRfq.status === 'confirmed' ||
-         updatedRfq.status === 'cancelled' ||
-         updatedRfq.submissionError)
-      );
-
-      const aiMessage: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        sender: 'ai',
-        text: response.text,
-        timestamp: formatCurrentTime(),
-        isError: response.isError,
-        rfq: shouldAttachRfq ? updatedRfq! : undefined,
-      };
-
-      setMessages((prev) => [...prev, aiMessage]);
-      setStatus('idle');
-    } catch {
-      const errorMessage: ChatMessage = {
-        id: `err-${Date.now()}`,
-        sender: 'ai',
-        text: 'Sorry, I encountered an issue processing your request. Please try again or reach out to our team directly at +91-9997993895.',
-        timestamp: formatCurrentTime(),
-        isError: true,
-      };
-      setMessages((prev) => [...prev, errorMessage]);
-      setStatus('error');
-    }
-  };
-
   // Dedicated requirement submission flow via /api/rfq
   const handleConfirmAndSubmit = async (rfqOverride?: StructuredRfq) => {
-    const targetRfq = rfqOverride || currentRfq;
+    if (isSubmittingRef.current || status === 'submitting') return; // Prevent duplicate clicks
+
+    const targetRfq = rfqOverride || currentRfqRef.current || currentRfq;
+
+    // Prevent re-submission of already submitted requirement
+    if (targetRfq?.status === 'submitted') {
+      return;
+    }
 
     // 1. Missing item check
     if (!targetRfq || (!targetRfq.product && (!targetRfq.items || targetRfq.items.length === 0))) {
@@ -200,11 +174,21 @@ export const RajdeepChatbot: React.FC = () => {
       return;
     }
 
-    // 4. Submit directly to backend API (prevent double clicks via status === 'submitting')
+    // 4. Submit directly to backend API (prevent double clicks via synchronous ref and status === 'submitting')
+    isSubmittingRef.current = true;
     setStatus('submitting');
 
     try {
-      const result = await submitAiRfq({ rfq: targetRfq });
+      // Build conversation transcript summary
+      const conversationSummary = messages
+        .filter((m) => m.text && !m.isError)
+        .map((m) => `${m.sender === 'user' ? 'Customer' : 'AI'}: ${m.text}`)
+        .join('\n');
+
+      const result = await submitAiRfq({
+        rfq: targetRfq,
+        conversationSummary,
+      });
 
       if (result.success) {
         const submittedRfq: StructuredRfq = {
@@ -212,14 +196,13 @@ export const RajdeepChatbot: React.FC = () => {
           status: 'submitted',
           rfqReference: result.rfqReference,
         };
-        setCurrentRfq(submittedRfq);
+        updateRfqState(submittedRfq);
 
+        const refText = result.rfqReference ? `\n\nReference:\n${result.rfqReference}` : '';
         const successMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `Your requirement has been sent successfully to the Rajdeep Enterprises team. Our team will review it and get back to you regarding the quotation.${
-            result.rfqReference ? `\n\nReference: ${result.rfqReference}` : ''
-          }`,
+          text: `Your requirement has been successfully sent to the Rajdeep Enterprises team.${refText}\n\nOur team will review your requirement and get back to you regarding the quotation.`,
           timestamp: formatCurrentTime(),
           rfq: submittedRfq,
         };
@@ -227,17 +210,18 @@ export const RajdeepChatbot: React.FC = () => {
         setMessages((prev) => [...prev, successMessage]);
         setStatus('idle');
       } else {
+        isSubmittingRef.current = false;
         const failedRfq: StructuredRfq = {
           ...targetRfq,
           status: 'failed',
           submissionError: result.error,
         };
-        setCurrentRfq(failedRfq);
+        updateRfqState(failedRfq);
 
         const failMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises through WhatsApp or Call.`,
+          text: `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly.`,
           timestamp: formatCurrentTime(),
           isError: true,
           rfq: failedRfq,
@@ -247,17 +231,18 @@ export const RajdeepChatbot: React.FC = () => {
         setStatus('idle');
       }
     } catch {
+      isSubmittingRef.current = false;
       const failedRfq: StructuredRfq = {
         ...targetRfq,
         status: 'failed',
         submissionError: 'Network connection error',
       };
-      setCurrentRfq(failedRfq);
+      updateRfqState(failedRfq);
 
       const errorMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises through WhatsApp or Call.`,
+        text: `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly.`,
         timestamp: formatCurrentTime(),
         isError: true,
         rfq: failedRfq,
@@ -292,8 +277,8 @@ export const RajdeepChatbot: React.FC = () => {
 
   // UI Action: Cancel button clicked
   const handleCancelRfq = () => {
-    if (currentRfq) {
-      setCurrentRfq({ ...currentRfq, status: 'cancelled' });
+    if (currentRfqRef.current) {
+      updateRfqState({ ...currentRfqRef.current, status: 'cancelled' });
     }
     const cancelMsg: ChatMessage = {
       id: `ai-${Date.now()}`,
@@ -304,8 +289,124 @@ export const RajdeepChatbot: React.FC = () => {
     setMessages((prev) => [...prev, cancelMsg]);
   };
 
+  const handleSendMessage = async (
+    textToSend?: string,
+    actionOverride?: 'confirm' | 'edit' | 'cancel' | 'send_requirement'
+  ) => {
+    const text = (textToSend !== undefined ? textToSend : inputVal).trim();
+    if (!text && !actionOverride) return;
+    if (status === 'loading' || status === 'submitting') return;
+
+    const lower = text.toLowerCase();
+
+    // 1. Intercept Send Requirement action (button click or typed phrase)
+    if (
+      actionOverride === 'confirm' ||
+      actionOverride === 'send_requirement' ||
+      lower === 'send requirement' ||
+      lower === 'send requirement.' ||
+      lower === 'confirm & send' ||
+      lower === 'confirm rfq' ||
+      lower === 'confirm quotation' ||
+      lower === 'confirm' ||
+      lower === 'send'
+    ) {
+      setInputVal('');
+      await handleConfirmAndSubmit();
+      return;
+    }
+
+    // 2. Intercept Cancel action
+    if (
+      actionOverride === 'cancel' ||
+      lower === 'cancel' ||
+      lower === 'cancel.' ||
+      lower === 'cancel requirement' ||
+      lower === 'cancel my quotation' ||
+      lower === 'cancel rfq'
+    ) {
+      setInputVal('');
+      handleCancelRfq();
+      return;
+    }
+
+    // 3. Intercept Edit action
+    if (
+      actionOverride === 'edit' ||
+      lower === 'edit' ||
+      lower === 'edit details' ||
+      lower === 'edit requirement' ||
+      lower === 'edit rfq'
+    ) {
+      setInputVal('');
+      handleEditRfq();
+      return;
+    }
+
+    const userMessage: ChatMessage = {
+      id: `user-${Date.now()}`,
+      sender: 'user',
+      text,
+      timestamp: formatCurrentTime(),
+    };
+
+    const newHistory = [...messages, userMessage];
+    setMessages(newHistory);
+    setInputVal('');
+    setStatus('loading');
+
+    try {
+      const response = await sendChatMessage({
+        message: text,
+        history: newHistory,
+        currentRfq: currentRfqRef.current || currentRfq,
+        action: actionOverride,
+      });
+
+      const updatedRfq = response.rfq !== undefined ? response.rfq : currentRfqRef.current;
+      if (updatedRfq !== undefined) {
+        updateRfqState(updatedRfq);
+      }
+
+      const activeRfq = updatedRfq || currentRfqRef.current;
+
+      // Attach structured RFQ to AI message if ready for review, ready to submit, or confirmed
+      const shouldAttachRfq = Boolean(
+        activeRfq &&
+        (activeRfq.status === 'ready_for_review' ||
+         activeRfq.status === 'ready_to_submit' ||
+         activeRfq.status === 'submitted' ||
+         activeRfq.status === 'confirmed' ||
+         activeRfq.status === 'cancelled' ||
+         activeRfq.submissionError)
+      );
+
+      const aiMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: response.text,
+        timestamp: formatCurrentTime(),
+        isError: response.isError,
+        rfq: shouldAttachRfq ? activeRfq! : undefined,
+      };
+
+      setMessages((prev) => [...prev, aiMessage]);
+      setStatus('idle');
+    } catch {
+      const errorMessage: ChatMessage = {
+        id: `err-${Date.now()}`,
+        sender: 'ai',
+        text: 'Sorry, I encountered an issue processing your request. Please try again or reach out to our team directly at +91-9997993895.',
+        timestamp: formatCurrentTime(),
+        isError: true,
+      };
+      setMessages((prev) => [...prev, errorMessage]);
+      setStatus('error');
+    }
+  };
+
   const handleResetChat = () => {
-    setCurrentRfq(null);
+    updateRfqState(null);
     setMessages([
       {
         ...INITIAL_MESSAGE,

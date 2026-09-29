@@ -1,13 +1,13 @@
 import React from 'react';
 import { ChatMessage, StructuredRfq } from '../../types/chat';
-import { Bot, User, AlertCircle, Send, MessageSquare } from 'lucide-react';
+import { Bot, User, AlertCircle, Send, MessageSquare, Edit3, XCircle } from 'lucide-react';
 import { RfqSummaryCard } from './RfqSummaryCard';
 
 interface ChatMessageItemProps {
   message: ChatMessage;
   onConfirmRfq?: (rfq: StructuredRfq) => void;
-  onEditRfq?: (rfq: StructuredRfq) => void;
-  onCancelRfq?: (rfq: StructuredRfq) => void;
+  onEditRfq?: () => void;
+  onCancelRfq?: () => void;
   onSendRequirement?: () => void;
   onContinueChatting?: () => void;
   isActionDisabled?: boolean;
@@ -47,10 +47,15 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
     });
   };
 
+  const lowerText = message.text.toLowerCase();
   const offersSendRequirement =
     !isUser &&
     !message.rfq &&
-    message.text.includes('send this requirement to our team');
+    (lowerText.includes('send this requirement') ||
+     lowerText.includes('send your requirement') ||
+     lowerText.includes('would you like me to send') ||
+     lowerText.includes('would you like to send') ||
+     lowerText.includes('for quotation?'));
 
   return (
     <div
@@ -106,15 +111,39 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
                 <Send className="w-3 h-3" />
                 <span>Send Requirement</span>
               </button>
-              <button
-                type="button"
-                disabled={isActionDisabled}
-                onClick={onContinueChatting}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-700/70 hover:bg-slate-700 text-slate-300 hover:text-white text-xs rounded-lg transition disabled:opacity-50 cursor-pointer"
-              >
-                <MessageSquare className="w-3 h-3 text-slate-400" />
-                <span>Continue Chatting</span>
-              </button>
+              {onEditRfq && (
+                <button
+                  type="button"
+                  disabled={isActionDisabled}
+                  onClick={onEditRfq}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded-lg border border-slate-700 transition disabled:opacity-50 cursor-pointer"
+                >
+                  <Edit3 className="w-3 h-3 text-orange-400" />
+                  <span>Edit</span>
+                </button>
+              )}
+              {onCancelRfq && (
+                <button
+                  type="button"
+                  disabled={isActionDisabled}
+                  onClick={onCancelRfq}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 text-xs rounded-lg transition disabled:opacity-50 cursor-pointer"
+                >
+                  <XCircle className="w-3 h-3" />
+                  <span>Cancel</span>
+                </button>
+              )}
+              {onContinueChatting && (
+                <button
+                  type="button"
+                  disabled={isActionDisabled}
+                  onClick={onContinueChatting}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-700/70 hover:bg-slate-700 text-slate-300 hover:text-white text-xs rounded-lg transition disabled:opacity-50 cursor-pointer"
+                >
+                  <MessageSquare className="w-3 h-3 text-slate-400" />
+                  <span>Continue Chatting</span>
+                </button>
+              )}
             </div>
           )}
 
@@ -123,8 +152,8 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
             <RfqSummaryCard
               rfq={message.rfq}
               onConfirm={onConfirmRfq ? () => onConfirmRfq(message.rfq!) : undefined}
-              onEdit={onEditRfq ? () => onEditRfq(message.rfq!) : undefined}
-              onCancel={onCancelRfq ? () => onCancelRfq(message.rfq!) : undefined}
+              onEdit={onEditRfq}
+              onCancel={onCancelRfq}
               disabled={isActionDisabled}
             />
           )}

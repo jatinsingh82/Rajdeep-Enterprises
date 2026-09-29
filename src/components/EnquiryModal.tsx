@@ -7,6 +7,7 @@ import {
   trackWhatsAppClick,
   trackPhoneClick,
 } from '../utils/analytics';
+import { openExternalLink } from '../utils/linkUtils';
 
 interface EnquiryModalProps {
   isOpen: boolean;
@@ -126,7 +127,7 @@ export const EnquiryModal: React.FC<EnquiryModalProps> = ({
       (notes ? `• *Notes:* ${notes}\n` : '') +
       `\nPlease share best competitive quotation with GST invoice terms.`
     );
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank', 'noopener,noreferrer');
+    openExternalLink(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {

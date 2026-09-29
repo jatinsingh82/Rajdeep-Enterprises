@@ -30,6 +30,7 @@ import {
   trackRfqAddItem,
   trackRFQStep
 } from '../utils/analytics';
+import { openExternalLink } from '../utils/linkUtils';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -346,7 +347,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     ].filter(Boolean).join('\n');
 
     const text = encodeURIComponent(messageLines);
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank', 'noopener,noreferrer');
+    openExternalLink(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`);
   };
 
   // 4. Call Handler

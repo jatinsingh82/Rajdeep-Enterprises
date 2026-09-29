@@ -70,6 +70,31 @@ function cleanExpiredSubmissions(): void {
   }
 }
 
+function isCatalogueOrStandardItem(name: string): boolean {
+  if (!name) return false;
+  const lower = name.toLowerCase().trim();
+  const knownKeywords = [
+    'helmet', 'hard hat', 'shoe', 'boot', 'gumboot', 'footwear',
+    'glove', 'hand glove', 'harness', 'safety belt', 'lanyard', 'fall arrester', 'lifeline',
+    'goggle', 'spectacle', 'face shield', 'ear muff', 'ear plug', 'jacket', 'reflective', 'boiler suit', 'coverall',
+    'tape', 'lane marking', 'floor marking', 'barricade', 'caution tape', 'duct tape', 'adhesive tape',
+    'cone', 'road stud', 'speed breaker', 'safety sign', 'signage',
+    'welding', 'electrode', 'welding rod', 'welding machine', 'cutter', 'torch', 'dpt', 'ndt',
+    'gasket', 'jointing sheet', 'champion', 'rubber sheet',
+    'fastener', 'nut', 'bolt', 'washer', 'stud', 'screw', 'threaded rod', 'anchor',
+    'grinder', 'drill', 'cut off', 'blade', 'wheel', 'wrench', 'spanner', 'plier', 'hammer', 'silicon gun',
+    'register', 'permit', 'stationery', 'copy', 'copies', 'pen', 'pens', 'envelope', 'paper', 'printout', 'photocopy',
+    'crane', 'hydra', 'farana', 'rental',
+    'brush', 'paint brush', 'paint', 'roller',
+    'gauge', 'pressure gauge', 'vacuum gauge',
+    'valve', 'ball valve', 'gate valve', 'globe valve', 'butterfly valve', 'check valve',
+    'pipe', 'tube', 'fitting', 'flange', 'elbow', 'tee',
+    'cylinder', 'extinguisher', 'fire fighting', 'fire hose', 'fire blanket',
+    'tarpaulin', 'shade net', 'scaffolding'
+  ];
+  return knownKeywords.some((kw) => lower.includes(kw));
+}
+
 export default async function handler(req: any, res: any) {
   const corsOk = handleCors(req, res);
   if (!corsOk) {
@@ -96,7 +121,11 @@ export default async function handler(req: any, res: any) {
     }
 
     const source = sanitizeText(rawBody.source || '', 50);
-    const isAiChatbot = source === 'Rajdeep AI Chatbot' || Boolean(rawBody.product || rawBody.material);
+    const isAiChatbot =
+      source === 'Rajdeep AI Chatbot' ||
+      source === 'rajdeep-ai-chat' ||
+      source === 'Website AI Chatbot' ||
+      Boolean(rawBody.isAiChatbot || rawBody.product || rawBody.material);
 
     // 2. Extract common and AI-specific fields
     const contractorName = sanitizeText(
@@ -145,8 +174,14 @@ export default async function handler(req: any, res: any) {
     const thickness = sanitizeText(rawBody.thickness || '', 50);
     const dimensions = sanitizeText(rawBody.dimensions || '', 80);
     const specifications = sanitizeText(rawBody.specifications || '', 250);
+    const brand = sanitizeText(rawBody.brand || '', 100);
+    const size = sanitizeText(rawBody.size || rawBody.model || '', 100);
     const application = sanitizeText(rawBody.application || '', 200);
     const requiredBy = sanitizeText(rawBody.requiredBy || '', 80);
+    const conversationSummary = sanitizeText(
+      rawBody.conversationSummary || rawBody.conversation || '',
+      4000
+    );
 
     // 3. Server-side Validation
     if (!contractorName || contractorName.length < 2) {
@@ -241,49 +276,70 @@ export default async function handler(req: any, res: any) {
 
     if (isAiChatbot) {
       // ----------------------------------------------------
-      // SECTION 6 COMPLIANT FORMAT: RAJDEEP AI CHATBOT RFQ
+      // SECTION 2 & 3 COMPLIANT FORMAT: RAJDEEP AI CHATBOT
       // ----------------------------------------------------
-      const displayProduct = product || material || 'Industrial Material Supply';
-      subject = `New RFQ from Rajdeep AI — ${displayProduct}`;
+      subject = 'New Chatbot Requirement — Rajdeep AI';
 
-      // Build text body - ONLY include fields that contain information
-      const textLines: string[] = [
-        'RAJDEEP ENTERPRISES',
-        'NEW WEBSITE RFQ',
-        '',
-        'Customer Information',
-        '--------------------',
-        `Name: ${contractorName}`,
-      ];
+      const isStandardCatalogueItem = isCatalogueOrStandardItem(product);
+      const productStatus = isStandardCatalogueItem
+        ? 'Standard Catalogue Product'
+        : 'Non-catalogue / Special sourcing requirement';
 
-      if (companyName) textLines.push(`Company: ${companyName}`);
-      if (phoneNumber) textLines.push(`Phone: ${phoneNumber}`);
-      if (emailAddress) textLines.push(`Email: ${emailAddress}`);
+      const sizeModel = size || thickness || dimensions || '';
 
-      textLines.push('', 'Requirement', '-----------');
-      if (product) textLines.push(`Product: ${product}`);
-      if (material) textLines.push(`Material: ${material}`);
-      if (grade) textLines.push(`Grade: ${grade}`);
-      if (quantity) textLines.push(`Quantity: ${quantity}`);
-      if (unit) textLines.push(`Unit: ${unit}`);
-      if (thickness) textLines.push(`Thickness: ${thickness}`);
-      if (dimensions) textLines.push(`Dimensions: ${dimensions}`);
-      if (specifications) textLines.push(`Specifications: ${specifications}`);
-      if (application) textLines.push(`Application: ${application}`);
+      textContent = `
+NEW REQUIREMENT FROM RAJDEEP AI CHATBOT
 
-      if (siteLocation || requiredBy) {
-        textLines.push('', 'Delivery', '--------');
-        if (siteLocation) textLines.push(`Delivery Location: ${siteLocation}`);
-        if (requiredBy) textLines.push(`Required By: ${requiredBy}`);
-      }
+Reference:
+${referenceId}
 
-      if (notes) {
-        textLines.push('', 'Additional Information', '----------------------', `Additional Notes: ${notes}`);
-      }
+Customer Name:
+${contractorName}
 
-      textLines.push('', 'Source:', 'Rajdeep AI Chatbot', '', 'RFQ Status:', 'Confirmed by Customer', '', `Reference ID: ${referenceId}`, `Submitted At: ${timestamp}`);
+Company:
+${companyName || 'Not Provided'}
 
-      textContent = textLines.join('\n');
+Phone:
+${phoneNumber}
+
+Email:
+${emailAddress || 'Not Provided'}
+
+Requested Item:
+${product || 'Not Specified'}
+
+Quantity:
+${quantity ? `${quantity}${unit ? ` ${unit}` : ''}` : 'Not Specified'}
+
+Specification:
+${specifications || 'None'}
+
+Brand:
+${brand || 'None'}
+
+Size/Model:
+${sizeModel || 'None'}
+
+Delivery Location:
+${siteLocation || 'Not Provided'}
+
+Additional Notes:
+${notes || 'None'}
+
+Source:
+Website AI Chatbot
+
+Product Status:
+${productStatus}
+
+Conversation Summary:
+${conversationSummary || 'Customer submitted requirement via AI chatbot interface.'}
+
+==================================================
+Reply-To is configured directly to customer's email (${emailAddress || 'N/A'}).
+Rajdeep Enterprises | 15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura
+Phone: +91 99979 93895 | Email: rajdeepenterprises0047@gmail.com
+      `.trim();
 
       // Helper function for HTML table rows
       const htmlRow = (label: string, val: string | undefined) => {
@@ -300,25 +356,30 @@ export default async function handler(req: any, res: any) {
     
     <div style="background-color:#0f172a;padding:22px 28px;border-bottom:4px solid #ea580c;">
       <div style="font-size:11px;font-weight:700;letter-spacing:1px;color:#f97316;text-transform:uppercase;margin-bottom:4px;">
-        Rajdeep Enterprises • Website RFQ
+        NEW REQUIREMENT FROM RAJDEEP AI CHATBOT
       </div>
       <h1 style="margin:0;font-size:20px;color:#ffffff;font-weight:700;">
         ${subject}
       </h1>
       <p style="margin:6px 0 0;font-size:12px;color:#94a3b8;">
-        Ref: <strong style="color:#ffffff;">${referenceId}</strong> &bull; ${timestamp}
+        Reference: <strong style="color:#ffffff;">${referenceId}</strong> &bull; ${timestamp}
       </p>
     </div>
 
     <div style="padding:28px;">
 
+      <!-- Product Status Banner -->
+      <div style="background:${isStandardCatalogueItem ? '#f0fdf4' : '#fff7ed'};border:1px solid ${isStandardCatalogueItem ? '#bbf7d0' : '#fed7aa'};border-radius:6px;padding:10px 14px;color:${isStandardCatalogueItem ? '#15803d' : '#c2410c'};font-weight:600;font-size:13px;margin-bottom:20px;">
+        ${isStandardCatalogueItem ? '✓ Product Status: Standard Catalogue Product' : '⚠️ Product Status: Non-catalogue / Special sourcing requirement'}
+      </div>
+
       <h2 style="margin:0 0 12px;font-size:14px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
         Customer Information
       </h2>
       <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px;">
-        ${htmlRow('Name', contractorName)}
+        ${htmlRow('Customer Name', contractorName)}
         ${htmlRow('Company', companyName)}
-        ${htmlRow('Phone / WhatsApp', phoneNumber)}
+        ${htmlRow('Phone', phoneNumber)}
         ${htmlRow('Email', emailAddress)}
       </table>
 
@@ -326,49 +387,39 @@ export default async function handler(req: any, res: any) {
         Requirement Details
       </h2>
       <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px;">
-        ${htmlRow('Product', product)}
-        ${htmlRow('Material', material)}
-        ${htmlRow('Grade', grade)}
+        ${htmlRow('Requested Item', product)}
         ${htmlRow('Quantity', quantity ? `${quantity}${unit ? ` ${unit}` : ''}` : undefined)}
-        ${htmlRow('Thickness', thickness)}
-        ${htmlRow('Dimensions', dimensions)}
-        ${htmlRow('Specifications', specifications)}
-        ${htmlRow('Application', application)}
+        ${htmlRow('Specification', specifications)}
+        ${htmlRow('Brand', brand)}
+        ${htmlRow('Size/Model', sizeModel)}
+        ${htmlRow('Delivery Location', siteLocation)}
+        ${htmlRow('Additional Notes', notes)}
       </table>
 
-      ${(siteLocation || requiredBy) ? `
-      <h2 style="margin:0 0 12px;font-size:14px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
-        Delivery Information
-      </h2>
-      <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px;">
-        ${htmlRow('Delivery Location', siteLocation)}
-        ${htmlRow('Required By', requiredBy)}
-      </table>` : ''}
-
-      ${notes ? `
-      <h2 style="margin:0 0 10px;font-size:14px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
-        Additional Information
-      </h2>
-      <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:12px 16px;margin-bottom:20px;font-size:13px;line-height:1.5;color:#1e293b;white-space:pre-wrap;">${notes}</div>` : ''}
-
-      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:#475569;">
-        <div><strong>Source:</strong> Rajdeep AI Chatbot</div>
-        <div style="margin-top:4px;"><strong>RFQ Status:</strong> Confirmed by Customer</div>
+      <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:6px;padding:10px 14px;margin-bottom:20px;font-size:12px;color:#475569;">
+        <div><strong>Source:</strong> Website AI Chatbot</div>
+        <div style="margin-top:4px;"><strong>Reference:</strong> ${referenceId}</div>
       </div>
+
+      ${conversationSummary ? `
+      <h2 style="margin:0 0 10px;font-size:14px;color:#0f172a;text-transform:uppercase;letter-spacing:0.5px;border-bottom:2px solid #e2e8f0;padding-bottom:6px;">
+        Conversation Summary
+      </h2>
+      <div style="background:#f8fafc;border:1px solid #cbd5e1;border-radius:6px;padding:12px 16px;margin-bottom:20px;font-size:12px;line-height:1.6;color:#334155;white-space:pre-wrap;font-family:monospace;">${conversationSummary}</div>` : ''}
 
       <!-- Quick Actions -->
       <div style="background:#fff7ed;border:1px solid #ffedd5;border-radius:8px;padding:16px;text-align:center;">
         <p style="margin:0 0 12px;font-size:13px;color:#9a3412;font-weight:600;">
-          Direct action links for this RFQ:
+          Direct action links for this requirement:
         </p>
         ${phoneNumber ? `
         <a href="tel:${phoneNumber}" style="display:inline-block;background:#0f172a;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">
           📞 Call Customer (${phoneNumber})
         </a>
-        <a href="https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(contractorName)},%20thank%20you%20for%20your%20enquiry%20(${encodeURIComponent(referenceId)})%20with%20Rajdeep%20Enterprises." style="display:inline-block;background:#16a34a;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">
+        <a href="https://wa.me/${phoneNumber.replace(/[^0-9]/g, '')}?text=Hello%20${encodeURIComponent(contractorName)},%20thank%20you%20for%20your%20requirement%20(${encodeURIComponent(referenceId)})%20with%20Rajdeep%20Enterprises." style="display:inline-block;background:#16a34a;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">
           💬 WhatsApp Customer
         </a>` : ''}
-        ${emailAddress ? `<a href="mailto:${emailAddress}?subject=Rajdeep%20Enterprises%20-%20Quotation%20for%20RFQ%20${referenceId}&body=Dear%20${encodeURIComponent(contractorName)}," style="display:inline-block;background:#2563eb;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">✉️ Reply via Email</a>` : ''}
+        ${emailAddress ? `<a href="mailto:${emailAddress}?subject=Rajdeep%20Enterprises%20-%20Quotation%20for%20Requirement%20${referenceId}&body=Dear%20${encodeURIComponent(contractorName)}," style="display:inline-block;background:#2563eb;color:#ffffff;padding:10px 18px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px;margin:4px;">✉️ Reply via Email</a>` : ''}
       </div>
 
     </div>

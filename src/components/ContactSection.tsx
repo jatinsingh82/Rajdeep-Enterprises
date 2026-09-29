@@ -10,6 +10,7 @@ import {
   trackQuoteSubmit,
   trackCallbackRequest,
 } from '../utils/analytics';
+import { openExternalLink } from '../utils/linkUtils';
 
 interface ContactSectionProps {
   initialRequirement?: string;
@@ -167,7 +168,7 @@ export const ContactSection: React.FC<ContactSectionProps> = ({ initialRequireme
       (requestCallback ? `*Urgent Callback:* Requested\n` : '') +
       `*Message:* ${formData.message || 'Please provide quotation and catalog.'}`
     );
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`, '_blank', 'noopener,noreferrer');
+    openExternalLink(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${text}`);
   };
 
   return (

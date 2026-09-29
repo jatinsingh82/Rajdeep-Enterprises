@@ -3,6 +3,7 @@ import { Truck, Globe2, PackageCheck, PlusCircle, Phone, MessageCircle, ArrowRig
 import { COMPANY_INFO } from '../data/companyData';
 import { Language } from '../types';
 import { TRANSLATIONS } from '../data/extraData';
+import { openExternalLink } from '../utils/linkUtils';
 
 interface PanIndiaSupplySectionProps {
   lang: Language;
@@ -61,7 +62,7 @@ export const PanIndiaSupplySection: React.FC<PanIndiaSupplySectionProps> = ({
       `*Delivery Location in India:* ${destinationCity || 'Whole India Supply'}\n\n` +
       `Please confirm availability, custom sourcing lead time, and best quotation.`
     );
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${message}`, '_blank', 'noopener,noreferrer');
+    openExternalLink(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${message}`);
   };
 
   return (

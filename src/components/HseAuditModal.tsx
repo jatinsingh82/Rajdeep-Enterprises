@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X, CheckCircle2, AlertTriangle, XCircle, ShieldCheck, Calendar, RefreshCw, ShoppingBag, Phone, ArrowRight, FileCheck2, Info } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
 import { Product } from '../types';
+import { openExternalLink } from '../utils/linkUtils';
 
 interface HseAuditModalProps {
   isOpen: boolean;
@@ -250,7 +251,7 @@ export const HseAuditModal: React.FC<HseAuditModalProps> = ({
       `*Urgent Items Needed:*\n${missingListText}\n\n` +
       `Please provide immediate dispatch to Mathura site with BIS/MTC certificates.`;
     
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    openExternalLink(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`);
   };
 
   return (

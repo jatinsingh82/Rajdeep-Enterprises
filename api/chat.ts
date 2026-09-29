@@ -55,6 +55,88 @@ export function detectProductCategory(
   return 'custom';
 }
 
+// Check if an item is a standard safety, PPE, hardware, welding, or site material item in catalogue
+export function isCatalogueOrStandardItem(name: string): boolean {
+  if (!name) return false;
+  const lower = name.toLowerCase().trim();
+  const knownKeywords = [
+    'helmet', 'hard hat', 'shoe', 'boot', 'gumboot', 'footwear',
+    'glove', 'hand glove', 'harness', 'safety belt', 'lanyard', 'fall arrester', 'lifeline',
+    'goggle', 'spectacle', 'face shield', 'ear muff', 'ear plug', 'jacket', 'reflective', 'boiler suit', 'coverall',
+    'tape', 'lane marking', 'floor marking', 'barricade', 'caution tape', 'duct tape', 'adhesive tape',
+    'cone', 'road stud', 'speed breaker', 'safety sign', 'signage',
+    'welding', 'electrode', 'welding rod', 'welding machine', 'cutter', 'torch', 'dpt', 'ndt',
+    'gasket', 'jointing sheet', 'champion', 'rubber sheet',
+    'fastener', 'nut', 'bolt', 'washer', 'stud', 'screw', 'threaded rod', 'anchor',
+    'grinder', 'drill', 'cut off', 'blade', 'wheel', 'wrench', 'spanner', 'plier', 'hammer', 'silicon gun',
+    'register', 'permit', 'stationery', 'copy', 'copies', 'pen', 'pens', 'envelope', 'paper', 'printout', 'photocopy',
+    'crane', 'hydra', 'farana', 'rental',
+    'brush', 'paint brush', 'paint', 'roller',
+    'gauge', 'pressure gauge', 'vacuum gauge',
+    'valve', 'ball valve', 'gate valve', 'globe valve', 'butterfly valve', 'check valve',
+    'pipe', 'tube', 'fitting', 'flange', 'elbow', 'tee',
+    'cylinder', 'extinguisher', 'fire fighting', 'fire hose', 'fire blanket',
+    'tarpaulin', 'shade net', 'scaffolding'
+  ];
+  return knownKeywords.some((kw) => lower.includes(kw));
+}
+
+// Clean and canonicalize product/item names so conversational phrases are completely removed
+export function cleanItemName(raw: string): string {
+  if (!raw) return '';
+  let cleaned = raw.trim();
+
+  // Strip conversational prefixes
+  cleaned = cleaned.replace(/^(?:hello|hi|hey|good morning|good afternoon|good evening)[,.\s]*/i, '');
+  cleaned = cleaned.replace(
+    /^(?:(?:i|we)\s+(?:need|want|require|am\s+looking\s+for|are\s+looking\s+for|would\s+like)|looking\s+for|requirement\s+(?:for|of)|quote\s+for|inquiry\s+for|enquiry\s+for|do\s+you\s+(?:have|supply|sell)|can\s+you\s+(?:supply|arrange|source|provide|give)|please\s+give\s+me|give\s+me|send\s+me|i\s+would\s+like|i\s+have\s+noted)\s+/i,
+    ''
+  );
+  cleaned = cleaned.replace(/^(?:a|an|some|the)\s+/i, '');
+  cleaned = cleaned.replace(
+    /^(?:\d+(?:\.\d+)?\s*(?:cartons?|ctns?|boxes?|pieces?|pcs?|nos?|dozens?|dz|kgs?|tons?|pairs?|rolls?|meters?|mtrs?|m|sets?|packets?|bundles?|sheets?)\s*(?:of\s+)?)/i,
+    ''
+  );
+  cleaned = cleaned.replace(/[.!?]+$/, '').trim();
+
+  // Strip trailing contact / specification clauses
+  const splitParts = cleaned.split(/[,;]|\b(?:my name is|my name|phone|contact|deliver to|location)\b/i);
+  cleaned = splitParts[0].trim();
+
+  // Strip trailing "components", "items", "products" if attached to model number (e.g. "XYZ-900 components" -> "XYZ-900")
+  const modelMatch = cleaned.match(/^([a-zA-Z0-9-]+)\s+(?:components?|items?|parts?|products?)$/i);
+  if (modelMatch) {
+    cleaned = modelMatch[1].trim();
+  }
+
+  const cleanLower = cleaned.toLowerCase();
+
+  // Canonical names for known products & categories
+  if (/\b(?:tapes?|adhesive\s+tape|packing\s+tape|floor\s+marking\s+tape|lane\s+marking\s+tape|caution\s+tape|barricade\s+tape|duct\s+tape)\b/i.test(cleanLower)) return 'Tape';
+  if (/\b(?:envelopes?)\b/i.test(cleanLower)) return 'Envelopes';
+  if (/\b(?:paint\s*brush(?:es)?|brushes?)\b/i.test(cleanLower)) return 'Paint Brushes';
+  if (/\b(?:fire\s+)?extinguishers?\b/i.test(cleanLower)) return 'Fire Extinguishers';
+  if (/\b(?:gas\s+)?cylinders?\b/i.test(cleanLower)) return 'Industrial Cylinders';
+  if (/\b(?:pressure\s+)?gauges?\b/i.test(cleanLower)) return 'Pressure Gauges';
+  if (/\b(?:industrial\s+)?valves?|ball\s+valve|gate\s+valve|globe\s+valve|butterfly\s+valve\b/i.test(cleanLower)) return 'Industrial Valves';
+  if (/\b(?:welding\s+)?machines?|welding\s+equipment\b/i.test(cleanLower)) return 'Welding Machines';
+  if (/\b(?:safety\s+)?helmets?|hard\s+hats?\b/i.test(cleanLower)) return 'Safety Helmets';
+  if (/\b(?:safety\s+)?(?:shoes?|boots?|gumboots?)\b/i.test(cleanLower)) return 'Safety Shoes';
+  if (/\b(?:safety\s+)?(?:hand\s+)?gloves?\b/i.test(cleanLower)) return 'Gloves';
+  if (/\b(?:safety\s+)?goggles?\b/i.test(cleanLower)) return 'Safety Goggles';
+  if (/\b(?:safety\s+)?(?:harness|safety\s+belt)\b/i.test(cleanLower)) return 'Safety Harness';
+  if (/\b(?:welding\s*(?:rods?|electrodes?|wire)?|electrodes?)\b/i.test(cleanLower)) return 'Welding Electrodes & Consumables';
+  if (/\b(?:champion\s+)?(?:gaskets?|gasket\s+sheets?)\b/i.test(cleanLower)) return 'Champion Gasket Sheets';
+  if (/\b(?:pipes?|tubes?|piping)\b/i.test(cleanLower)) return 'Industrial Pipes & Tubes';
+  if (/\b(?:sheets?|plates?)\b/i.test(cleanLower)) return 'Stainless Steel Sheets / Plates';
+  if (/\b(?:fasteners?|bolts?|nuts?|threaded\s+rods?|anchor\s+fasteners?)\b/i.test(cleanLower)) return 'Industrial Fasteners & Hardware';
+
+  if (cleaned.length > 0) {
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+  return raw;
+}
+
 // Universal item extraction from customer message
 function extractItemName(text: string): string | null {
   const trimmed = text.trim();
@@ -73,53 +155,88 @@ function extractItemName(text: string): string | null {
     return null;
   }
 
-  // Canonical names for known products & categories
-  if (/\b(?:envelopes?)\b/i.test(lower)) return 'Envelopes';
-  if (/\b(?:paint\s*brush(?:es)?|brushes?)\b/i.test(lower)) return 'Paint Brushes';
-  if (/\b(?:fire\s+)?extinguishers?\b/i.test(lower)) return 'Fire Extinguishers';
-  if (/\b(?:gas\s+)?cylinders?\b/i.test(lower)) return 'Industrial Cylinders';
-  if (/\b(?:pressure\s+)?gauges?\b/i.test(lower)) return 'Pressure Gauges';
-  if (/\b(?:industrial\s+)?valves?|ball\s+valve|gate\s+valve|globe\s+valve|butterfly\s+valve\b/i.test(lower)) return 'Industrial Valves';
-  if (/\b(?:welding\s+)?machines?|welding\s+equipment\b/i.test(lower)) return 'Welding Machines';
-  if (/\b(?:safety\s+)?helmets?|hard\s+hats?\b/i.test(lower)) return 'Safety Helmets';
-  if (/\b(?:safety\s+)?(?:shoes?|boots?|gumboots?)\b/i.test(lower)) return 'Safety Shoes';
-  if (/\b(?:safety\s+)?(?:hand\s+)?gloves?\b/i.test(lower)) return 'Gloves';
-  if (/\b(?:safety\s+)?goggles?\b/i.test(lower)) return 'Safety Goggles';
-  if (/\b(?:safety\s+)?(?:harness|safety\s+belt)\b/i.test(lower)) return 'Safety Harness';
-  if (/\b(?:welding\s*(?:rods?|electrodes?|wire)?|electrodes?)\b/i.test(lower)) return 'Welding Electrodes & Consumables';
-  if (/\b(?:champion\s+)?(?:gaskets?|gasket\s+sheets?)\b/i.test(lower)) return 'Champion Gasket Sheets';
-  if (/\b(?:pipes?|tubes?|piping)\b/i.test(lower)) return 'Industrial Pipes & Tubes';
-  if (/\b(?:sheets?|plates?)\b/i.test(lower)) return 'Stainless Steel Sheets / Plates';
-  if (/\b(?:fasteners?|bolts?|nuts?|threaded\s+rods?|anchor\s+fasteners?)\b/i.test(lower)) return 'Industrial Fasteners & Hardware';
+  const cleaned = cleanItemName(trimmed);
+  const cleanLower = cleaned.toLowerCase();
 
-  // Direct product name entry (e.g. "Envelope", "Industrial pressure gauge")
   if (
-    !trimmed.includes('?') &&
-    trimmed.length >= 3 &&
-    trimmed.length <= 40 &&
-    !nonItemWords.some(w => lower === w) &&
-    !/^\d+$/.test(trimmed) &&
-    !/^(?:my name|call me|i am|from|deliver)/i.test(trimmed)
+    cleaned.length >= 2 &&
+    cleaned.length <= 60 &&
+    !/^\d+$/.test(cleaned) &&
+    !nonItemWords.some(w => cleanLower === w) &&
+    !/^(?:cartons?|ctns?|boxes?|pieces?|pcs?|nos?|dozens?|dz|kgs?|tons?|pairs?|rolls?|meters?|mtrs?|sets?)$/i.test(cleaned)
   ) {
-    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+    return cleaned;
   }
 
-  // Generic natural language item extraction: "I need [item]", "looking for [item]", "Do you supply [item]", "Quote for [item]"
-  const intentMatch = trimmed.match(
-    /(?:(?:i|we)\s+(?:need|want|require|am looking for|are looking for)|looking\s+for|requirement\s+(?:for|of)|quote\s+for|inquiry\s+for|enquiry\s+for|do\s+you\s+(?:have|supply|sell)|can\s+you\s+(?:supply|arrange|source|provide))\s+(?:a\s+|an\s+|some\s+)?(?:\d+\s*(?:pcs|pieces|nos|kg|meters)?\s*(?:of\s+)?)?([a-zA-Z0-9\s/&-]+)/i
-  );
+  return null;
+}
 
-  if (intentMatch) {
-    let rawItem = intentMatch[1].trim();
-    // Strip trailing clauses, modifiers, punctuation, contact info
-    rawItem = rawItem.split(/[,.;!?]|\b(?:medium|large|small|\d+\s*inch|\d+\s*mm|please|today|urgently|my name|phone|contact)\b/i)[0].trim();
-    if (
-      rawItem &&
-      rawItem.length >= 3 &&
-      !['something', 'anything', 'items', 'products', 'materials', 'requirement', 'quotation', 'price', 'help', 'details', 'catalogue'].includes(rawItem.toLowerCase())
-    ) {
-      return rawItem.charAt(0).toUpperCase() + rawItem.slice(1);
+// Normalize units according to standard industrial packaging rules
+function normalizeUnit(num: string, rawUnit: string): string {
+  const u = rawUnit.toLowerCase().trim();
+  const n = parseFloat(num);
+  const isOne = n === 1;
+
+  if (u.startsWith('carton') || u.startsWith('ctn')) return isOne ? 'carton' : 'cartons';
+  if (u.startsWith('box')) return isOne ? 'box' : 'boxes';
+  if (u === 'pieces' || u === 'piece' || u === 'pcs' || u === 'pc' || u === 'nos' || u === 'no') return isOne ? 'piece' : 'pieces';
+  if (u.startsWith('dozen') || u === 'dz') return 'dozen';
+  if (u === 'kg' || u === 'kgs' || u === 'kilo' || u === 'kilos') return 'kg';
+  if (u.startsWith('ton')) return isOne ? 'ton' : 'tons';
+  if (u.startsWith('pair')) return isOne ? 'pair' : 'pairs';
+  if (u.startsWith('roll')) return isOne ? 'roll' : 'rolls';
+  if (u === 'meter' || u === 'meters' || u === 'mtr' || u === 'mtrs' || u === 'm') return isOne ? 'meter' : 'meters';
+  if (u.startsWith('set')) return isOne ? 'set' : 'sets';
+  if (u.startsWith('packet') || u.startsWith('pkt') || u.startsWith('pack')) return isOne ? 'packet' : 'packets';
+  if (u.startsWith('bundle')) return isOne ? 'bundle' : 'bundles';
+  if (u.startsWith('sheet')) return isOne ? 'sheet' : 'sheets';
+  if (u.startsWith('drum')) return isOne ? 'drum' : 'drums';
+  if (u.startsWith('can')) return isOne ? 'can' : 'cans';
+  if (u.startsWith('bottle')) return isOne ? 'bottle' : 'bottles';
+  if (u.startsWith('liter') || u.startsWith('litre') || u === 'ltr' || u === 'ltrs') return isOne ? 'liter' : 'liters';
+  return u;
+}
+
+// Natural quantity extraction with broad industrial unit support
+function extractQuantityFromText(text: string, isAnsweringQuantity: boolean): string | null {
+  const trimmed = text.trim();
+
+  // 1. Correction format: "Actually make that 10 cartons", "Make it 20 boxes", "Change quantity to 50"
+  const correctionMatch = trimmed.match(
+    /(?:actually\s+(?:make\s+(?:it|that)|need|\d+)|make\s+it|update\s+(?:it\s+)?to|change\s+(?:it\s+)?to)\s*(\d+(?:\.\d+)?)\s*(cartons?|ctns?|boxes?|pieces?|pcs?|nos?|dozens?|dz|kgs?|tons?|pairs?|rolls?|meters?|mtrs?|sets?)?/i
+  );
+  if (correctionMatch) {
+    const num = correctionMatch[1];
+    const u = correctionMatch[2] ? normalizeUnit(num, correctionMatch[2]) : '';
+    return `${num}${u ? ` ${u}` : ''}`.trim();
+  }
+
+  // 2. Quantity with unit regex (e.g. "5 carton", "5 cartons", "100 pcs", "20 boxes", "3 dozen", "500 kg", "25 pairs", "2 rolls", "50 meters", "10 sets")
+  const unitRegex = /\b(\d+(?:\.\d+)?)\s*(cartons?|ctns?|boxes?|pieces?|piece|pcs|pc|nos?|dozens?|dz|kgs?|kilos?|tons?|tonnes?|pairs?|rolls?|meters?|mtrs?|mtr\b|m\b|sets?|packets?|pkts?|packs?|packages?|bundles?|sheets?|drums?|cans?|bottles?|liters?|litres?|units?)\b/i;
+  const unitMatch = trimmed.match(unitRegex);
+  if (unitMatch) {
+    const num = unitMatch[1];
+    const normalized = normalizeUnit(num, unitMatch[2]);
+    return `${num} ${normalized}`.trim();
+  }
+
+  // 3. User is answering "How many do you need?" with a short number or phrase (e.g. "10", "around 20", "we need 15")
+  if (isAnsweringQuantity) {
+    const standaloneOrLeadingNum = trimmed.match(/^(?:(?:i\s+need|need|want|around|about|approx|give\s+me|send\s+me)\s+)?(\d+(?:\.\d+)?)\s*$/i);
+    if (standaloneOrLeadingNum && !['304', '316', '7018', '6013'].includes(standaloneOrLeadingNum[1])) {
+      return standaloneOrLeadingNum[1];
     }
+  }
+
+  // 4. Natural sentence pattern: "I need 20 XYZ-900 components", "Need 100 safety helmets"
+  const sentenceNumMatch = trimmed.match(/(?:need|want|require|quantity|qty|order)\s+(?:a\s+|an\s+|some\s+)?(\d+(?:\.\d+)?)\b/i);
+  if (sentenceNumMatch && !['304', '316', '7018', '6013'].includes(sentenceNumMatch[1])) {
+    return sentenceNumMatch[1];
+  }
+
+  const plainNumBeforeItem = trimmed.match(/^\s*(?:i\s+(?:need|want)\s+)?(\d+(?:\.\d+)?)\s+[a-zA-Z]/i);
+  if (plainNumBeforeItem && !['304', '316', '7018', '6013'].includes(plainNumBeforeItem[1])) {
+    return plainNumBeforeItem[1];
   }
 
   return null;
@@ -209,56 +326,35 @@ function extractEntities(
     changedFields.push('items');
   }
 
-  // 4. Single Product / Item extraction
-  if (!updated.product && !updated.items) {
-    const detectedItem = extractItemName(text);
-    if (detectedItem) {
-      updated.product = detectedItem;
-      changedFields.push('product');
-    }
+  // Determine if user is answering a quantity question based on current state or prior AI question
+  const isAnsweringQuantity = Boolean(
+    (updated.product && !updated.quantity) ||
+    lastAiMessage.includes('how many') ||
+    lastAiMessage.includes('what quantity') ||
+    lastAiMessage.includes('quantity do you need') ||
+    lastAiMessage.includes('how much')
+  );
+
+  // 4. Quantity extraction (handles "5 carton", "5 cartons", "10", "100 pcs", "20 boxes", "3 dozen", "500 kg", etc.)
+  const parsedQty = extractQuantityFromText(text, isAnsweringQuantity);
+  if (parsedQty && (!updated.quantity || correctionQtyMatch) && !updated.items) {
+    updated.quantity = parsedQty;
+    changedFields.push('quantity');
   }
 
-  // 5. Quantity extraction
-  const naturalQtyMatch = text.match(
-    /(?:(?:i|we)\s+(?:need|want|require|am looking for|are looking for)|looking\s+for|requirement\s+(?:for|of)|quote\s+for|inquiry\s+for|do\s+you\s+(?:have|supply|sell)|can\s+you\s+(?:supply|arrange|source|provide))\s+(?:a\s+|an\s+|some\s+)?(\d+(?:\.\d+)?)\s*(pcs|pieces|piece|nos|kg|meters|mtr|boxes|packets|sets|pairs|rolls)?\s*(?:of\s+)?([a-zA-Z0-9\s/&-]+)/i
-  );
-  const plainQtyMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(kg|kgs|pieces|piece|pcs|nos|meters|mtr|m|tons|ton|bundles|boxes|pairs|sets|rolls)\b/i);
-  const countWithProductMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(?:(?:pieces|piece|pcs|nos)\s*(?:of\s+)?)?(?:envelopes?|paint\s*brushes?|brushes?|fire\s+extinguishers?|extinguishers?|cylinders?|pressure\s+gauges?|valves?|welding\s+machines?|safety\s+helmets?|helmets?|safety\s+shoes?|shoes?|gloves?)\b/i);
-  const standaloneNum = text.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
-
-  if ((!updated.quantity || correctionQtyMatch) && !updated.items) {
-    if (correctionQtyMatch) {
-      // handled above
-    } else if (naturalQtyMatch && !['304', '316', '7018', '6013'].includes(naturalQtyMatch[1])) {
-      const num = naturalQtyMatch[1];
-      const unit = naturalQtyMatch[2] || (lower.includes('pieces') || lower.includes('piece') ? 'pieces' : '');
-      const newQty = `${num}${unit ? ` ${unit}` : ''}`.trim();
-      updated.quantity = newQty;
-      updated.unit = unit;
-      changedFields.push('quantity');
-    } else if (plainQtyMatch) {
-      const num = plainQtyMatch[1];
-      const unit = plainQtyMatch[2];
-      const newQty = `${num} ${unit}`.trim();
-      updated.quantity = newQty;
-      updated.unit = unit;
-      changedFields.push('quantity');
-    } else if (countWithProductMatch && !['304', '316', '7018', '6013'].includes(countWithProductMatch[1])) {
-      const num = countWithProductMatch[1];
-      const unit = lower.includes('pieces') || lower.includes('piece') ? 'pieces' : '';
-      const newQty = `${num}${unit ? ` ${unit}` : ''}`.trim();
-      updated.quantity = newQty;
-      updated.unit = unit;
-      changedFields.push('quantity');
-    } else if (standaloneNum) {
-      const askedQuantity = lastAiMessage.includes('how many') || lastAiMessage.includes('what quantity') || !updated.quantity;
-      if (askedQuantity) {
-        const num = standaloneNum[1];
-        const newQty = `${num}`;
-        updated.quantity = newQty;
-        changedFields.push('quantity');
+  // 5. Single Product / Item extraction
+  if (!updated.product && !updated.items) {
+    // If user's message was a quantity answer or parsed as quantity, NEVER parse it as an item!
+    if (!isAnsweringQuantity && !parsedQty) {
+      const detectedItem = extractItemName(text);
+      if (detectedItem) {
+        updated.product = cleanItemName(detectedItem);
+        changedFields.push('product');
       }
     }
+  } else if (updated.product) {
+    // Always clean product name if it was previously set or passed from client (e.g. "I want tape" -> "Tape")
+    updated.product = cleanItemName(updated.product);
   }
 
   // 6. Brand extraction
@@ -289,20 +385,20 @@ function extractEntities(
   }
 
   // 8. Specification extraction
+  const cleanLower = lower.replace(/[.!?]+$/, '').trim();
   const isDeclineSpec =
-    lower === 'no' ||
-    lower === 'none' ||
-    lower === 'not sure' ||
-    lower === 'no preference' ||
-    lower === "i don't know" ||
-    lower === "i don't know the specification" ||
-    lower === "i don't know the specification." ||
-    lower.includes("don't know the specification") ||
-    lower === 'no idea';
+    cleanLower === 'no' ||
+    cleanLower === 'none' ||
+    cleanLower === 'not sure' ||
+    cleanLower === 'no preference' ||
+    cleanLower === "i don't know" ||
+    cleanLower === "i don't know the specification" ||
+    cleanLower.includes("don't know the specification") ||
+    cleanLower === 'no idea';
 
   if (isDeclineSpec) {
     if (!updated.specifications || updated.specifications === 'Not provided') {
-      updated.specifications = 'Not provided';
+      updated.specifications = 'No preference';
       changedFields.push('specifications');
     }
   } else {
@@ -530,7 +626,7 @@ function generateDeterministicFallback(
     lower === "can't find your item?"
   ) {
     return {
-      reply: `No problem. You can send us the requirement directly here. What item do you need?`,
+      reply: `No problem. Tell me what item you need and I'll help prepare the requirement.`,
       intent: 'product_enquiry',
       rfq: currentRfq,
     };
@@ -552,18 +648,21 @@ function generateDeterministicFallback(
   }
 
   // 6. Test 6: "I don't know the specification."
+  // 6. Test 6 & User Flow: "No" / "No preference" / "I don't know the specification."
+  const cleanFallbackLower = lower.replace(/[.!?]+$/, '').trim();
   if (
-    lower === "i don't know the specification." ||
-    lower === "i don't know the specification" ||
-    lower.includes("don't know the specification") ||
-    lower === "i don't know" ||
-    lower === "not sure" ||
-    lower === "no"
+    cleanFallbackLower === "i don't know the specification" ||
+    cleanFallbackLower.includes("don't know the specification") ||
+    cleanFallbackLower === "i don't know" ||
+    cleanFallbackLower === "not sure" ||
+    cleanFallbackLower === "no" ||
+    cleanFallbackLower === "no preference" ||
+    cleanFallbackLower === "none"
   ) {
     const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
-    baseRfq.specifications = 'Not provided';
+    baseRfq.specifications = 'No preference';
     return {
-      reply: `No problem. You can submit the requirement with the information you have. Our team can review the requirement and clarify any specifications needed for the quotation.\n\nPlease provide your name and phone/WhatsApp number so our team can assist you.`,
+      reply: `No problem. Please provide your name and phone/WhatsApp number so I can prepare the requirement.`,
       intent: 'rfq_collection',
       rfq: baseRfq,
     };
@@ -675,6 +774,21 @@ function generateDeterministicFallback(
 
   // STAGE 2: Item known, Quantity is missing
   if (!updated.quantity) {
+    if (updated.product === 'Pressure Gauges' || lower.includes('pressure gauge')) {
+      return {
+        reply: `Sure. How many do you need?`,
+        intent: 'rfq_collection',
+        rfq: updated,
+      };
+    }
+    const isStandard = isCatalogueOrStandardItem(updated.product);
+    if (!isStandard) {
+      return {
+        reply: `This item is not currently listed in our online catalogue, but we can take your requirement as a special sourcing request. I will send your requirement to the Rajdeep Enterprises team for confirmation. How many do you need?`,
+        intent: 'rfq_collection',
+        rfq: updated,
+      };
+    }
     return {
       reply: `Sure, we can help with that. I have noted ${updated.product}. How many do you need?`,
       intent: 'rfq_collection',
@@ -684,6 +798,14 @@ function generateDeterministicFallback(
 
   // STAGE 3: Item & Quantity known, Specification missing (Test 1, Test 2)
   if (!updated.specifications && !updated.size && !updated.brand) {
+    const isStandard = isCatalogueOrStandardItem(updated.product);
+    if (!isStandard) {
+      return {
+        reply: `I have noted ${updated.quantity} ${updated.product}. While this is an unlisted item, our team can check sourcing options. Do you have a preferred brand, model, or technical specifications? (If not, reply "No" to proceed)`,
+        intent: 'rfq_collection',
+        rfq: updated,
+      };
+    }
     const category = detectProductCategory(updated.product, text);
     if (category === 'gauge') {
       return {
@@ -692,17 +814,38 @@ function generateDeterministicFallback(
         rfq: updated,
       };
     }
+    if (category === 'paint_brush') {
+      return {
+        reply: `Sure, we can help with that. I have noted ${updated.quantity} ${updated.product}. Do you have any preferred size, type or brand?`,
+        intent: 'rfq_collection',
+        rfq: updated,
+      };
+    }
     return {
-      reply: `Sure, we can help with that. I have noted ${updated.quantity} ${updated.product}. Do you have any preferred size, type or brand?`,
+      reply: `Sure, we can help with that. I have noted ${updated.quantity} ${updated.product}. Do you have any preferred size, type or specification?`,
       intent: 'rfq_collection',
       rfq: updated,
     };
   }
 
-  // STAGE 4: Customer Contact missing (Name or Phone)
-  if (!updated.customerName || !updated.phone) {
+  // STAGE 4: Customer Contact missing (Name or Phone) - NEVER ask for details already provided!
+  if (!updated.customerName && !updated.phone) {
     return {
       reply: `Got it — ${updated.quantity} ${updated.product}${updated.size ? `, ${updated.size}` : ''}${updated.brand ? `, ${updated.brand}` : ''}. Please provide your name and WhatsApp/phone number so our team can assist you.`,
+      intent: 'rfq_collection',
+      rfq: updated,
+    };
+  }
+  if (!updated.customerName) {
+    return {
+      reply: `Got your contact number (${updated.phone}). What is your name or company name?`,
+      intent: 'rfq_collection',
+      rfq: updated,
+    };
+  }
+  if (!updated.phone) {
+    return {
+      reply: `Thanks ${updated.customerName}. What is your WhatsApp/phone number so our team can send the quotation?`,
       intent: 'rfq_collection',
       rfq: updated,
     };
@@ -839,30 +982,101 @@ export default async function handler(req: any, res: any) {
       }
 
       if (parsedData && typeof parsedData.reply === 'string') {
-        const extractedRfq: StructuredRfqData = parsedData.rfq || currentRfq || { status: 'draft' };
+        const rawExtracted: Partial<StructuredRfqData> = parsedData.rfq || {};
 
-        if (extractedRfq.email && !isValidEmail(extractedRfq.email)) {
-          delete extractedRfq.email;
+        if (rawExtracted.email && !isValidEmail(rawExtracted.email)) {
+          delete rawExtracted.email;
         }
-        if (extractedRfq.phone && !isValidPhone(extractedRfq.phone)) {
-          delete extractedRfq.phone;
+        if (rawExtracted.phone && !isValidPhone(rawExtracted.phone)) {
+          delete rawExtracted.phone;
         }
 
+        // Clean out empty string or null values so they NEVER wipe out known fields
+        const cleanedExtracted: Partial<StructuredRfqData> = {};
+        for (const [k, v] of Object.entries(rawExtracted)) {
+          if (v !== '' && v !== null && v !== undefined) {
+            (cleanedExtracted as any)[k] = v;
+          }
+        }
+
+        if (cleanedExtracted.product) {
+          cleanedExtracted.product = cleanItemName(cleanedExtracted.product);
+        }
+
+        // Merge with deterministic extraction from message context
+        const { updated: deterministicallyUpdated } = extractEntities(
+          trimmedMessage,
+          currentRfq || { status: 'draft' },
+          conversationHistory
+        );
+
+        // Deterministic extraction takes precedence for quantity and product so regex-verified items are not lost
         const mergedRfq: StructuredRfqData = {
           ...(currentRfq || {}),
-          ...extractedRfq,
-          status: extractedRfq.status || currentRfq?.status || 'draft',
+          ...cleanedExtracted,
+          ...deterministicallyUpdated,
+          status: cleanedExtracted.status || deterministicallyUpdated.status || currentRfq?.status || 'draft',
         };
 
+        if (mergedRfq.product) {
+          mergedRfq.product = cleanItemName(mergedRfq.product);
+        }
+
+        if (deterministicallyUpdated.items && deterministicallyUpdated.items.length > 0) {
+          mergedRfq.items = deterministicallyUpdated.items;
+        } else if (cleanedExtracted.items && cleanedExtracted.items.length > 0) {
+          mergedRfq.items = cleanedExtracted.items;
+        }
+
         const hasCoreRequirements = Boolean(
-          (mergedRfq.product || mergedRfq.items) &&
-          (mergedRfq.quantity || mergedRfq.items) &&
+          (mergedRfq.product || (mergedRfq.items && mergedRfq.items.length > 0)) &&
+          (mergedRfq.quantity || (mergedRfq.items && mergedRfq.items.length > 0)) &&
           mergedRfq.customerName &&
           (mergedRfq.phone || mergedRfq.email)
         );
 
         if (hasCoreRequirements && mergedRfq.status === 'draft') {
           mergedRfq.status = 'ready_to_submit';
+        }
+
+        // Anti-Repetition Safety Guard: Overrule model hallucinations if known state would be repeated
+        const replyLower = parsedData.reply.toLowerCase();
+
+        // 1. If quantity is already known, never ask "How many do you need?"
+        if (
+          mergedRfq.quantity &&
+          (replyLower.includes('how many') ||
+           replyLower.includes('what quantity') ||
+           replyLower.includes('quantity do you need'))
+        ) {
+          const fallback = generateDeterministicFallback(trimmedMessage, mergedRfq, action, conversationHistory);
+          parsedData.reply = fallback.reply;
+          parsedData.intent = fallback.intent;
+        }
+
+        // 2. If product is already known, never ask "What item do you need?"
+        if (
+          (mergedRfq.product || (mergedRfq.items && mergedRfq.items.length > 0)) &&
+          (replyLower.includes('what item') ||
+           replyLower.includes('which item') ||
+           replyLower.includes('what product'))
+        ) {
+          const fallback = generateDeterministicFallback(trimmedMessage, mergedRfq, action, conversationHistory);
+          parsedData.reply = fallback.reply;
+          parsedData.intent = fallback.intent;
+        }
+
+        // 3. If contact details are already known, never ask for contact details again
+        if (
+          mergedRfq.customerName &&
+          (mergedRfq.phone || mergedRfq.email) &&
+          (replyLower.includes('your name and') ||
+           replyLower.includes('whatsapp/phone number') ||
+           replyLower.includes('please provide your name'))
+        ) {
+          const fallback = generateDeterministicFallback(trimmedMessage, mergedRfq, action, conversationHistory);
+          parsedData.reply = fallback.reply;
+          parsedData.intent = fallback.intent;
         }
 
         return res.status(200).json({

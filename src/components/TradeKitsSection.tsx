@@ -18,6 +18,7 @@ import {
 import { TRADE_KITS } from '../data/tradeKitsData';
 import { TradeKit, Product, Language } from '../types';
 import { COMPANY_INFO, PRODUCTS } from '../data/companyData';
+import { openExternalLink } from '../utils/linkUtils';
 
 interface TradeKitsSectionProps {
   onAddProductToRfq: (product: Product, quantity?: number) => void;
@@ -84,7 +85,7 @@ export const TradeKitsSection: React.FC<TradeKitsSectionProps> = ({
     });
     msg += `\nPlease provide your best trade package quotation and delivery schedule.`;
 
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    openExternalLink(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`);
   };
 
   return (

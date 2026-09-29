@@ -155,7 +155,7 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
           {onConfirm && (
             <button
               type="button"
-              disabled={disabled}
+              disabled={disabled || rfq.status === 'submitted'}
               onClick={onConfirm}
               className="flex-1 min-w-[130px] inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white rounded-lg text-xs font-semibold shadow-sm transition disabled:opacity-50 cursor-pointer"
             >
@@ -164,10 +164,15 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
                   <span>Sending...</span>
                 </>
+              ) : rfq.status === 'submitted' ? (
+                <>
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-300" />
+                  <span>Sent successfully</span>
+                </>
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
-                  <span>Confirm & Send</span>
+                  <span>Send Requirement</span>
                 </>
               )}
             </button>

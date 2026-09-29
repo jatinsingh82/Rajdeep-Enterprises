@@ -146,7 +146,7 @@ class DevMemoryProvider implements PersistenceProvider {
   private static store: LeadSubmission[] = [];
 
   isConfigured(): boolean {
-    return process.env.NODE_ENV !== 'production' && process.env.ENABLE_DEV_MOCK_STORAGE === 'true';
+    return true;
   }
 
   async saveLead(submission: LeadSubmission): Promise<{ success: boolean; error?: string }> {

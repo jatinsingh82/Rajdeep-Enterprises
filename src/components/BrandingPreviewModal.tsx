@@ -12,6 +12,7 @@ import {
   Info
 } from 'lucide-react';
 import { COMPANY_INFO } from '../data/companyData';
+import { openExternalLink } from '../utils/linkUtils';
 
 interface BrandingPreviewModalProps {
   isOpen: boolean;
@@ -89,7 +90,7 @@ export const BrandingPreviewModal: React.FC<BrandingPreviewModalProps> = ({
     msg += `*Logo Position:* ${logoPlacement.toUpperCase()}\n`;
     msg += `\nPlease provide your best quotation with screen printing / reflective branding charges and dispatch timeline anywhere in India.`;
 
-    window.open(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    openExternalLink(`https://wa.me/${COMPANY_INFO.whatsappNumber}?text=${encodeURIComponent(msg)}`);
   };
 
   return (

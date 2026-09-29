@@ -2,6 +2,7 @@ import { StructuredRfq } from '../types/chat';
 
 export interface SubmitAiRfqParams {
   rfq: StructuredRfq;
+  conversationSummary?: string;
   honeypot?: string;
 }
 
@@ -70,7 +71,8 @@ export async function submitAiRfq(params: SubmitAiRfqParams): Promise<SubmitAiRf
       .join(', ');
 
     const payload = {
-      source: 'rajdeep-ai-chat',
+      source: 'Website AI Chatbot',
+      isAiChatbot: true,
       type: 'custom_requirement',
       customer: {
         name: rfq.customerName,
@@ -113,6 +115,7 @@ export async function submitAiRfq(params: SubmitAiRfqParams): Promise<SubmitAiRf
       requiredBy: rfq.requiredBy,
       notes: rfq.additionalNotes,
       additionalNotes: rfq.additionalNotes,
+      conversationSummary: params.conversationSummary || '',
       website_hp: honeypot || '',
       status: 'ready_to_submit',
     };
