@@ -202,7 +202,7 @@ export const RajdeepChatbot: React.FC = () => {
         const successMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `Your requirement has been successfully sent to the Rajdeep Enterprises team.${refText}\n\nOur team will review your requirement and get back to you regarding the quotation.`,
+          text: `Your requirement has been successfully sent to the Rajdeep Enterprises team. Our team will review it and contact you regarding the quotation.${refText}`,
           timestamp: formatCurrentTime(),
           rfq: submittedRfq,
         };
@@ -221,7 +221,7 @@ export const RajdeepChatbot: React.FC = () => {
         const failMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly.`,
+          text: `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.`,
           timestamp: formatCurrentTime(),
           isError: true,
           rfq: failedRfq,
@@ -242,7 +242,7 @@ export const RajdeepChatbot: React.FC = () => {
       const errorMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly.`,
+        text: `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.`,
         timestamp: formatCurrentTime(),
         isError: true,
         rfq: failedRfq,

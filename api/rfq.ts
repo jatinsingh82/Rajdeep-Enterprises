@@ -227,7 +227,7 @@ export default async function handler(req: any, res: any) {
     const randDigits = Math.floor(100000 + Math.random() * 900000);
     const referenceId = `RE-RFQ-${dateStr}-${randDigits}`;
 
-    // 5. Deduplication check (Section 9)
+    // 5. Deduplication check
     cleanExpiredSubmissions();
     const dedupeKey = `${contractorName}:${digitsOnly}:${product}:${material}:${quantity}:${notes}`.toLowerCase();
     const existing = recentSubmissions.get(dedupeKey);
@@ -240,12 +240,6 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // Register fingerprint
-    recentSubmissions.set(dedupeKey, {
-      timestamp: Date.now(),
-      referenceId,
-    });
-
     // 6. SMTP Configuration (Server-Side Only)
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
     const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
@@ -253,14 +247,14 @@ export default async function handler(req: any, res: any) {
     const smtpPass = process.env.SMTP_PASS;
     const alertEmailTo = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
 
-    // Preview / Sandbox simulation when SMTP_PASS is omitted in local dev
+    // Verify SMTP credentials - never return fake success if email cannot be sent
     if (!smtpUser || !smtpPass) {
-      console.warn(`[RFQ] STAGE=PREVIEW_MODE missing credentials. Simulating successful RFQ delivery for referenceId=${referenceId}`);
-      return res.status(200).json({
-        success: true,
-        rfqReference: referenceId,
-        message: 'Your enquiry has been submitted successfully.',
-        timestamp: new Date().toISOString(),
+      console.error(
+        `[RFQ] ERROR_STAGE=SMTP_CREDENTIALS_MISSING (hasUser=${Boolean(smtpUser)}, hasPass=${Boolean(smtpPass)}). Email delivery failed.`
+      );
+      return res.status(500).json({
+        success: false,
+        error: "I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.",
       });
     }
 
@@ -293,6 +287,9 @@ NEW REQUIREMENT FROM RAJDEEP AI CHATBOT
 Reference:
 ${referenceId}
 
+Date/Time:
+${timestamp}
+
 Customer Name:
 ${contractorName}
 
@@ -306,10 +303,22 @@ Email:
 ${emailAddress || 'Not Provided'}
 
 Requested Item:
-${product || 'Not Specified'}
+${product || material || 'Not Specified'}
 
 Quantity:
 ${quantity ? `${quantity}${unit ? ` ${unit}` : ''}` : 'Not Specified'}
+
+Unit:
+${unit || 'Not Specified'}
+
+Grade / Type:
+${grade || 'Not Specified'}
+
+Thickness:
+${thickness || 'Not Specified'}
+
+Dimensions:
+${dimensions || 'Not Specified'}
 
 Specification:
 ${specifications || 'None'}
@@ -317,7 +326,7 @@ ${specifications || 'None'}
 Brand:
 ${brand || 'None'}
 
-Size/Model:
+Size / Model:
 ${sizeModel || 'None'}
 
 Delivery Location:
@@ -387,11 +396,15 @@ Phone: +91 99979 93895 | Email: rajdeepenterprises0047@gmail.com
         Requirement Details
       </h2>
       <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:13px;">
-        ${htmlRow('Requested Item', product)}
+        ${htmlRow('Requested Item', product || material)}
         ${htmlRow('Quantity', quantity ? `${quantity}${unit ? ` ${unit}` : ''}` : undefined)}
+        ${htmlRow('Unit', unit)}
+        ${htmlRow('Grade / Type', grade)}
+        ${htmlRow('Thickness', thickness)}
+        ${htmlRow('Dimensions', dimensions)}
         ${htmlRow('Specification', specifications)}
         ${htmlRow('Brand', brand)}
-        ${htmlRow('Size/Model', sizeModel)}
+        ${htmlRow('Size / Model', sizeModel)}
         ${htmlRow('Delivery Location', siteLocation)}
         ${htmlRow('Additional Notes', notes)}
       </table>
@@ -556,17 +569,25 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
       },
     });
 
+    // Register fingerprint only after email delivery succeeds
+    recentSubmissions.set(dedupeKey, {
+      timestamp: Date.now(),
+      referenceId,
+    });
+
+    console.info(`[RFQ] Email delivered successfully to ${alertEmailTo} with ref ${referenceId}`);
+
     return res.status(200).json({
       success: true,
       rfqReference: referenceId,
-      message: 'Your enquiry has been submitted successfully.',
+      message: 'Your requirement has been successfully sent to the Rajdeep Enterprises team.',
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
-    console.error('[RFQ] ERROR_STAGE=EMAIL_DELIVERY_FAILED', err?.message);
+    console.error('[RFQ] ERROR_STAGE=EMAIL_DELIVERY_FAILED', err?.message || err);
     return res.status(500).json({
       success: false,
-      error: 'We couldn\'t submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.',
+      error: "I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.",
     });
   }
 }

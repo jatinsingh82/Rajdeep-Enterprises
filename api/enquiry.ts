@@ -172,14 +172,12 @@ export default async function handler(req: any, res: any) {
     const hasPass = Boolean(smtpPass);
 
     if (!hasUser || !hasPass) {
-      console.warn(
-        `[Enquiry] STAGE=PREVIEW_MODE missing credentials (hasUser=${hasUser}, hasPass=${hasPass}). Simulating successful submission for referenceId=${referenceId}.`
+      console.error(
+        `[Enquiry] ERROR_STAGE=SMTP_CREDENTIALS_MISSING (hasUser=${hasUser}, hasPass=${hasPass}). Email cannot be delivered.`
       );
-      return res.status(200).json({
-        success: true,
-        enquiryId: referenceId,
-        referenceId,
-        message: 'Your industrial enquiry has been submitted successfully. Our team will review your requirement and reach out shortly.',
+      return res.status(500).json({
+        success: false,
+        error: "We couldn't submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.",
       });
     }
 

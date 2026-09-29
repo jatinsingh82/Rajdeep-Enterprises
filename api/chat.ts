@@ -94,7 +94,7 @@ export function cleanItemName(raw: string): string {
   );
   cleaned = cleaned.replace(/^(?:a|an|some|the)\s+/i, '');
   cleaned = cleaned.replace(
-    /^(?:\d+(?:\.\d+)?\s*(?:cartons?|ctns?|boxes?|pieces?|pcs?|nos?|dozens?|dz|kgs?|tons?|pairs?|rolls?|meters?|mtrs?|m|sets?|packets?|bundles?|sheets?)\s*(?:of\s+)?)/i,
+    /^(?:\d+(?:\.\d+)?\s*(?:cartons?|ctns?|boxes?|pieces?|pcs?|nos?|dozens?|dz|kgs?|tons?|pairs?|rolls?|meters?|mtrs?|m|sets?|packets?|bundles?|sheets?|units?)?\s*(?:of\s+)?)/i,
     ''
   );
   cleaned = cleaned.replace(/[.!?]+$/, '').trim();
@@ -344,8 +344,8 @@ function extractEntities(
 
   // 5. Single Product / Item extraction
   if (!updated.product && !updated.items) {
-    // If user's message was a quantity answer or parsed as quantity, NEVER parse it as an item!
-    if (!isAnsweringQuantity && !parsedQty) {
+    // Extract product if not answering a standalone quantity question
+    if (!isAnsweringQuantity) {
       const detectedItem = extractItemName(text);
       if (detectedItem) {
         updated.product = cleanItemName(detectedItem);

@@ -105,11 +105,12 @@ export default async function handler(req: any, res: any) {
     const alertEmailTo = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
 
     if (!smtpUser || !smtpPass) {
-      console.warn(`[Callback] STAGE=PREVIEW_MODE missing credentials. Simulating successful callback for referenceId=${referenceId}`);
-      return res.status(200).json({
-        success: true,
-        referenceId,
-        message: 'Callback request registered. Our desk will call you shortly.',
+      console.error(
+        `[Callback] ERROR_STAGE=SMTP_CREDENTIALS_MISSING (hasUser=${Boolean(smtpUser)}, hasPass=${Boolean(smtpPass)}). Email cannot be delivered.`
+      );
+      return res.status(500).json({
+        success: false,
+        error: "We couldn't submit your callback request right now. Please call Rajdeep Enterprises directly at +91 99979 93895.",
       });
     }
 
