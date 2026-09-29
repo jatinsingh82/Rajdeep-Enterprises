@@ -283,7 +283,7 @@ export const RajdeepChatbot: React.FC = () => {
       <div
         className={`fixed z-40 flex flex-col items-end transition-all duration-200 ${
           isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'
-        } bottom-18 right-4 md:bottom-22 md:right-5`}
+        } bottom-36 right-4 sm:bottom-40 md:bottom-42 md:right-5`}
       >
         {/* Subtle helper tooltip on desktop */}
         {showTooltip && (
