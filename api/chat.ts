@@ -74,6 +74,7 @@ function extractItemName(text: string): string | null {
   }
 
   // Canonical names for known products & categories
+  if (/\b(?:envelopes?)\b/i.test(lower)) return 'Envelopes';
   if (/\b(?:paint\s*brush(?:es)?|brushes?)\b/i.test(lower)) return 'Paint Brushes';
   if (/\b(?:fire\s+)?extinguishers?\b/i.test(lower)) return 'Fire Extinguishers';
   if (/\b(?:gas\s+)?cylinders?\b/i.test(lower)) return 'Industrial Cylinders';
@@ -90,6 +91,18 @@ function extractItemName(text: string): string | null {
   if (/\b(?:pipes?|tubes?|piping)\b/i.test(lower)) return 'Industrial Pipes & Tubes';
   if (/\b(?:sheets?|plates?)\b/i.test(lower)) return 'Stainless Steel Sheets / Plates';
   if (/\b(?:fasteners?|bolts?|nuts?|threaded\s+rods?|anchor\s+fasteners?)\b/i.test(lower)) return 'Industrial Fasteners & Hardware';
+
+  // Direct product name entry (e.g. "Envelope", "Industrial pressure gauge")
+  if (
+    !trimmed.includes('?') &&
+    trimmed.length >= 3 &&
+    trimmed.length <= 40 &&
+    !nonItemWords.some(w => lower === w) &&
+    !/^\d+$/.test(trimmed) &&
+    !/^(?:my name|call me|i am|from|deliver)/i.test(trimmed)
+  ) {
+    return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  }
 
   // Generic natural language item extraction: "I need [item]", "looking for [item]", "Do you supply [item]", "Quote for [item]"
   const intentMatch = trimmed.match(
@@ -206,13 +219,23 @@ function extractEntities(
   }
 
   // 5. Quantity extraction
+  const naturalQtyMatch = text.match(
+    /(?:(?:i|we)\s+(?:need|want|require|am looking for|are looking for)|looking\s+for|requirement\s+(?:for|of)|quote\s+for|inquiry\s+for|do\s+you\s+(?:have|supply|sell)|can\s+you\s+(?:supply|arrange|source|provide))\s+(?:a\s+|an\s+|some\s+)?(\d+(?:\.\d+)?)\s*(pcs|pieces|piece|nos|kg|meters|mtr|boxes|packets|sets|pairs|rolls)?\s*(?:of\s+)?([a-zA-Z0-9\s/&-]+)/i
+  );
   const plainQtyMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(kg|kgs|pieces|piece|pcs|nos|meters|mtr|m|tons|ton|bundles|boxes|pairs|sets|rolls)\b/i);
-  const countWithProductMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(?:(?:pieces|piece|pcs|nos)\s*(?:of\s+)?)?(?:paint\s*brushes?|brushes?|fire\s+extinguishers?|extinguishers?|cylinders?|pressure\s+gauges?|valves?|welding\s+machines?|safety\s+helmets?|helmets?|safety\s+shoes?|shoes?|gloves?)\b/i);
+  const countWithProductMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(?:(?:pieces|piece|pcs|nos)\s*(?:of\s+)?)?(?:envelopes?|paint\s*brushes?|brushes?|fire\s+extinguishers?|extinguishers?|cylinders?|pressure\s+gauges?|valves?|welding\s+machines?|safety\s+helmets?|helmets?|safety\s+shoes?|shoes?|gloves?)\b/i);
   const standaloneNum = text.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
 
   if ((!updated.quantity || correctionQtyMatch) && !updated.items) {
     if (correctionQtyMatch) {
       // handled above
+    } else if (naturalQtyMatch && !['304', '316', '7018', '6013'].includes(naturalQtyMatch[1])) {
+      const num = naturalQtyMatch[1];
+      const unit = naturalQtyMatch[2] || (lower.includes('pieces') || lower.includes('piece') ? 'pieces' : '');
+      const newQty = `${num}${unit ? ` ${unit}` : ''}`.trim();
+      updated.quantity = newQty;
+      updated.unit = unit;
+      changedFields.push('quantity');
     } else if (plainQtyMatch) {
       const num = plainQtyMatch[1];
       const unit = plainQtyMatch[2];
@@ -431,16 +454,36 @@ function generateDeterministicFallback(
     };
   }
 
-  // 2. Explicit Action: Confirm & Send (or TEST 7: "Send this requirement")
+  // 2. Explicit Action: Send Requirement / Confirm & Send (or TEST 7: "Send this requirement")
   if (
     action === 'confirm' ||
     action === 'send' ||
+    action === 'send_requirement' ||
+    lower === 'send requirement' ||
+    lower === 'send requirement.' ||
     lower === 'send this requirement.' ||
     lower === 'send this requirement' ||
     lower === 'confirm & send' ||
     lower === 'confirm rfq' ||
     lower === 'confirm'
   ) {
+    if (!currentRfq?.product && (!currentRfq?.items || currentRfq.items.length === 0)) {
+      return {
+        reply: `Before I send this requirement, what item do you need?`,
+        intent: 'rfq_collection',
+        rfq: currentRfq,
+      };
+    }
+
+    if (!currentRfq?.quantity && (!currentRfq?.items || currentRfq.items.length === 0)) {
+      const cleanItem = (currentRfq.product || 'item').toLowerCase();
+      return {
+        reply: `Before I send this requirement, I need the quantity. How many ${cleanItem} do you need?`,
+        intent: 'rfq_collection',
+        rfq: currentRfq,
+      };
+    }
+
     const hasCoreInfo = Boolean(
       (currentRfq?.product || currentRfq?.items) &&
       (currentRfq?.quantity || currentRfq?.items) &&
@@ -460,7 +503,7 @@ function generateDeterministicFallback(
       };
     } else {
       return {
-        reply: `To submit your requirement, please provide your name and phone/WhatsApp number.`,
+        reply: `To send your requirement to the Rajdeep Enterprises team, please provide your name and WhatsApp/phone number.`,
         intent: 'rfq_collection',
         rfq: currentRfq,
       };

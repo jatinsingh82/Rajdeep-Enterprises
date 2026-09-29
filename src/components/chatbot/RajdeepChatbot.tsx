@@ -150,38 +150,65 @@ export const RajdeepChatbot: React.FC = () => {
     }
   };
 
-  // Real backend submission flow via /api/rfq
-  const handleConfirmAndSubmit = async () => {
-    if (!currentRfq) return;
+  // Dedicated requirement submission flow via /api/rfq
+  const handleConfirmAndSubmit = async (rfqOverride?: StructuredRfq) => {
+    const targetRfq = rfqOverride || currentRfq;
 
-    // Check if customer name and contact are available
-    const hasName = Boolean(currentRfq.customerName && currentRfq.customerName.trim());
-    const hasContact = Boolean(
-      (currentRfq.phone && currentRfq.phone.trim()) ||
-      (currentRfq.email && currentRfq.email.trim())
-    );
-
-    if (!hasName || !hasContact) {
-      // Prompt user to provide contact info first
-      const promptMessage: ChatMessage = {
+    // 1. Missing item check
+    if (!targetRfq || (!targetRfq.product && (!targetRfq.items || targetRfq.items.length === 0))) {
+      const promptMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: 'To send your requirement to our team for an official quotation, please provide your name and a phone or WhatsApp number.',
+        text: 'Before I send this requirement, what item do you need?',
         timestamp: formatCurrentTime(),
       };
-      setMessages((prev) => [...prev, promptMessage]);
+      setMessages((prev) => [...prev, promptMsg]);
       inputRef.current?.focus();
       return;
     }
 
+    // 2. Missing quantity check
+    if (!targetRfq.quantity && (!targetRfq.items || targetRfq.items.length === 0)) {
+      const cleanItem = (targetRfq.product || 'item').toLowerCase();
+      const promptMsg: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: `Before I send this requirement, I need the quantity. How many ${cleanItem} do you need?`,
+        timestamp: formatCurrentTime(),
+      };
+      setMessages((prev) => [...prev, promptMsg]);
+      inputRef.current?.focus();
+      return;
+    }
+
+    // 3. Missing customer name or contact check
+    const hasName = Boolean(targetRfq.customerName && targetRfq.customerName.trim());
+    const hasContact = Boolean(
+      (targetRfq.phone && targetRfq.phone.trim()) ||
+      (targetRfq.email && targetRfq.email.trim())
+    );
+
+    if (!hasName || !hasContact) {
+      const promptMsg: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: 'To send your requirement to the Rajdeep Enterprises team, please provide your name and WhatsApp/phone number.',
+        timestamp: formatCurrentTime(),
+      };
+      setMessages((prev) => [...prev, promptMsg]);
+      inputRef.current?.focus();
+      return;
+    }
+
+    // 4. Submit directly to backend API (prevent double clicks via status === 'submitting')
     setStatus('submitting');
 
     try {
-      const result = await submitAiRfq({ rfq: currentRfq });
+      const result = await submitAiRfq({ rfq: targetRfq });
 
       if (result.success) {
         const submittedRfq: StructuredRfq = {
-          ...currentRfq,
+          ...targetRfq,
           status: 'submitted',
           rfqReference: result.rfqReference,
         };
@@ -190,7 +217,7 @@ export const RajdeepChatbot: React.FC = () => {
         const successMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `Your requirement has been successfully sent to the Rajdeep Enterprises team. Our team will review the details and get back to you regarding the quotation.${
+          text: `Your requirement has been sent successfully to the Rajdeep Enterprises team. Our team will review it and get back to you regarding the quotation.${
             result.rfqReference ? `\n\nReference: ${result.rfqReference}` : ''
           }`,
           timestamp: formatCurrentTime(),
@@ -201,7 +228,7 @@ export const RajdeepChatbot: React.FC = () => {
         setStatus('idle');
       } else {
         const failedRfq: StructuredRfq = {
-          ...currentRfq,
+          ...targetRfq,
           status: 'failed',
           submissionError: result.error,
         };
@@ -210,7 +237,7 @@ export const RajdeepChatbot: React.FC = () => {
         const failMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises directly using the WhatsApp or Call option.`,
+          text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises through WhatsApp or Call.`,
           timestamp: formatCurrentTime(),
           isError: true,
           rfq: failedRfq,
@@ -221,7 +248,7 @@ export const RajdeepChatbot: React.FC = () => {
       }
     } catch {
       const failedRfq: StructuredRfq = {
-        ...currentRfq,
+        ...targetRfq,
         status: 'failed',
         submissionError: 'Network connection error',
       };
@@ -230,7 +257,7 @@ export const RajdeepChatbot: React.FC = () => {
       const errorMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises directly using the WhatsApp or Call option.`,
+        text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises through WhatsApp or Call.`,
         timestamp: formatCurrentTime(),
         isError: true,
         rfq: failedRfq,
@@ -241,22 +268,40 @@ export const RajdeepChatbot: React.FC = () => {
     }
   };
 
+  // UI Action: Send Requirement button clicked -> dedicated submission function
   const handleSendRequirement = () => {
-    handleSendMessage('Send Requirement', 'send_requirement');
+    handleConfirmAndSubmit();
   };
 
   const handleContinueChatting = () => {
     inputRef.current?.focus();
   };
 
+  // UI Action: Edit button clicked
   const handleEditRfq = () => {
+    const editMsg: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      sender: 'ai',
+      text: 'What details would you like to update? (For example: quantity, size, brand, or contact details)',
+      timestamp: formatCurrentTime(),
+    };
+    setMessages((prev) => [...prev, editMsg]);
     inputRef.current?.focus();
     setInputVal('');
-    handleSendMessage('I would like to edit my requirement.', 'edit');
   };
 
+  // UI Action: Cancel button clicked
   const handleCancelRfq = () => {
-    handleSendMessage('Cancel my requirement', 'cancel');
+    if (currentRfq) {
+      setCurrentRfq({ ...currentRfq, status: 'cancelled' });
+    }
+    const cancelMsg: ChatMessage = {
+      id: `ai-${Date.now()}`,
+      sender: 'ai',
+      text: "Okay, I haven't sent the requirement.",
+      timestamp: formatCurrentTime(),
+    };
+    setMessages((prev) => [...prev, cancelMsg]);
   };
 
   const handleResetChat = () => {
