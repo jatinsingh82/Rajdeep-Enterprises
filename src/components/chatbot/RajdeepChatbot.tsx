@@ -4,6 +4,7 @@ import { ChatMessage, ChatStatus, StructuredRfq } from '../../types/chat';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatSuggestions } from './ChatSuggestions';
 import { sendChatMessage } from '../../services/chatService';
+import { submitAiRfq } from '../../services/rfqService';
 
 function formatCurrentTime(): string {
   return new Date().toLocaleTimeString('en-IN', {
@@ -16,7 +17,7 @@ function formatCurrentTime(): string {
 const INITIAL_MESSAGE: ChatMessage = {
   id: 'welcome-message',
   sender: 'ai',
-  text: `Hello! 👋\nI'm Rajdeep AI, the Rajdeep Enterprises sales and quotation assistant.\nI can help you explore industrial safety PPE, Champion gaskets, welding consumables, and prepare an enquiry/RFQ for your materials.\nHow can I help you today?`,
+  text: `Hello! 👋\nI'm Rajdeep AI, the Rajdeep Enterprises sales and sourcing assistant.\nCan't find your item in our online catalogue? No problem! Our online catalogue does not contain every item we can source or supply. Tell us what you need, the quantity, and any specifications you have, and we'll help you with a quotation.\nHow can I help you today?`,
   timestamp: formatCurrentTime(),
 };
 
@@ -60,26 +61,34 @@ export const RajdeepChatbot: React.FC = () => {
 
   const handleSendMessage = async (
     textToSend?: string,
-    actionOverride?: 'confirm' | 'edit' | 'cancel'
+    actionOverride?: 'confirm' | 'edit' | 'cancel' | 'send_requirement'
   ) => {
     const text = (textToSend || inputVal).trim();
-    if ((!text && !actionOverride) || status === 'loading') return;
+    if ((!text && !actionOverride) || status === 'loading' || status === 'submitting') return;
 
     // Detect action intent from message text if not explicitly overridden
     let effectiveAction = actionOverride;
     if (!effectiveAction) {
       const lower = text.toLowerCase();
-      if (lower === 'confirm rfq' || lower === 'confirm quotation') {
+      if (lower === 'confirm & send' || lower === 'confirm rfq' || lower === 'confirm quotation' || lower === 'confirm') {
         effectiveAction = 'confirm';
-      } else if (lower.includes('cancel my quotation') || lower === 'cancel rfq' || lower === 'cancel') {
+      } else if (lower.includes('cancel my quotation') || lower === 'cancel rfq' || lower === 'cancel' || lower === 'cancel my requirement') {
         effectiveAction = 'cancel';
-      } else if (lower === 'edit details' || lower === 'edit rfq') {
+      } else if (lower === 'edit' || lower === 'edit details' || lower === 'edit rfq') {
         effectiveAction = 'edit';
+      } else if (lower === 'send requirement') {
+        effectiveAction = 'send_requirement';
       }
     }
 
+    // Intercept confirm action to execute actual submission if ready
+    if (effectiveAction === 'confirm') {
+      await handleConfirmAndSubmit();
+      return;
+    }
+
     const userMessageText =
-      text || (effectiveAction === 'confirm' ? 'Confirm RFQ' : effectiveAction === 'cancel' ? 'Cancel my quotation' : 'Edit details');
+      text || (effectiveAction === 'cancel' ? 'Cancel requirement' : effectiveAction === 'send_requirement' ? 'Send Requirement' : 'Edit details');
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -106,10 +115,12 @@ export const RajdeepChatbot: React.FC = () => {
         setCurrentRfq(updatedRfq);
       }
 
-      // Attach structured RFQ to AI message if ready for review, confirmed, cancelled, or has key fields
+      // Attach structured RFQ to AI message if ready for review, ready to submit, or confirmed
       const shouldAttachRfq = Boolean(
         updatedRfq &&
         (updatedRfq.status === 'ready_for_review' ||
+         updatedRfq.status === 'ready_to_submit' ||
+         updatedRfq.status === 'submitted' ||
          updatedRfq.status === 'confirmed' ||
          updatedRfq.status === 'cancelled' ||
          updatedRfq.submissionError)
@@ -130,7 +141,7 @@ export const RajdeepChatbot: React.FC = () => {
       const errorMessage: ChatMessage = {
         id: `err-${Date.now()}`,
         sender: 'ai',
-        text: 'Sorry, I encountered an issue processing your request. Please try again or reach out to our team at +91-9997993895.',
+        text: 'Sorry, I encountered an issue processing your request. Please try again or reach out to our team directly at +91-9997993895.',
         timestamp: formatCurrentTime(),
         isError: true,
       };
@@ -139,18 +150,111 @@ export const RajdeepChatbot: React.FC = () => {
     }
   };
 
-  const handleConfirmRfq = () => {
-    handleSendMessage('Confirm RFQ', 'confirm');
+  // Real backend submission flow via /api/rfq
+  const handleConfirmAndSubmit = async () => {
+    if (!currentRfq) return;
+
+    // Check if customer name and contact are available
+    const hasName = Boolean(currentRfq.customerName && currentRfq.customerName.trim());
+    const hasContact = Boolean(
+      (currentRfq.phone && currentRfq.phone.trim()) ||
+      (currentRfq.email && currentRfq.email.trim())
+    );
+
+    if (!hasName || !hasContact) {
+      // Prompt user to provide contact info first
+      const promptMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: 'To send your requirement to our team for an official quotation, please provide your name and a phone or WhatsApp number.',
+        timestamp: formatCurrentTime(),
+      };
+      setMessages((prev) => [...prev, promptMessage]);
+      inputRef.current?.focus();
+      return;
+    }
+
+    setStatus('submitting');
+
+    try {
+      const result = await submitAiRfq({ rfq: currentRfq });
+
+      if (result.success) {
+        const submittedRfq: StructuredRfq = {
+          ...currentRfq,
+          status: 'submitted',
+          rfqReference: result.rfqReference,
+        };
+        setCurrentRfq(submittedRfq);
+
+        const successMessage: ChatMessage = {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: `Your requirement has been sent to the Rajdeep Enterprises team.\n\nReference: ${result.rfqReference || 'RE-RFQ'}\nOur sales team will check the requirement and reach out with an official quotation.`,
+          timestamp: formatCurrentTime(),
+          rfq: submittedRfq,
+        };
+
+        setMessages((prev) => [...prev, successMessage]);
+        setStatus('idle');
+      } else {
+        const failedRfq: StructuredRfq = {
+          ...currentRfq,
+          status: 'failed',
+          submissionError: result.error,
+        };
+        setCurrentRfq(failedRfq);
+
+        const failMessage: ChatMessage = {
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: `We couldn't submit your requirement right now: ${result.error || 'Connection error'}. You can click "Retry Send" or call our team directly at +91 99979 93895.`,
+          timestamp: formatCurrentTime(),
+          isError: true,
+          rfq: failedRfq,
+        };
+
+        setMessages((prev) => [...prev, failMessage]);
+        setStatus('idle');
+      }
+    } catch {
+      const failedRfq: StructuredRfq = {
+        ...currentRfq,
+        status: 'failed',
+        submissionError: 'Network connection error',
+      };
+      setCurrentRfq(failedRfq);
+
+      const errorMessage: ChatMessage = {
+        id: `ai-${Date.now()}`,
+        sender: 'ai',
+        text: 'Failed to connect to the quotation service. Please call our team directly at +91 99979 93895.',
+        timestamp: formatCurrentTime(),
+        isError: true,
+        rfq: failedRfq,
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
+      setStatus('idle');
+    }
+  };
+
+  const handleSendRequirement = () => {
+    handleSendMessage('Send Requirement', 'send_requirement');
+  };
+
+  const handleContinueChatting = () => {
+    inputRef.current?.focus();
   };
 
   const handleEditRfq = () => {
     inputRef.current?.focus();
     setInputVal('');
-    handleSendMessage('I would like to edit details of my enquiry.', 'edit');
+    handleSendMessage('I would like to edit my requirement.', 'edit');
   };
 
   const handleCancelRfq = () => {
-    handleSendMessage('Cancel my quotation', 'cancel');
+    handleSendMessage('Cancel my requirement', 'cancel');
   };
 
   const handleResetChat = () => {
@@ -222,7 +326,7 @@ export const RajdeepChatbot: React.FC = () => {
                 SALES & RFQ
               </span>
             </span>
-            <span className="text-[10px] text-slate-400 leading-tight">Instant Assistant</span>
+            <span className="text-[10px] text-slate-400 leading-tight">Instant Sourcing</span>
           </div>
         </button>
       </div>
@@ -232,9 +336,9 @@ export const RajdeepChatbot: React.FC = () => {
         <div
           ref={chatWindowRef}
           role="dialog"
-          aria-label="Rajdeep AI Sales & RFQ Assistant"
+          aria-label="Rajdeep AI Sales & Sourcing Assistant"
           aria-modal="true"
-          className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6 w-[94vw] sm:w-[420px] md:w-[440px] h-[600px] max-h-[85vh] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-100 animate-in fade-in zoom-in-95 duration-150"
+          className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6 w-[94vw] sm:w-[420px] md:w-[450px] h-[600px] max-h-[85vh] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-100 animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Header */}
           <div className="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between shrink-0">
@@ -251,11 +355,11 @@ export const RajdeepChatbot: React.FC = () => {
                     Rajdeep AI
                   </span>
                   <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                    SALES & RFQ
+                    SALES & SOURCING
                   </span>
                 </div>
                 <span className="text-[11px] text-slate-400">
-                  Quotations • Materials • Supplies
+                  Catalogue & Custom Sourcing • Quotes
                 </span>
               </div>
             </div>
@@ -291,21 +395,25 @@ export const RajdeepChatbot: React.FC = () => {
               <ChatMessageItem
                 key={msg.id}
                 message={msg}
-                onConfirmRfq={handleConfirmRfq}
+                onConfirmRfq={handleConfirmAndSubmit}
                 onEditRfq={handleEditRfq}
                 onCancelRfq={handleCancelRfq}
-                isActionDisabled={status === 'loading'}
+                onSendRequirement={handleSendRequirement}
+                onContinueChatting={handleContinueChatting}
+                isActionDisabled={status === 'loading' || status === 'submitting'}
               />
             ))}
 
             {/* Typing / Loading Indicator */}
-            {status === 'loading' && (
+            {(status === 'loading' || status === 'submitting') && (
               <div className="flex items-end gap-2.5 my-2.5 justify-start">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-orange-500/60 flex items-center justify-center text-orange-400">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl rounded-bl-xs px-4 py-3 text-slate-300 shadow-sm flex items-center gap-1.5">
-                  <span className="text-xs text-slate-400 mr-1">Rajdeep AI is thinking</span>
+                  <span className="text-xs text-slate-400 mr-1">
+                    {status === 'submitting' ? 'Transmitting to Rajdeep team' : 'Rajdeep AI is thinking'}
+                  </span>
                   <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
                   <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
                   <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" />
@@ -318,8 +426,14 @@ export const RajdeepChatbot: React.FC = () => {
 
           {/* Suggested Questions Area */}
           <ChatSuggestions
-            onSelectSuggestion={(q) => handleSendMessage(q)}
-            disabled={status === 'loading'}
+            onSelectSuggestion={(q) => {
+              if (q === 'Send Requirement') {
+                handleSendRequirement();
+              } else {
+                handleSendMessage(q);
+              }
+            }}
+            disabled={status === 'loading' || status === 'submitting'}
           />
 
           {/* Message Input Area */}
@@ -337,14 +451,14 @@ export const RajdeepChatbot: React.FC = () => {
                 value={inputVal}
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDownInput}
-                placeholder="Ask about products or request an RFQ..."
-                disabled={status === 'loading'}
+                placeholder="Ask about products or send requirement..."
+                disabled={status === 'loading' || status === 'submitting'}
                 className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
                 aria-label="Your message or product requirement"
               />
               <button
                 type="submit"
-                disabled={!inputVal.trim() || status === 'loading'}
+                disabled={!inputVal.trim() || status === 'loading' || status === 'submitting'}
                 className="p-2.5 bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:opacity-40 disabled:hover:bg-orange-600 text-white rounded-xl transition-all shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 cursor-pointer"
                 aria-label="Send message"
               >
@@ -353,7 +467,7 @@ export const RajdeepChatbot: React.FC = () => {
             </form>
             <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-500">
               <span>Rajdeep Enterprises • Mathura Depot</span>
-              <span>Fast Quotes & Pan-India Dispatch</span>
+              <span>Fast Quotes & Pan-India Sourcing</span>
             </div>
           </div>
         </div>

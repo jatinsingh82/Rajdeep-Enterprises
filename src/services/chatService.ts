@@ -4,7 +4,7 @@ export interface SendMessageOptions {
   message: string;
   history: ChatMessage[];
   currentRfq?: StructuredRfq | null;
-  action?: 'confirm' | 'edit' | 'cancel';
+  action?: 'confirm' | 'edit' | 'cancel' | 'send_requirement';
 }
 
 export interface ChatServiceResponse {

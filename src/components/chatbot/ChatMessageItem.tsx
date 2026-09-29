@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChatMessage, StructuredRfq } from '../../types/chat';
-import { Bot, User, AlertCircle } from 'lucide-react';
+import { Bot, User, AlertCircle, Send, MessageSquare } from 'lucide-react';
 import { RfqSummaryCard } from './RfqSummaryCard';
 
 interface ChatMessageItemProps {
@@ -8,6 +8,8 @@ interface ChatMessageItemProps {
   onConfirmRfq?: (rfq: StructuredRfq) => void;
   onEditRfq?: (rfq: StructuredRfq) => void;
   onCancelRfq?: (rfq: StructuredRfq) => void;
+  onSendRequirement?: () => void;
+  onContinueChatting?: () => void;
   isActionDisabled?: boolean;
 }
 
@@ -16,6 +18,8 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   onConfirmRfq,
   onEditRfq,
   onCancelRfq,
+  onSendRequirement,
+  onContinueChatting,
   isActionDisabled = false,
 }) => {
   const isUser = message.sender === 'user';
@@ -24,7 +28,6 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
   const renderFormattedText = (text: string) => {
     const lines = text.split('\n');
     return lines.map((line, lineIdx) => {
-      // Parse **bold** parts
       const parts = line.split(/(\*\*.*?\*\*)/g);
       return (
         <React.Fragment key={lineIdx}>
@@ -43,6 +46,11 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
       );
     });
   };
+
+  const offersSendRequirement =
+    !isUser &&
+    !message.rfq &&
+    message.text.includes('send this requirement to our team');
 
   return (
     <div
@@ -85,6 +93,30 @@ export const ChatMessageItem: React.FC<ChatMessageItemProps> = ({
           <div className="break-words select-text">
             {renderFormattedText(message.text)}
           </div>
+
+          {/* Inline Action Buttons if message suggests sending requirement */}
+          {offersSendRequirement && (
+            <div className="mt-3 pt-2.5 border-t border-slate-700/70 flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                disabled={isActionDisabled}
+                onClick={onSendRequirement}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white text-xs font-semibold rounded-lg shadow-sm transition disabled:opacity-50 cursor-pointer"
+              >
+                <Send className="w-3 h-3" />
+                <span>Send Requirement</span>
+              </button>
+              <button
+                type="button"
+                disabled={isActionDisabled}
+                onClick={onContinueChatting}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-700/70 hover:bg-slate-700 text-slate-300 hover:text-white text-xs rounded-lg transition disabled:opacity-50 cursor-pointer"
+              >
+                <MessageSquare className="w-3 h-3 text-slate-400" />
+                <span>Continue Chatting</span>
+              </button>
+            </div>
+          )}
 
           {/* Structured RFQ summary card if present */}
           {message.rfq && (

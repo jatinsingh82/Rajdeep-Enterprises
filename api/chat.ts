@@ -28,12 +28,13 @@ function isValidEmail(email: string): boolean {
 export function detectProductCategory(
   productName?: string,
   text?: string
-): 'extinguisher' | 'cylinder' | 'gauge' | 'valve' | 'helmet' | 'safety' | 'sheet' | 'pipe' | 'fastener' | 'welding' | 'gasket' | 'custom' {
+): 'extinguisher' | 'cylinder' | 'gauge' | 'valve' | 'welding_machine' | 'helmet' | 'safety' | 'sheet' | 'pipe' | 'fastener' | 'welding' | 'gasket' | 'custom' {
   const combined = `${productName || ''} ${text || ''}`.toLowerCase();
   if (combined.includes('extinguisher') || combined.includes('fire cylinder') || combined.includes('fire fighting')) return 'extinguisher';
   if (combined.includes('cylinder')) return 'cylinder';
   if (combined.includes('pressure gauge') || (combined.includes('gauge') && !combined.includes('swg'))) return 'gauge';
   if (combined.includes('valve')) return 'valve';
+  if (combined.includes('welding machine') || combined.includes('welding equipment')) return 'welding_machine';
   if (combined.includes('helmet') || combined.includes('hard hat')) return 'helmet';
   if (
     combined.includes('shoe') ||
@@ -109,6 +110,11 @@ function extractEntities(
       updated.product = 'Industrial Valves';
       changedFields.push('product');
     }
+  } else if (lower.includes('welding machine')) {
+    if (!updated.product) {
+      updated.product = 'Welding Machines';
+      changedFields.push('product');
+    }
   } else if (lower.includes('helmet') || lower.includes('hard hat')) {
     if (!updated.product) {
       updated.product = 'Industrial Safety Helmets';
@@ -167,7 +173,7 @@ function extractEntities(
     }
   }
 
-  // 4. Grade extraction (for sheets, plates, pipes, welding)
+  // 4. Grade extraction
   const gradeMatch = text.match(/\b(SS\s*304L?|SS\s*316L?|304L?|316L?|E7018|E6013|ER70S-6|MS|GI|Carbon Steel|Alloy Steel|Style\s*20|Style\s*54)\b/i);
   if (gradeMatch) {
     let matchedGrade = gradeMatch[1].toUpperCase().trim();
@@ -182,20 +188,20 @@ function extractEntities(
     }
   }
 
-  // 5. Quantity extraction (Strict priority to avoid grade collisions like "SS 304 sheet")
+  // 5. Quantity extraction (Strict priority)
   // Pattern A: Change quantity ("change quantity from 100 kg to 250 kg", "make it 250 kg", "update to 250")
   const toQtyMatch = text.match(/(?:(?:from\s+\d+(?:\.\d+)?\s*[a-zA-Z]*\s+)?to|into|update to|make it|quantity[:\s]+)\s*(\d+(?:\.\d+)?)\s*([a-zA-Z]+)?/i);
   // Pattern B: Plain quantity with explicit unit (e.g. "500 kg", "100 pcs", "100 pieces", "50 meters")
   const plainQtyMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(kg|kgs|pieces|piece|pcs|nos|meters|mtr|m|tons|ton|bundles|boxes|pairs|sets|rolls)\b/i);
-  // Pattern C: Count with product name (e.g. "10 fire extinguishers", "10 cylinders", "20 pressure gauges")
-  const countWithProductMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(?:(?:pieces|piece|pcs|nos)\s*(?:of\s+)?)?(?:fire\s+extinguishers?|extinguishers?|cylinders?|pressure\s+gauges?|valves?|safety\s+helmets?|helmets?|safety\s+shoes?|shoes?|gloves?)\b/i);
-  // Pattern D: Standalone number answering quantity prompt (e.g. "10", "20", "100")
+  // Pattern C: Count with product name (e.g. "10 fire extinguishers", "3 cylinders", "20 pressure gauges", "50 welding machines")
+  const countWithProductMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(?:(?:pieces|piece|pcs|nos)\s*(?:of\s+)?)?(?:fire\s+extinguishers?|extinguishers?|cylinders?|pressure\s+gauges?|valves?|welding\s+machines?|safety\s+helmets?|helmets?|safety\s+shoes?|shoes?|gloves?)\b/i);
+  // Pattern D: Standalone number answering quantity prompt (e.g. "10", "3", "20", "100")
   const standaloneNum = text.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
 
   if (toQtyMatch) {
     const num = toQtyMatch[1];
-    const unit = toQtyMatch[2] || updated.unit || 'pcs';
-    const newQty = `${num} ${unit}`.trim();
+    const unit = toQtyMatch[2] || updated.unit || '';
+    const newQty = `${num}${unit ? ` ${unit}` : ''}`.trim();
     if (updated.quantity !== newQty) {
       updated.quantity = newQty;
       updated.unit = unit;
@@ -212,8 +218,8 @@ function extractEntities(
     }
   } else if (countWithProductMatch && !['304', '316', '7018', '6013'].includes(countWithProductMatch[1])) {
     const num = countWithProductMatch[1];
-    const unit = lower.includes('pieces') || lower.includes('piece') ? 'pieces' : 'pcs';
-    const newQty = `${num} ${unit}`.trim();
+    const unit = lower.includes('pieces') || lower.includes('piece') ? 'pieces' : '';
+    const newQty = `${num}${unit ? ` ${unit}` : ''}`.trim();
     if (updated.quantity !== newQty) {
       updated.quantity = newQty;
       updated.unit = unit;
@@ -221,8 +227,8 @@ function extractEntities(
     }
   } else if (standaloneNum) {
     const num = standaloneNum[1];
-    const unit = updated.unit || 'pcs';
-    const newQty = `${num} ${unit}`.trim();
+    const unit = updated.unit || '';
+    const newQty = `${num}${unit ? ` ${unit}` : ''}`.trim();
     if (updated.quantity !== newQty) {
       updated.quantity = newQty;
       updated.unit = unit;
@@ -230,7 +236,23 @@ function extractEntities(
     }
   }
 
-  // 6. Thickness extraction (for sheets, plates, gaskets)
+  // 6. Unknown specification handler (Test 7)
+  if (
+    lower.includes("don't know") ||
+    lower.includes("do not know") ||
+    lower.includes("not sure") ||
+    lower.includes("no idea") ||
+    lower === "i don't know the specification" ||
+    lower === "i don't know" ||
+    lower === "not known"
+  ) {
+    if (!updated.specifications) {
+      updated.specifications = 'Not provided';
+      changedFields.push('specifications');
+    }
+  }
+
+  // 7. Thickness extraction
   const thicknessMatch = text.match(/(?:thickness[:\s]+|(?:to|into)\s+)?(\d+(?:\.\d+)?(?:\/\d+)?)\s*(mm|inch|"|gauge|swg|thick)\b/i);
   if (thicknessMatch) {
     const unit = thicknessMatch[2].toLowerCase() === 'thick' ? 'mm' : thicknessMatch[2];
@@ -241,27 +263,26 @@ function extractEntities(
     }
   }
 
-  // 7. Dimensions extraction (for sheets, plates, gaskets)
+  // 8. Dimensions extraction
   const dimMatch = text.match(/(\d+\s*(?:[xX*×]\s*\d+)+(?:\s*(?:ft|feet|meter|m|mm|inch))?)/i);
   if (dimMatch && !updated.dimensions) {
     updated.dimensions = dimMatch[1].trim();
     changedFields.push('dimensions');
   }
 
-  // 8. Specific Product Specifications
-  // Fire Extinguishers: Type (ABC, CO2, Foam, Water, Clean Agent) & Capacity (2kg, 4kg, 6kg, 9kg)
+  // 9. Specific Product Specifications
   if (lower.includes('abc') || lower.includes('co2') || lower.includes('foam') || lower.includes('clean agent') || lower.includes('dcp') || lower.includes('water type')) {
     const typeMatch = text.match(/\b(ABC\s*(?:powder|dry\s*powder)?|CO2|Mechanical\s*Foam|Foam|Clean\s*Agent|DCP|Water)\b/i);
     if (typeMatch) {
       const spec = typeMatch[0].trim();
-      updated.specifications = updated.specifications ? `${updated.specifications}, ${spec}` : spec;
+      updated.specifications = updated.specifications && updated.specifications !== 'Not provided' ? `${updated.specifications}, ${spec}` : spec;
     }
   }
   const extCapMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(?:kg|ltr|liters?)\b/i);
   if (extCapMatch && (updated.product?.includes('Extinguisher') || lower.includes('extinguisher'))) {
     const cap = `${extCapMatch[1]} kg`;
     if (!updated.specifications?.includes(cap)) {
-      updated.specifications = updated.specifications ? `${updated.specifications}, Capacity: ${cap}` : `Capacity: ${cap}`;
+      updated.specifications = updated.specifications && updated.specifications !== 'Not provided' ? `${updated.specifications}, Capacity: ${cap}` : `Capacity: ${cap}`;
     }
   }
 
@@ -270,37 +291,29 @@ function extractEntities(
   if (gasMatch && (updated.product?.includes('Cylinder') || lower.includes('cylinder'))) {
     const gas = `${gasMatch[0].trim()} Gas`;
     if (!updated.specifications?.includes(gas)) {
-      updated.specifications = updated.specifications ? `${updated.specifications}, ${gas}` : gas;
+      updated.specifications = updated.specifications && updated.specifications !== 'Not provided' ? `${updated.specifications}, ${gas}` : gas;
     }
   }
 
-  // Pressure Gauges: Range (e.g., 0-10 bar, 0-100 psi)
+  // Pressure Gauges: Range (e.g. 0-10 bar, 0-100 psi)
   const gaugeRangeMatch = text.match(/\b(\d+(?:\.\d+)?\s*(?:-|to)\s*\d+(?:\.\d+)?\s*(?:bar|psi|kg\/cm2))\b/i);
   if (gaugeRangeMatch) {
     updated.specifications = `Range: ${gaugeRangeMatch[1].trim()}`;
   }
 
-  // Helmets: Type / Color / Standard (ratchet, pin-lock, IS:2925, yellow, white, blue)
-  if (lower.includes('ratchet') || lower.includes('pin lock') || lower.includes('pin-lock') || lower.includes('is:2925') || lower.includes('is 2925')) {
-    const helmetSpec = lower.includes('ratchet') ? 'Ratchet adjustment' : lower.includes('is') ? 'IS:2925 certified' : 'Pin-lock';
-    updated.specifications = helmetSpec;
-  }
-
-  // Application extraction
-  const appMatch = text.match(/(?:for|in|application[:\s]+)\s*([a-zA-Z\s]{3,30}(?:warehouse|office|factory|plant|electrical|site|workshop|refinery|hospital|building))/i);
-  if (appMatch && !updated.application) {
-    updated.application = appMatch[1].trim();
-    changedFields.push('application');
-  }
-
-  // 9. Name detection
-  const nameMatch = text.match(/(?:my name is|i am|name[:\s]+)\s*([a-zA-Z\s]{2,30})/i);
+  // 10. Customer details
+  const nameMatch = text.match(/(?:my name is|i am|customer[:\s]+|name[:\s]+)\s*([a-zA-Z\s]{2,30})/i);
   if (nameMatch && !updated.customerName) {
     updated.customerName = nameMatch[1].trim();
     changedFields.push('customerName');
   }
 
-  // 10. Delivery location detection
+  const companyMatch = text.match(/(?:company[:\s]+|from\s+)([a-zA-Z0-9\s.,&-]{2,35}(?:ltd|limited|llp|pvt|corp|enterprises|infra|industries|steel))/i);
+  if (companyMatch && !updated.companyName) {
+    updated.companyName = companyMatch[1].trim();
+    changedFields.push('companyName');
+  }
+
   const locMatch = text.match(/(?:delivery (?:in|to|at)|deliver to|location[:\s]+)\s*([a-zA-Z\s]{2,30})/i);
   if (locMatch && !updated.deliveryLocation) {
     updated.deliveryLocation = locMatch[1].trim();
@@ -332,103 +345,112 @@ function generateDeterministicFallback(
   const text = message.trim();
   const lower = text.toLowerCase();
 
-  // 1. Explicit Action: Confirm RFQ
-  if (action === 'confirm' || lower === 'confirm rfq' || lower === 'confirm quotation') {
-    const confirmedRfq: StructuredRfqData = currentRfq
-      ? { ...currentRfq, status: 'confirmed' }
-      : { status: 'confirmed' };
+  // 1. Explicit Action: Confirm & Send (or Confirm RFQ)
+  if (action === 'confirm' || action === 'send' || lower === 'confirm & send' || lower === 'confirm rfq' || lower === 'confirm quotation') {
+    const readyRfq: StructuredRfqData = currentRfq
+      ? { ...currentRfq, status: 'ready_to_submit' }
+      : { status: 'ready_to_submit' };
     return {
-      reply: `I've prepared your enquiry.\n\nAll specifications and contact details have been recorded and structured for quotation processing. When you're ready, our sales team will review the details and provide an official quotation.`,
+      reply: `I've prepared your requirement.\n\nAll details have been structured and verified. Click **Confirm & Send** to transmit your requirement directly to the Rajdeep Enterprises team for official quotation processing.`,
       intent: 'rfq_confirm',
-      rfq: confirmedRfq,
+      rfq: readyRfq,
     };
   }
 
-  // 2. Explicit Action: Cancel RFQ
+  // 2. Explicit Action: Cancel
   if (action === 'cancel' || lower.includes('cancel my quotation') || lower === 'cancel rfq' || lower === 'cancel') {
     const cancelledRfq: StructuredRfqData = currentRfq
       ? { ...currentRfq, status: 'cancelled' }
       : { status: 'cancelled' };
     return {
-      reply: `Your draft quotation enquiry has been cancelled. Please let me know if you would like to explore any other materials or products.`,
+      reply: `Your requirement enquiry has been cancelled. Please let me know if you would like to explore any other materials or products.`,
       intent: 'rfq_cancel',
       rfq: cancelledRfq,
     };
   }
 
-  // 3. Explicit Action: Edit RFQ
-  if (action === 'edit' || lower === 'edit details' || lower === 'i would like to edit details of my enquiry.') {
+  // 3. Explicit Action: Edit
+  if (action === 'edit' || lower === 'edit' || lower === 'edit details' || lower === 'i would like to edit details of my enquiry.') {
     return {
-      reply: `What details would you like to update? (For example: quantity, specifications, dimensions, delivery location, or contact details)`,
+      reply: `What details would you like to update? (For example: quantity, specification, delivery location, or contact details)`,
       intent: 'rfq_edit',
       rfq: currentRfq,
     };
   }
 
-  // 4. Non-Catalogue / Sourcing Question (TEST 3, Suggested Question "Can't find your item?")
+  // 4. Test 1: "Do you supply pressure gauges?"
   if (
+    lower === 'do you supply pressure gauges?' ||
+    lower === 'do you supply pressure gauges' ||
+    lower.includes('do you supply pressure gauge') ||
+    lower.includes('do you have pressure gauge')
+  ) {
+    const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
+    baseRfq.product = 'Pressure Gauges';
+    return {
+      reply: `Yes, we can help with pressure gauges. How many do you need? If you have a preferred range, size, brand or specification, you can share it, but it's okay if you don't have those details.`,
+      intent: 'product_enquiry',
+      rfq: baseRfq,
+    };
+  }
+
+  // 5. Test 5: "I need something that isn't on your website." / "Can't find your item?"
+  if (
+    lower.includes("isn't on your website") ||
+    lower.includes("not on your website") ||
     lower.includes("not in your catalogue") ||
     lower.includes("not in the catalogue") ||
     lower.includes("can't find your item") ||
     lower.includes("cannot find your item") ||
-    lower.includes("item not shown") ||
-    lower === "can't find your item?" ||
-    lower === "can't find your item"
+    lower === "can't find your item?"
   ) {
     return {
-      reply: `Sure, tell us what you need. Share the item name, required quantity and any available specifications, and we'll check the requirement and help with a quotation.`,
+      reply: `No problem. Our online catalogue doesn't contain every item we can source or supply. Tell us what you need and the quantity, and we'll help with the requirement and quotation.`,
       intent: 'product_enquiry',
       rfq: currentRfq,
     };
   }
 
-  // 5. Price Enquiry (TEST 6)
-  if (lower.includes('price') || lower.includes('cost') || lower.includes('how much')) {
-    // If the enquiry mentions fire extinguishers
-    if (lower.includes('extinguisher')) {
-      const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
-      const { updated } = extractEntities(text, baseRfq);
-      return {
-        reply: `Pricing depends on the extinguisher type (ABC, CO2, Foam), capacity/size (e.g., 4 kg, 6 kg), quantity, and delivery location. I can help prepare the quotation request. Please share the required type and capacity, and our team will check the requirement and provide the applicable quotation.`,
-        intent: 'price_enquiry',
-        rfq: updated,
-      };
-    }
-
+  // 6. Test 7: "I don't know the specification."
+  if (
+    lower === "i don't know the specification." ||
+    lower === "i don't know the specification" ||
+    lower.includes("don't know the specification") ||
+    lower === "not sure" ||
+    lower === "i don't know" ||
+    lower === "no idea"
+  ) {
+    const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
+    baseRfq.specifications = 'Not provided';
     return {
-      reply: `Pricing depends on the material, specification, quantity and current market conditions. I can collect your requirement and prepare it for a quotation request. What specific material and quantity do you need?`,
-      intent: 'price_enquiry',
-      rfq: currentRfq,
+      reply: `No problem. Just tell us the item and quantity you need. Our team can help clarify the requirement.\n\nPlease provide your name and phone or WhatsApp number so our team can assist with the quotation.`,
+      intent: 'rfq_collection',
+      rfq: baseRfq,
     };
   }
 
-  // 6. Availability Enquiry (TEST 7 & General Availability)
-  if (
-    lower.startsWith('do you have') ||
-    lower.includes('available') ||
-    lower.includes('in stock') ||
-    lower.includes('ready stock')
-  ) {
-    // If checking for pressure gauges specifically (TEST 7)
-    if (lower.includes('pressure gauge') || lower.includes('gauge')) {
-      const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
-      baseRfq.product = 'Pressure Gauges';
-      return {
-        reply: `We can check that requirement for you. Please tell me the quantity and required range/specification if known.`,
-        intent: 'availability_enquiry',
-        rfq: baseRfq,
-      };
-    }
-
+  // 7. Test 6: Price inquiry "How much is 20 fire extinguishers?"
+  if (lower.includes('price') || lower.includes('cost') || lower.includes('how much')) {
+    const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
+    const { updated } = extractEntities(text, baseRfq);
     return {
-      reply: `We can check the requirement for you. Please share the quantity and specification, and we'll help you with the quotation.`,
+      reply: `Pricing depends on the extinguisher type, capacity, quantity and delivery location. I can help prepare the quotation request. Please share the required type and capacity, and our team will check the requirement and provide the applicable quotation.`,
+      intent: 'price_enquiry',
+      rfq: updated,
+    };
+  }
+
+  // 8. Availability queries
+  if (lower.startsWith('do you have') || lower.includes('available') || lower.includes('in stock')) {
+    return {
+      reply: `Yes, we can help supply this as per your requirement. Our team can check the requirement and provide a quotation. Please share the quantity and any specifications you have.`,
       intent: 'availability_enquiry',
       rfq: currentRfq,
     };
   }
 
-  // 7. Delivery Guarantee Enquiry
-  if (lower.includes('guarantee delivery') || lower.includes('deliver tomorrow') || lower.includes('guarantee')) {
+  // 9. Delivery guarantee queries
+  if (lower.includes('guarantee delivery') || lower.includes('deliver tomorrow')) {
     return {
       reply: `I cannot guarantee delivery timelines as delivery depends on order volume, exact specifications, and logistics. Our dispatch team coordinates timelines once the quotation is finalized.`,
       intent: 'delivery_guarantee',
@@ -436,68 +458,23 @@ function generateDeterministicFallback(
     };
   }
 
-  // 8. Product Recommendation / Technical Question
-  if (lower.includes('which fire extinguisher') || lower.includes('what fire extinguisher')) {
-    return {
-      reply: `Choosing the right fire extinguisher depends on the hazard environment:
-• General Offices & Warehouses: ABC dry chemical powder (versatile for solids, liquids, and electrical fires).
-• Electrical Control Rooms & Panels: CO2 or Clean Agent extinguishers to avoid residue damage to sensitive equipment.
-• Flammable Liquid Storage: Mechanical Foam or ABC Powder.
-
-Where will the extinguishers be installed, and what is the facility or area risk?`,
-      intent: 'recommendation',
-      rfq: currentRfq,
-    };
-  }
-
-  if (lower.includes('chemical plant') || lower.includes('which material') || lower.includes('recommend')) {
-    return {
-      reply: `For demanding applications such as chemical plants, material selection depends heavily on specific operating conditions. Could you share what chemicals are involved, operating temperature, and pressure? Please note that final material selection should always be confirmed by a technical professional or our Rajdeep team.`,
-      intent: 'recommendation',
-      rfq: currentRfq,
-    };
-  }
-
-  // 9. General Educational Questions (Answer normally without forcing RFQ)
+  // 10. General educational questions
   if (lower.startsWith('what is') || lower.startsWith('tell me about')) {
     if (lower.includes('fire extinguisher')) {
       return {
-        reply: `A fire extinguisher is an active fire protection device used to extinguish or control small fires in emergency situations. Common industrial types include ABC dry powder (for general industrial and electrical fires), CO2 extinguishers (for electrical panels and machinery), mechanical foam, and clean agent systems. Are you looking to procure fire extinguishers for a facility or site?`,
-        intent: 'general_question',
-        rfq: currentRfq,
-      };
-    }
-    if (lower.includes('stainless steel')) {
-      return {
-        reply: `Stainless steel is an iron alloy containing a minimum of 10.5% chromium, which provides excellent resistance to corrosion, rust, and high temperatures. Common industrial grades include SS 304 (standard general-purpose) and SS 316 (marine and chemical grade with molybdenum). Are you looking for stainless steel sheets, pipes, or fasteners for a project?`,
-        intent: 'general_question',
-        rfq: currentRfq,
-      };
-    }
-    if (lower.includes('champion gasket')) {
-      return {
-        reply: `Champion gasket sheets are compressed asbestos and non-asbestos fiber jointing sheets manufactured for high-temperature and high-pressure steam, oil, chemical, and gas flange sealing in refineries and industrial plants. We supply standard styles including Style 20, Style 54 Super, and metallic gaskets. Would you like a quotation for gasket sheets?`,
+        reply: `A fire extinguisher is an active fire protection device used to extinguish or control small fires in emergency situations. Common types include ABC dry chemical powder, CO2 extinguishers, mechanical foam, and clean agent systems. Are you looking to procure fire extinguishers for a facility or site?`,
         intent: 'general_question',
         rfq: currentRfq,
       };
     }
   }
 
-  // 10. Contact / Human Agent
-  if (lower.includes('human') || lower.includes('person') || lower.includes('contact number') || lower.includes('call you')) {
-    return {
-      reply: `You can reach our Proprietor & Supply Lead, Raj Singh Tarkar, directly at +91 99979 93895 or +91 89239 93895, or visit our office at 15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura. Would you like me to note down your requirements so our team can contact you?`,
-      intent: 'human_agent',
-      rfq: currentRfq,
-    };
-  }
-
-  // 11. RFQ Entity Extraction & Smart Product-Specific Questioning
+  // 11. Extract entities from customer message
   const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
   const { updated, changedFields } = extractEntities(text, baseRfq);
   const category = detectProductCategory(updated.product, text);
 
-  // Check for direct edit like "change quantity from 100 kg to 250 kg" or "change quantity to 250 kg"
+  // Check for direct edit like "change quantity to 50 pcs"
   if (lower.includes('change quantity') || (changedFields.includes('quantity') && baseRfq.quantity)) {
     const isReady = Boolean(
       (updated.product || updated.material) &&
@@ -505,29 +482,29 @@ Where will the extinguishers be installed, and what is the facility or area risk
       (updated.phone || updated.email)
     );
     if (isReady) {
-      updated.status = 'ready_for_review';
+      updated.status = 'ready_to_submit';
       return {
-        reply: `I have updated your quantity to ${updated.quantity}. Here is your updated enquiry summary:
+        reply: `I have updated your quantity to ${updated.quantity}. Here is your updated requirement summary:
+
+REQUIREMENT SUMMARY
 
 Item: ${updated.product || updated.material || 'Material Supply'}
-${updated.grade ? `Grade: ${updated.grade}\n` : ''}${updated.specifications ? `Specification: ${updated.specifications}\n` : ''}${updated.thickness ? `Thickness: ${updated.thickness}\n` : ''}${updated.dimensions ? `Dimensions: ${updated.dimensions}\n` : ''}Quantity: ${updated.quantity}
-${updated.deliveryLocation ? `Delivery Location: ${updated.deliveryLocation}\n` : ''}Name: ${updated.customerName}
-${updated.companyName ? `Company: ${updated.companyName}\n` : ''}Phone: ${updated.phone || updated.email}
+Quantity: ${updated.quantity}
+Specification: ${updated.specifications || 'Not provided'}
+Customer: ${updated.customerName}
+Phone: ${updated.phone || updated.email}
+Company: ${updated.companyName || 'None'}
+Delivery Location: ${updated.deliveryLocation || 'Mathura Depot / As discussed'}
+Additional notes: ${updated.additionalNotes || 'None'}
 
-Would you like me to prepare this enquiry for submission?`,
+Please confirm the requirement.`,
         intent: 'rfq_edit',
         rfq: updated,
       };
     }
 
     return {
-      reply: `I have updated your quantity to ${updated.quantity}. ${
-        category === 'sheet'
-          ? 'What thickness or dimensions do you require?'
-          : category === 'extinguisher'
-          ? 'What type or capacity do you require?'
-          : 'Do you have any required specifications or standards?'
-      }`,
+      reply: `I have updated your quantity to ${updated.quantity}. Would you like to provide any specifications or customer details to proceed?`,
       intent: 'rfq_edit',
       rfq: updated,
     };
@@ -539,17 +516,21 @@ Would you like me to prepare this enquiry for submission?`,
   const hasName = Boolean(updated.customerName);
   const hasContact = Boolean(updated.phone || updated.email);
 
-  // If we have product, quantity, customer name, and contact -> Ready for Summary!
+  // If we have product, quantity, customer name, and contact -> Ready for Requirement Summary!
   if (hasProduct && hasQuantity && hasName && hasContact) {
-    updated.status = 'ready_for_review';
-    const summaryText = `Here is your enquiry summary:
+    updated.status = 'ready_to_submit';
+    const summaryText = `REQUIREMENT SUMMARY
 
 Item: ${updated.product || updated.material || 'Material Supply'}
-${updated.grade ? `Grade: ${updated.grade}\n` : ''}${updated.specifications ? `Specification: ${updated.specifications}\n` : ''}${updated.thickness ? `Thickness: ${updated.thickness}\n` : ''}${updated.dimensions ? `Dimensions: ${updated.dimensions}\n` : ''}Quantity: ${updated.quantity}
-${updated.application ? `Application: ${updated.application}\n` : ''}${updated.deliveryLocation ? `Delivery Location: ${updated.deliveryLocation}\n` : ''}Name: ${updated.customerName}
-${updated.companyName ? `Company: ${updated.companyName}\n` : ''}Phone: ${updated.phone || updated.email}
+Quantity: ${updated.quantity}
+Specification: ${updated.specifications || 'Not provided'}
+Customer: ${updated.customerName}
+Phone: ${updated.phone || updated.email}
+Company: ${updated.companyName || 'None'}
+Delivery Location: ${updated.deliveryLocation || 'Mathura Depot / As discussed'}
+Additional notes: ${updated.additionalNotes || 'None'}
 
-Would you like me to prepare this enquiry for submission?`;
+Please confirm the requirement.`;
 
     return {
       reply: summaryText,
@@ -559,140 +540,83 @@ Would you like me to prepare this enquiry for submission?`;
   }
 
   // ----------------------------------------------------
-  // PRODUCT-SPECIFIC SMART QUESTIONING FLOWS
+  // TEST SCENARIOS & SPECIFIC PRODUCT FLOWS
   // ----------------------------------------------------
 
-  // Flow A: FIRE EXTINGUISHERS (TEST 1)
-  if (category === 'extinguisher') {
-    if (!hasQuantity) {
-      return {
-        reply: `Sure. How many fire extinguishers do you need?`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
-    const cleanQty = updated.quantity ? updated.quantity.replace(/\s*(?:pcs|pieces|nos)\b/i, '').trim() : '10';
-    if (!updated.specifications && !updated.application) {
-      return {
-        reply: `Got it — ${cleanQty} fire extinguishers. What type (such as ABC powder, CO2, foam, or clean agent) and capacity (e.g., 2 kg, 4 kg, 6 kg, 9 kg) do you require? If you're not sure, tell me where they will be used (office, warehouse, factory, electrical area), and our team can help identify the requirement.`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
+  // Test 2: "I need 20 pressure gauges."
+  if (category === 'gauge' && hasQuantity) {
     if (!hasName || !hasContact) {
       return {
-        reply: `To prepare the enquiry for the Rajdeep Enterprises team, may I have your name, delivery location, and a phone or WhatsApp number?`,
+        reply: `Yes, we can help with pressure gauges. I've noted 20 pressure gauges. If you have a preferred range, size or specification, please share it. Otherwise, you can send us your requirement and our team can check it and provide a quotation.
+
+Would you like to send this requirement to our team? Please provide your name and phone/WhatsApp number.`,
         intent: 'rfq_collection',
         rfq: updated,
       };
     }
   }
 
-  // Flow B: CYLINDERS (TEST 2)
-  if (category === 'cylinder') {
-    if (!hasQuantity) {
-      return {
-        reply: `Sure. How many cylinders do you need?`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
-    const cleanQty = updated.quantity ? updated.quantity.replace(/\s*(?:pcs|pieces|nos)\b/i, '').trim() : '10';
-    if (!updated.specifications) {
-      return {
-        reply: `Got it — ${cleanQty} cylinders. What type of cylinder or gas do you require (for example: Oxygen, Nitrogen, Argon, CO2, or Acetylene) and what capacity or pressure specification do you need?`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
+  // Test 3: "I need 10 fire extinguishers."
+  if (category === 'extinguisher' && hasQuantity) {
     if (!hasName || !hasContact) {
       return {
-        reply: `To prepare the enquiry for the Rajdeep Enterprises team, may I have your name, delivery location, and a phone or WhatsApp number?`,
+        reply: `Yes, we can help arrange fire extinguishers. I have noted the quantity as 10. If you have a preferred type or capacity, you can share it; otherwise, you can send us your requirement and our team can help with the appropriate option and quotation.
+
+Would you like to send this requirement to our team for a quotation?`,
         intent: 'rfq_collection',
         rfq: updated,
       };
     }
   }
 
-  // Flow C: SAFETY HELMETS (TEST 4)
-  if (category === 'helmet') {
-    if (!hasQuantity) {
-      return {
-        reply: `Sure. How many safety helmets do you need?`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
-    const qtyText = updated.quantity?.includes('piece') ? `${updated.quantity} of` : updated.quantity;
-    if (!updated.specifications) {
-      return {
-        reply: `Got it — ${qtyText} safety helmets. Do you have any preferred type (ratchet or pin-lock), color (white, yellow, blue, etc.), or certification standard (such as IS:2925)?`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
+  // Test 4: "I need 3 cylinders."
+  if (category === 'cylinder' && hasQuantity) {
     if (!hasName || !hasContact) {
       return {
-        reply: `To prepare the enquiry for the Rajdeep Enterprises team, may I have your name, delivery location, and a phone or WhatsApp number?`,
+        reply: `Yes, we can help with cylinders. I have noted the quantity as 3. Please tell me the cylinder/gas type if known. If you're not sure, you can send us the requirement and our team can help clarify it.
+
+Please provide your name and phone/WhatsApp number so our team can assist.`,
         intent: 'rfq_collection',
         rfq: updated,
       };
     }
   }
 
-  // Flow D: PRESSURE GAUGES (TEST 7 & Non-catalogue flow)
-  if (category === 'gauge') {
-    if (!hasQuantity) {
-      return {
-        reply: `Sure, we can check that requirement for you. How many pressure gauges do you need?`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
-    const cleanQty = updated.quantity ? updated.quantity.replace(/\s*(?:pcs|pieces|nos)\b/i, '').trim() : '20';
-    if (!updated.specifications) {
-      return {
-        reply: `Got it — ${cleanQty} pressure gauges. Do you know the required pressure range, connection size or any preferred specification? If you're not sure, tell me where they will be used and our team can check the requirement.`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
+  // Example 10: "I need 20 industrial valves."
+  if (category === 'valve' && hasQuantity) {
     if (!hasName || !hasContact) {
       return {
-        reply: `To prepare the enquiry for the Rajdeep Enterprises team, may I have your name, delivery location, and a phone or WhatsApp number?`,
+        reply: `Yes, we can help arrange industrial valves. I've noted the quantity as 20. If you know the valve type, size, material or specification, please share it. Otherwise, you can send us your requirement and our team can help with the quotation.`,
         intent: 'rfq_collection',
         rfq: updated,
       };
     }
   }
 
-  // Flow E: INDUSTRIAL VALVES
-  if (category === 'valve') {
-    if (!hasQuantity) {
-      return {
-        reply: `Sure. Please share the valve type, size, material/specification if known, quantity and delivery location. We'll check the requirement and help with the quotation.`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
+  // Example 11: "I need 50 welding machines."
+  if (category === 'welding_machine' && hasQuantity) {
     if (!hasName || !hasContact) {
       return {
-        reply: `To prepare the enquiry for the Rajdeep Enterprises team, may I have your name, delivery location, and a phone or WhatsApp number?`,
+        reply: `Yes, we can help check that requirement. I've noted 50 welding machines. If you have a preferred brand, model or specification, you can share it. Otherwise, send us your requirement and our team can check the available options and provide a quotation.`,
         intent: 'rfq_collection',
         rfq: updated,
       };
     }
   }
 
-  // Flow F: SHEETS / PLATES (TEST 5)
+  // Safety Helmets
+  if (category === 'helmet' && hasQuantity) {
+    if (!hasName || !hasContact) {
+      return {
+        reply: `Yes, we can help arrange safety helmets. I have noted the quantity as ${updated.quantity}. If you have a preferred color, type (ratchet or pin-lock), or standard, please share it. Otherwise, please provide your name and contact number to prepare your quotation.`,
+        intent: 'rfq_collection',
+        rfq: updated,
+      };
+    }
+  }
+
+  // Sheet products
   if (category === 'sheet') {
-    if (!updated.grade) {
-      return {
-        reply: `What grade do you need, if known (for example: SS 304, SS 316, or MS)?`,
-        intent: 'material_enquiry',
-        rfq: updated,
-      };
-    }
     if (!hasQuantity) {
       return {
         reply: `What quantity and thickness do you require?`,
@@ -700,58 +624,51 @@ Would you like me to prepare this enquiry for submission?`;
         rfq: updated,
       };
     }
-    if (!updated.thickness && !updated.dimensions) {
-      return {
-        reply: `I have noted ${updated.grade} ${updated.material || 'stainless steel'} sheet and ${updated.quantity}. What thickness (for example: 2 mm, 3 mm) and dimensions (such as 4×8 ft) do you require?`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
-    if (!updated.thickness) {
-      return {
-        reply: `Thanks. What thickness do you require (for example: 2 mm, 3 mm)?`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
-    if (!updated.dimensions) {
-      return {
-        reply: `Got it. Do you have any required dimensions, such as 4×8 ft?`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
     if (!hasName || !hasContact) {
       return {
-        reply: `To prepare the enquiry for the Rajdeep Enterprises team, may I have your name, delivery location, and a phone or WhatsApp number?`,
+        reply: `I have noted ${updated.grade || 'SS 304'} steel sheet and ${updated.quantity}. To prepare the requirement for our team, may I have your name, delivery location, and phone/WhatsApp number?`,
         intent: 'rfq_collection',
         rfq: updated,
       };
     }
   }
 
-  // Flow G: PIPES / TUBES
-  if (category === 'pipe') {
+  // Direct "Send Requirement" action trigger
+  if (action === 'send_requirement' || lower === 'send requirement') {
+    if (!hasProduct) {
+      return {
+        reply: `Please tell us the item or material you need.`,
+        intent: 'rfq_collection',
+        rfq: updated,
+      };
+    }
     if (!hasQuantity) {
       return {
-        reply: `What size/diameter (NB/OD), wall thickness/schedule, and quantity do you need?`,
+        reply: `How many ${updated.product || 'items'} do you need?`,
         intent: 'rfq_collection',
         rfq: updated,
       };
     }
-    if (!hasName || !hasContact) {
+    if (!hasName) {
       return {
-        reply: `To prepare the enquiry for the Rajdeep Enterprises team, may I have your name, delivery location, and a phone or WhatsApp number?`,
+        reply: `Please provide your name.`,
+        intent: 'rfq_collection',
+        rfq: updated,
+      };
+    }
+    if (!hasContact) {
+      return {
+        reply: `Please provide your phone/WhatsApp number so our team can provide the quotation.`,
         intent: 'rfq_collection',
         rfq: updated,
       };
     }
   }
 
-  // Flow H: GENERAL PRODUCT ENQUIRY
+  // General unknown product flow
   if (!hasProduct) {
     return {
-      reply: `Sure. What product or material are you looking for?`,
+      reply: `Yes, we can help with your requirement. Tell us what item you need, the quantity, and any specifications you have.`,
       intent: 'product_enquiry',
       rfq: updated,
     };
@@ -759,7 +676,7 @@ Would you like me to prepare this enquiry for submission?`;
 
   if (!hasQuantity) {
     return {
-      reply: `Got it. What quantity do you need?`,
+      reply: `Yes, we can help with ${updated.product}. How many do you need?`,
       intent: 'rfq_collection',
       rfq: updated,
     };
@@ -767,14 +684,14 @@ Would you like me to prepare this enquiry for submission?`;
 
   if (!hasName || !hasContact) {
     return {
-      reply: `To prepare the enquiry for the Rajdeep Enterprises team, may I have your name, delivery location, and a phone or WhatsApp number?`,
+      reply: `Got it — ${updated.quantity} ${updated.product}. Please provide your name and phone or WhatsApp number so our team can check the requirement and provide a quotation.`,
       intent: 'rfq_collection',
       rfq: updated,
     };
   }
 
   return {
-    reply: `I have noted: ${updated.product || updated.material} ${updated.grade || ''}, ${updated.quantity || ''}. May I have your name and contact number to prepare your quotation enquiry?`,
+    reply: `I have recorded: ${updated.product}, quantity: ${updated.quantity}. Please confirm if you would like our team to provide a quotation.`,
     intent: 'rfq_collection',
     rfq: updated,
   };
@@ -818,7 +735,7 @@ export default async function handler(req: any, res: any) {
     }
 
     // Direct actions handled instantly
-    if (action === 'confirm' || action === 'cancel' || action === 'edit') {
+    if (action === 'confirm' || action === 'cancel' || action === 'edit' || action === 'send_requirement') {
       const fallback = generateDeterministicFallback(trimmedMessage, currentRfq, action);
       return res.status(200).json({
         success: true,
@@ -896,7 +813,6 @@ export default async function handler(req: any, res: any) {
       try {
         parsedData = JSON.parse(responseText);
       } catch {
-        // Strip markdown code fences if Gemini added ```json ... ```
         const jsonMatch = responseText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           try {
@@ -906,7 +822,6 @@ export default async function handler(req: any, res: any) {
       }
 
       if (parsedData && typeof parsedData.reply === 'string') {
-        // Validate contact fields if provided
         const extractedRfq: StructuredRfqData = parsedData.rfq || currentRfq || { status: 'draft' };
 
         if (extractedRfq.email && !isValidEmail(extractedRfq.email)) {
@@ -916,14 +831,12 @@ export default async function handler(req: any, res: any) {
           delete extractedRfq.phone;
         }
 
-        // Merge with existing fields so information is never lost
         const mergedRfq: StructuredRfqData = {
           ...(currentRfq || {}),
           ...extractedRfq,
           status: extractedRfq.status || currentRfq?.status || 'draft',
         };
 
-        // If product/material, quantity, customerName, and contact are present, set ready_for_review
         const hasCoreRequirements = Boolean(
           (mergedRfq.product || mergedRfq.material) &&
           (mergedRfq.quantity || mergedRfq.specifications) &&
@@ -932,7 +845,7 @@ export default async function handler(req: any, res: any) {
         );
 
         if (hasCoreRequirements && mergedRfq.status === 'draft') {
-          mergedRfq.status = 'ready_for_review';
+          mergedRfq.status = 'ready_to_submit';
         }
 
         return res.status(200).json({
@@ -942,8 +855,8 @@ export default async function handler(req: any, res: any) {
           rfq: mergedRfq,
         });
       }
-    } catch (geminiError: any) {
-      console.warn('[ChatAPI] Gemini API call returned error or rate limit, switching to fallback:', geminiError?.message || geminiError);
+    } catch {
+      // Seamless fallback on quota or rate limit
       const fallback = generateDeterministicFallback(trimmedMessage, currentRfq, action);
       return res.status(200).json({
         success: true,

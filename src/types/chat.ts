@@ -1,6 +1,13 @@
 export type MessageSender = 'user' | 'ai';
 
-export type RfqStatus = 'draft' | 'ready_for_review' | 'confirmed' | 'cancelled';
+export type RfqStatus =
+  | 'draft'
+  | 'ready_for_review'
+  | 'ready_to_submit'
+  | 'submitted'
+  | 'confirmed'
+  | 'cancelled'
+  | 'failed';
 
 export interface StructuredRfq {
   customerName?: string;
@@ -25,6 +32,12 @@ export interface StructuredRfq {
   submissionError?: string;
 }
 
+export interface ChatMessageAction {
+  label: string;
+  action: string;
+  variant?: 'primary' | 'secondary' | 'outline';
+}
+
 export interface ChatMessage {
   id: string;
   sender: MessageSender;
@@ -33,6 +46,7 @@ export interface ChatMessage {
   isError?: boolean;
   rfq?: StructuredRfq;
   isRfqSummary?: boolean;
+  actions?: ChatMessageAction[];
 }
 
 export interface SuggestedQuestion {
@@ -40,4 +54,4 @@ export interface SuggestedQuestion {
   text: string;
 }
 
-export type ChatStatus = 'idle' | 'loading' | 'error';
+export type ChatStatus = 'idle' | 'loading' | 'submitting' | 'error';

@@ -10,6 +10,11 @@ import {
   Phone,
   MapPin,
   Package,
+  Send,
+  Loader2,
+  MessageCircle,
+  PhoneCall,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface RfqSummaryCardProps {
@@ -27,32 +32,32 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
   onCancel,
   disabled = false,
 }) => {
-  const isConfirmed = rfq.status === 'confirmed';
+  const isSubmitted = rfq.status === 'submitted' || rfq.status === 'confirmed';
   const isCancelled = rfq.status === 'cancelled';
-  const isActionable = !isConfirmed && !isCancelled;
+  const isFailed = rfq.status === 'failed';
+  const isActionable = !isSubmitted && !isCancelled;
 
-  // Prepare display items that have non-empty values
+  // Prepare display items
+  const itemValue = rfq.product || rfq.material || 'Industrial Requirement';
+  const quantityValue = rfq.quantity ? `${rfq.quantity}${rfq.unit && !rfq.quantity.includes(rfq.unit) ? ` ${rfq.unit}` : ''}` : 'As required';
+  const specValue = rfq.specifications || (rfq.grade ? `Grade: ${rfq.grade}` : 'Not provided');
+
   const fields = [
-    { label: 'Product', value: rfq.product, icon: Package },
-    { label: 'Material', value: rfq.material, icon: FileText },
-    { label: 'Grade', value: rfq.grade, icon: FileText },
-    {
-      label: 'Quantity',
-      value: rfq.quantity ? `${rfq.quantity}${rfq.unit && !rfq.quantity.includes(rfq.unit) ? ` ${rfq.unit}` : ''}` : undefined,
-      icon: Package,
-    },
-    { label: 'Thickness', value: rfq.thickness, icon: FileText },
-    { label: 'Dimensions', value: rfq.dimensions, icon: FileText },
-    { label: 'Specifications', value: rfq.specifications, icon: FileText },
-    { label: 'Application', value: rfq.application, icon: FileText },
-    { label: 'Delivery Location', value: rfq.deliveryLocation, icon: MapPin },
-    { label: 'Contact Person', value: rfq.customerName, icon: User },
-    { label: 'Company', value: rfq.companyName, icon: Building2 },
+    { label: 'Item', value: itemValue, icon: Package },
+    { label: 'Quantity', value: quantityValue, icon: Package },
+    { label: 'Specification', value: specValue, icon: FileText },
+    { label: 'Customer', value: rfq.customerName, icon: User },
     { label: 'Phone', value: rfq.phone, icon: Phone },
-    { label: 'Email', value: rfq.email, icon: FileText },
-    { label: 'Required By', value: rfq.requiredBy, icon: FileText },
-    { label: 'Notes', value: rfq.additionalNotes, icon: FileText },
+    { label: 'Company', value: rfq.companyName || 'None', icon: Building2 },
+    { label: 'Delivery Location', value: rfq.deliveryLocation || 'Mathura Depot / As discussed', icon: MapPin },
+    { label: 'Additional notes', value: rfq.additionalNotes || 'None', icon: FileText },
   ].filter((item) => Boolean(item.value && item.value.trim()));
+
+  const whatsappMessage = encodeURIComponent(
+    `Hello Rajdeep Enterprises, I submitted a requirement for ${itemValue} (Qty: ${quantityValue})${
+      rfq.rfqReference ? ` with Reference: ${rfq.rfqReference}` : ''
+    }. Please provide a quotation.`
+  );
 
   return (
     <div className="mt-3 w-full bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden shadow-lg select-text text-left">
@@ -60,24 +65,29 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
       <div className="bg-slate-950 px-3.5 py-2.5 border-b border-slate-800 flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <FileText className="w-4 h-4 text-orange-400 shrink-0" />
-          <span className="text-xs font-bold text-white tracking-wide">
-            Quotation Enquiry Details
+          <span className="text-xs font-bold text-white tracking-wide uppercase">
+            Requirement Summary
           </span>
         </div>
         <div>
-          {isConfirmed ? (
+          {isSubmitted ? (
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
               <CheckCircle2 className="w-3 h-3" />
-              Enquiry Prepared
+              Sent to Team
             </span>
           ) : isCancelled ? (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-700/50 text-slate-400 border border-slate-600">
               <XCircle className="w-3 h-3" />
               Cancelled
             </span>
+          ) : isFailed ? (
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/40">
+              <AlertTriangle className="w-3 h-3" />
+              Submission Error
+            </span>
           ) : (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-              Ready for Review
+              Ready to Send
             </span>
           )}
         </div>
@@ -85,20 +95,16 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
 
       {/* Fields List */}
       <div className="p-3 space-y-1.5 text-xs bg-slate-900/90 divide-y divide-slate-800/60">
-        {fields.length > 0 ? (
-          fields.map((f, i) => (
-            <div key={i} className="flex justify-between items-start gap-2 pt-1.5 first:pt-0">
-              <span className="text-slate-400 shrink-0 flex items-center gap-1">
-                {f.label}:
-              </span>
-              <span className="text-slate-100 font-medium text-right break-words max-w-[65%]">
-                {f.value}
-              </span>
-            </div>
-          ))
-        ) : (
-          <p className="text-slate-400 italic text-[11px]">No specific details recorded yet.</p>
-        )}
+        {fields.map((f, i) => (
+          <div key={i} className="flex justify-between items-start gap-2 pt-1.5 first:pt-0">
+            <span className="text-slate-400 shrink-0 flex items-center gap-1 font-medium">
+              {f.label}:
+            </span>
+            <span className="text-slate-100 font-medium text-right break-words max-w-[65%]">
+              {f.value}
+            </span>
+          </div>
+        ))}
       </div>
 
       {/* Action Buttons for Draft / Review Mode */}
@@ -109,10 +115,19 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
               type="button"
               disabled={disabled}
               onClick={onConfirm}
-              className="flex-1 min-w-[120px] inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white rounded-lg text-xs font-semibold shadow-sm transition disabled:opacity-50 cursor-pointer"
+              className="flex-1 min-w-[130px] inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white rounded-lg text-xs font-semibold shadow-sm transition disabled:opacity-50 cursor-pointer"
             >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Confirm RFQ</span>
+              {disabled ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Sending...</span>
+                </>
+              ) : (
+                <>
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Confirm & Send</span>
+                </>
+              )}
             </button>
           )}
 
@@ -124,7 +139,7 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
               className="inline-flex items-center justify-center gap-1 px-3 py-2 bg-slate-800 hover:bg-slate-700 active:bg-slate-800 text-slate-200 rounded-lg text-xs font-medium border border-slate-700 transition disabled:opacity-50 cursor-pointer"
             >
               <Edit3 className="w-3.5 h-3.5 text-orange-400" />
-              <span>Edit Details</span>
+              <span>Edit</span>
             </button>
           )}
 
@@ -134,7 +149,7 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
               disabled={disabled}
               onClick={onCancel}
               className="inline-flex items-center justify-center gap-1 px-2.5 py-2 hover:bg-rose-950/40 text-slate-400 hover:text-rose-300 rounded-lg text-xs transition disabled:opacity-50 cursor-pointer"
-              title="Cancel quotation enquiry"
+              title="Cancel requirement"
             >
               <XCircle className="w-3.5 h-3.5" />
               <span>Cancel</span>
@@ -143,19 +158,78 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
         </div>
       )}
 
-      {/* Confirmed / Prepared State Container */}
-      {isConfirmed && (
-        <div className="bg-emerald-950/40 p-3 border-t border-emerald-800/40 space-y-1">
+      {/* Confirmed / Submitted State Container */}
+      {isSubmitted && (
+        <div className="bg-emerald-950/40 p-3 border-t border-emerald-800/40 space-y-2">
           <div className="flex items-start gap-2 text-emerald-200 text-xs">
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-emerald-300">
-                I've prepared your enquiry.
+                Your requirement has been sent to the Rajdeep Enterprises team.
               </p>
-              <p className="text-[11px] text-emerald-400/90 leading-tight">
-                All requirement details have been verified and confirmed. The structured enquiry is ready for quotation processing.
+              {rfq.rfqReference && (
+                <p className="text-[11px] font-mono text-emerald-300/90 mt-0.5">
+                  Reference: <span className="font-bold underline">{rfq.rfqReference}</span>
+                </p>
+              )}
+              <p className="text-[11px] text-emerald-400/90 leading-tight mt-1">
+                Our sales team will check the requirement and reach out with an official quotation.
               </p>
             </div>
+          </div>
+
+          {/* Direct contact action links */}
+          <div className="flex items-center gap-2 pt-1 border-t border-emerald-900/50">
+            <a
+              href={`https://wa.me/919997993895?text=${whatsappMessage}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded text-[11px] font-semibold transition"
+            >
+              <MessageCircle className="w-3 h-3" />
+              <span>WhatsApp Rajdeep</span>
+            </a>
+            <a
+              href="tel:+919997993895"
+              className="flex-1 inline-flex items-center justify-center gap-1 px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] font-medium border border-slate-700 transition"
+            >
+              <PhoneCall className="w-3 h-3 text-orange-400" />
+              <span>Call +91 99979 93895</span>
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Failed State Container */}
+      {isFailed && (
+        <div className="bg-rose-950/50 p-3 border-t border-rose-800/40 space-y-2">
+          <div className="flex items-start gap-2 text-rose-200 text-xs">
+            <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+            <div>
+              <p className="font-semibold text-rose-300">
+                Could not connect to backend submission right now.
+              </p>
+              <p className="text-[11px] text-rose-300/80 leading-tight mt-0.5">
+                {rfq.submissionError || 'Please try clicking Confirm & Send again or contact Rajdeep Enterprises directly.'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {onConfirm && (
+              <button
+                type="button"
+                onClick={onConfirm}
+                className="flex-1 py-1 px-2.5 bg-rose-700 hover:bg-rose-600 text-white rounded text-[11px] font-semibold transition cursor-pointer"
+              >
+                Retry Send
+              </button>
+            )}
+            <a
+              href="tel:+919997993895"
+              className="flex-1 text-center py-1 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] font-medium transition"
+            >
+              Call Directly
+            </a>
           </div>
         </div>
       )}
@@ -164,7 +238,7 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
       {isCancelled && (
         <div className="bg-slate-950/60 p-2.5 border-t border-slate-800 text-center">
           <p className="text-[11px] text-slate-400">
-            This draft quotation enquiry has been cancelled.
+            This requirement enquiry has been cancelled.
           </p>
         </div>
       )}
