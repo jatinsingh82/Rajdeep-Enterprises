@@ -4,7 +4,6 @@ import { ChatMessage, ChatStatus, StructuredRfq } from '../../types/chat';
 import { ChatMessageItem } from './ChatMessageItem';
 import { ChatSuggestions } from './ChatSuggestions';
 import { sendChatMessage } from '../../services/chatService';
-import { submitAiRfq } from '../../services/rfqService';
 
 function formatCurrentTime(): string {
   return new Date().toLocaleTimeString('en-IN', {
@@ -28,7 +27,6 @@ export const RajdeepChatbot: React.FC = () => {
   const [status, setStatus] = useState<ChatStatus>('idle');
   const [showTooltip, setShowTooltip] = useState(true);
   const [currentRfq, setCurrentRfq] = useState<StructuredRfq | null>(null);
-  const [isSubmittingRfq, setIsSubmittingRfq] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -47,7 +45,7 @@ export const RajdeepChatbot: React.FC = () => {
       }, 100);
       return () => clearTimeout(timer);
     }
-  }, [isOpen, messages, status, isSubmittingRfq]);
+  }, [isOpen, messages, status]);
 
   // Handle ESC key to close modal
   useEffect(() => {
@@ -65,18 +63,23 @@ export const RajdeepChatbot: React.FC = () => {
     actionOverride?: 'confirm' | 'edit' | 'cancel'
   ) => {
     const text = (textToSend || inputVal).trim();
-    if ((!text && !actionOverride) || status === 'loading' || isSubmittingRfq) return;
+    if ((!text && !actionOverride) || status === 'loading') return;
 
-    // Route explicit confirmation to real submission workflow
-    if (actionOverride === 'confirm' || text.toLowerCase() === 'confirm rfq' || text.toLowerCase() === 'confirm quotation') {
-      if (currentRfq && (currentRfq.status === 'ready_for_review' || currentRfq.customerName)) {
-        await handleConfirmRfq();
-        return;
+    // Detect action intent from message text if not explicitly overridden
+    let effectiveAction = actionOverride;
+    if (!effectiveAction) {
+      const lower = text.toLowerCase();
+      if (lower === 'confirm rfq' || lower === 'confirm quotation') {
+        effectiveAction = 'confirm';
+      } else if (lower.includes('cancel my quotation') || lower === 'cancel rfq' || lower === 'cancel') {
+        effectiveAction = 'cancel';
+      } else if (lower === 'edit details' || lower === 'edit rfq') {
+        effectiveAction = 'edit';
       }
     }
 
     const userMessageText =
-      text || (actionOverride === 'cancel' ? 'Cancel my quotation' : 'Edit details');
+      text || (effectiveAction === 'confirm' ? 'Confirm RFQ' : effectiveAction === 'cancel' ? 'Cancel my quotation' : 'Edit details');
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -95,7 +98,7 @@ export const RajdeepChatbot: React.FC = () => {
         message: userMessageText,
         history: newHistory,
         currentRfq,
-        action: actionOverride,
+        action: effectiveAction,
       });
 
       const updatedRfq = response.rfq !== undefined ? response.rfq : currentRfq;
@@ -103,7 +106,7 @@ export const RajdeepChatbot: React.FC = () => {
         setCurrentRfq(updatedRfq);
       }
 
-      // Attach structured RFQ to AI message if ready for review, confirmed, cancelled, or error
+      // Attach structured RFQ to AI message if ready for review, confirmed, cancelled, or has key fields
       const shouldAttachRfq = Boolean(
         updatedRfq &&
         (updatedRfq.status === 'ready_for_review' ||
@@ -136,82 +139,8 @@ export const RajdeepChatbot: React.FC = () => {
     }
   };
 
-  /**
-   * Real Submission Workflow for Rajdeep AI RFQ (Section 3, 7, 8, 9, 10)
-   * Dispatches RFQ to /api/rfq, handles duplication prevention, reports real status
-   */
-  const handleConfirmRfq = async () => {
-    if (!currentRfq || isSubmittingRfq) return;
-
-    setIsSubmittingRfq(true);
-
-    const userMessage: ChatMessage = {
-      id: `user-${Date.now()}`,
-      sender: 'user',
-      text: 'Confirm RFQ',
-      timestamp: formatCurrentTime(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-
-    try {
-      const result = await submitAiRfq({ rfq: currentRfq });
-
-      if (result.success) {
-        const confirmedRfq: StructuredRfq = {
-          ...currentRfq,
-          status: 'confirmed',
-          rfqReference: result.rfqReference,
-          submissionError: undefined,
-        };
-        setCurrentRfq(confirmedRfq);
-
-        const aiMessage: ChatMessage = {
-          id: `ai-${Date.now()}`,
-          sender: 'ai',
-          text: `Your enquiry has been submitted successfully.\n\nReference: ${result.rfqReference || 'RE-RFQ'}\n\nThe Rajdeep Enterprises team will review your requirement and contact you using the details provided.`,
-          timestamp: formatCurrentTime(),
-          rfq: confirmedRfq,
-        };
-        setMessages((prev) => [...prev, aiMessage]);
-      } else {
-        const failedRfq: StructuredRfq = {
-          ...currentRfq,
-          submissionError:
-            result.error ||
-            "We couldn't submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.",
-        };
-        setCurrentRfq(failedRfq);
-
-        const aiMessage: ChatMessage = {
-          id: `ai-${Date.now()}`,
-          sender: 'ai',
-          text: "We couldn't submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.",
-          timestamp: formatCurrentTime(),
-          isError: true,
-          rfq: failedRfq,
-        };
-        setMessages((prev) => [...prev, aiMessage]);
-      }
-    } catch {
-      const failedRfq: StructuredRfq = {
-        ...currentRfq,
-        submissionError:
-          "We couldn't submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.",
-      };
-      setCurrentRfq(failedRfq);
-
-      const aiMessage: ChatMessage = {
-        id: `ai-${Date.now()}`,
-        sender: 'ai',
-        text: "We couldn't submit your enquiry right now. Please try again or contact Rajdeep Enterprises directly.",
-        timestamp: formatCurrentTime(),
-        isError: true,
-        rfq: failedRfq,
-      };
-      setMessages((prev) => [...prev, aiMessage]);
-    } finally {
-      setIsSubmittingRfq(false);
-    }
+  const handleConfirmRfq = () => {
+    handleSendMessage('Confirm RFQ', 'confirm');
   };
 
   const handleEditRfq = () => {
@@ -226,7 +155,6 @@ export const RajdeepChatbot: React.FC = () => {
 
   const handleResetChat = () => {
     setCurrentRfq(null);
-    setIsSubmittingRfq(false);
     setMessages([
       {
         ...INITIAL_MESSAGE,
@@ -299,64 +227,59 @@ export const RajdeepChatbot: React.FC = () => {
         </button>
       </div>
 
-      {/* 2. Chatbot Window Modal Container */}
+      {/* 2. Chat Modal Dialog Window */}
       {isOpen && (
         <div
           ref={chatWindowRef}
           role="dialog"
+          aria-label="Rajdeep AI Sales & RFQ Assistant"
           aria-modal="true"
-          aria-label="Rajdeep AI Chat Assistant"
-          className="fixed z-50 flex flex-col bg-slate-900 border border-slate-800 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200
-            inset-x-2 bottom-2 h-[88vh] max-h-[640px] rounded-2xl
-            sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[440px] sm:h-[620px] sm:max-h-[85vh]"
+          className="fixed z-50 bottom-4 right-4 sm:bottom-6 sm:right-6 w-[94vw] sm:w-[420px] md:w-[440px] h-[600px] max-h-[85vh] bg-slate-900 border border-slate-700/80 rounded-2xl shadow-2xl flex flex-col overflow-hidden text-slate-100 animate-in fade-in zoom-in-95 duration-150"
         >
           {/* Header */}
-          <header className="relative bg-slate-950 text-white px-4 py-3.5 border-b border-slate-800 flex items-center justify-between shrink-0">
-            {/* Top decorative hazard line */}
-            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-orange-500 via-amber-400 to-orange-600" />
-
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="relative w-9 h-9 rounded-full bg-slate-900 border border-orange-500/60 flex items-center justify-center text-orange-400 shrink-0">
-                <Bot className="w-5 h-5" />
+          <div className="bg-slate-950 px-4 py-3 border-b border-slate-800 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-slate-900 to-slate-800 border border-orange-500 flex items-center justify-center text-orange-400 shadow-md">
+                  <Bot className="w-5 h-5" />
+                </div>
                 <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-slate-950 rounded-full" />
               </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <h2 className="text-sm font-bold text-white tracking-wide truncate">
+              <div className="flex flex-col">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold text-white tracking-wide">
                     Rajdeep AI
-                  </h2>
-                  <span className="inline-flex items-center px-1.5 py-0.2 text-[9px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">
-                    Online
+                  </span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                    SALES & RFQ
                   </span>
                 </div>
-                <p className="text-[11px] text-slate-400 truncate">
-                  Sales & RFQ Assistant • Rajdeep Enterprises
-                </p>
+                <span className="text-[11px] text-slate-400">
+                  Quotations • Materials • Supplies
+                </span>
               </div>
             </div>
 
-            {/* Header Action Controls */}
-            <div className="flex items-center gap-1 shrink-0">
+            <div className="flex items-center gap-1">
               <button
                 type="button"
                 onClick={handleResetChat}
-                className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 rounded-lg transition-colors cursor-pointer"
-                title="Restart conversation"
-                aria-label="Restart conversation"
+                className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                aria-label="Reset conversation"
+                title="Restart chat"
               >
                 <RotateCcw className="w-4 h-4" />
               </button>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800/80 rounded-lg transition-colors cursor-pointer"
-                title="Close chat window"
-                aria-label="Close Rajdeep AI"
+                className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors cursor-pointer"
+                aria-label="Close chat"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-          </header>
+          </div>
 
           {/* Messages Scroll Area */}
           <div
@@ -371,22 +294,18 @@ export const RajdeepChatbot: React.FC = () => {
                 onConfirmRfq={handleConfirmRfq}
                 onEditRfq={handleEditRfq}
                 onCancelRfq={handleCancelRfq}
-                onRetryRfq={handleConfirmRfq}
-                isSubmitting={isSubmittingRfq}
-                isActionDisabled={status === 'loading' || isSubmittingRfq}
+                isActionDisabled={status === 'loading'}
               />
             ))}
 
             {/* Typing / Loading Indicator */}
-            {(status === 'loading' || isSubmittingRfq) && (
+            {status === 'loading' && (
               <div className="flex items-end gap-2.5 my-2.5 justify-start">
                 <div className="shrink-0 w-8 h-8 rounded-full bg-slate-900 border border-orange-500/60 flex items-center justify-center text-orange-400">
                   <Bot className="w-4 h-4" />
                 </div>
                 <div className="bg-slate-800/90 border border-slate-700/80 rounded-2xl rounded-bl-xs px-4 py-3 text-slate-300 shadow-sm flex items-center gap-1.5">
-                  <span className="text-xs text-slate-400 mr-1">
-                    {isSubmittingRfq ? 'Submitting your RFQ to Rajdeep Enterprises' : 'Rajdeep AI is thinking'}
-                  </span>
+                  <span className="text-xs text-slate-400 mr-1">Rajdeep AI is thinking</span>
                   <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
                   <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
                   <span className="w-1.5 h-1.5 bg-orange-400 rounded-full animate-bounce" />
@@ -400,7 +319,7 @@ export const RajdeepChatbot: React.FC = () => {
           {/* Suggested Questions Area */}
           <ChatSuggestions
             onSelectSuggestion={(q) => handleSendMessage(q)}
-            disabled={status === 'loading' || isSubmittingRfq}
+            disabled={status === 'loading'}
           />
 
           {/* Message Input Area */}
@@ -419,24 +338,23 @@ export const RajdeepChatbot: React.FC = () => {
                 onChange={(e) => setInputVal(e.target.value)}
                 onKeyDown={handleKeyDownInput}
                 placeholder="Ask about products or request an RFQ..."
-                disabled={status === 'loading' || isSubmittingRfq}
-                className="flex-1 bg-slate-900 text-slate-100 placeholder-slate-500 text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-slate-700 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 outline-none transition disabled:opacity-50"
-                aria-label="Message to Rajdeep AI"
+                disabled={status === 'loading'}
+                className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-3.5 py-2.5 text-xs sm:text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-orange-500 transition-colors"
+                aria-label="Your message or product requirement"
               />
               <button
                 type="submit"
-                disabled={!inputVal.trim() || status === 'loading' || isSubmittingRfq}
-                className="shrink-0 flex items-center justify-center w-10 h-10 rounded-xl bg-orange-600 hover:bg-orange-500 active:bg-orange-700 text-white disabled:opacity-40 disabled:cursor-not-allowed transition shadow-md cursor-pointer"
+                disabled={!inputVal.trim() || status === 'loading'}
+                className="p-2.5 bg-orange-600 hover:bg-orange-500 active:bg-orange-700 disabled:opacity-40 disabled:hover:bg-orange-600 text-white rounded-xl transition-all shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-orange-400 cursor-pointer"
                 aria-label="Send message"
               >
                 <Send className="w-4 h-4" />
               </button>
             </form>
-
-            {/* Disclaimer required by user brief */}
-            <p className="mt-2 text-[10px] text-slate-500 text-center leading-tight select-none">
-              AI-assisted quotations are submitted to the Rajdeep Enterprises team. Final pricing, availability, and delivery are confirmed directly by our sales desk.
-            </p>
+            <div className="flex items-center justify-between mt-2 px-1 text-[10px] text-slate-500">
+              <span>Rajdeep Enterprises • Mathura Depot</span>
+              <span>Fast Quotes & Pan-India Dispatch</span>
+            </div>
           </div>
         </div>
       )}
