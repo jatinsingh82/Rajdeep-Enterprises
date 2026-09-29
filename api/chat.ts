@@ -5,7 +5,7 @@ dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 import { GoogleGenAI } from '@google/genai';
 import { handleCors } from './lib/cors';
-import { GEMINI_MODEL, RAJDEEP_AI_SYSTEM_INSTRUCTION, StructuredRfqData } from './lib/geminiConfig';
+import { GEMINI_MODEL, RAJDEEP_AI_SYSTEM_INSTRUCTION, StructuredRfqData, RfqRequirementItem } from './lib/geminiConfig';
 
 interface IncomingChatMessage {
   sender?: string;
@@ -63,11 +63,11 @@ function extractItemName(text: string): string | null {
   // Non-item exclusion words
   const nonItemWords = [
     'yes', 'no', 'none', 'not sure', 'i don', "don't know", 'dont know',
-    'ok', 'okay', 'cancel', 'confirm', 'edit', 'send requirement',
-    'thanks', 'thank you', 'hello', 'hi', 'hey', 'good morning',
-    'something not on the website', 'something that isn\'t on your website',
-    'can\'t find your item', 'not in catalogue', 'not on website',
-    'how much', 'what is', 'tell me about', 'actually make that', 'actually make it'
+    'ok', 'okay', 'cancel', 'cancel.', 'confirm', 'edit', 'send requirement',
+    'send this requirement', 'send this requirement.', 'thanks', 'thank you',
+    'hello', 'hi', 'hey', 'good morning', 'something not on the website',
+    'something that isn\'t on your website', 'can\'t find your item', 'not in catalogue',
+    'not on website', 'how much', 'what is', 'tell me about', 'actually make that', 'actually make it'
   ];
   if (nonItemWords.some(w => lower === w || lower.startsWith('my name is') || lower.startsWith('call me'))) {
     return null;
@@ -80,11 +80,11 @@ function extractItemName(text: string): string | null {
   if (/\b(?:pressure\s+)?gauges?\b/i.test(lower)) return 'Pressure Gauges';
   if (/\b(?:industrial\s+)?valves?|ball\s+valve|gate\s+valve|globe\s+valve|butterfly\s+valve\b/i.test(lower)) return 'Industrial Valves';
   if (/\b(?:welding\s+)?machines?|welding\s+equipment\b/i.test(lower)) return 'Welding Machines';
-  if (/\b(?:safety\s+)?helmets?|hard\s+hats?\b/i.test(lower)) return 'Industrial Safety Helmets';
+  if (/\b(?:safety\s+)?helmets?|hard\s+hats?\b/i.test(lower)) return 'Safety Helmets';
   if (/\b(?:safety\s+)?(?:shoes?|boots?|gumboots?)\b/i.test(lower)) return 'Safety Shoes';
-  if (/\b(?:safety\s+)?(?:hand\s+)?gloves?\b/i.test(lower)) return 'Safety Hand Gloves';
-  if (/\b(?:safety\s+)?(?:harness|safety\s+belt)\b/i.test(lower)) return 'Safety Harness';
+  if (/\b(?:safety\s+)?(?:hand\s+)?gloves?\b/i.test(lower)) return 'Gloves';
   if (/\b(?:safety\s+)?goggles?\b/i.test(lower)) return 'Safety Goggles';
+  if (/\b(?:safety\s+)?(?:harness|safety\s+belt)\b/i.test(lower)) return 'Safety Harness';
   if (/\b(?:welding\s*(?:rods?|electrodes?|wire)?|electrodes?)\b/i.test(lower)) return 'Welding Electrodes & Consumables';
   if (/\b(?:champion\s+)?(?:gaskets?|gasket\s+sheets?)\b/i.test(lower)) return 'Champion Gasket Sheets';
   if (/\b(?:pipes?|tubes?|piping)\b/i.test(lower)) return 'Industrial Pipes & Tubes';
@@ -112,6 +112,35 @@ function extractItemName(text: string): string | null {
   return null;
 }
 
+// Multi-item / BOQ requirement parser (e.g. "Need 100 helmets, 200 gloves and 20 fire extinguishers.")
+function parseMultiItemList(text: string): RfqRequirementItem[] | null {
+  const trimmed = text.trim();
+  const matches: RfqRequirementItem[] = [];
+  const regex = /(\d+(?:\.\d+)?)\s*(pairs?|pcs|pieces|piece|nos|sets?|boxes?|bundles?|kg|meters?|mtr)?\s*(?:of\s+)?([a-zA-Z\s]+?)(?=(?:,\s*\d+|\s+and\s+\d+|\n|\.|$))/gi;
+  let match;
+  while ((match = regex.exec(trimmed)) !== null) {
+    const qty = match[1];
+    const unit = match[2] ? match[2].trim() : '';
+    let rawItem = match[3].trim();
+    rawItem = rawItem.replace(/^(?:and|for|or|need)\s+/i, '').trim();
+    if (
+      rawItem &&
+      rawItem.length >= 3 &&
+      !['inch', 'mm', 'bar', 'psi'].includes(rawItem.toLowerCase()) &&
+      !rawItem.toLowerCase().startsWith('my name')
+    ) {
+      const canonical = extractItemName(rawItem) || (rawItem.charAt(0).toUpperCase() + rawItem.slice(1));
+      matches.push({
+        item: canonical,
+        quantity: unit ? `${qty} ${unit}` : qty,
+        unit,
+      });
+    }
+  }
+
+  return matches.length >= 2 ? matches : null;
+}
+
 // Helper to extract entities deterministically from customer text & conversation context
 function extractEntities(
   text: string,
@@ -129,11 +158,11 @@ function extractEntities(
     .filter((m) => m.sender === 'ai' || m.role === 'model')
     .pop()?.text?.toLowerCase() || '';
 
-  // 1. Correction handling ("Actually make that 30", "make it 100", "update to 25")
-  const correctionMatch = text.match(/(?:actually\s+(?:make\s+(?:it|that)|need|\d+)|make\s+it|update\s+(?:it\s+)?to|change\s+(?:it\s+)?to)\s*(\d+(?:\.\d+)?)\s*(pcs|pieces|piece|nos|kg|meters)?/i);
-  if (correctionMatch) {
-    const num = correctionMatch[1];
-    const unit = correctionMatch[2] || updated.unit || '';
+  // 1. Correction handling ("Actually make that 30", "make it 100", "change the brand to Berger")
+  const correctionQtyMatch = text.match(/(?:actually\s+(?:make\s+(?:it|that)|need|\d+)|make\s+it|update\s+(?:it\s+)?to|change\s+(?:it\s+)?to)\s*(\d+(?:\.\d+)?)\s*(pcs|pieces|piece|nos|kg|meters)?/i);
+  if (correctionQtyMatch) {
+    const num = correctionQtyMatch[1];
+    const unit = correctionQtyMatch[2] || updated.unit || '';
     const newQty = `${num}${unit ? ` ${unit}` : ''}`.trim();
     if (updated.quantity !== newQty) {
       updated.quantity = newQty;
@@ -141,18 +170,34 @@ function extractEntities(
     }
   }
 
+  const brandChangeMatch = text.match(/(?:change\s+(?:the\s+)?brand\s+to|update\s+brand\s+to|brand\s+is)\s*([a-zA-Z0-9\s]{2,25})/i);
+  if (brandChangeMatch) {
+    const newBrand = brandChangeMatch[1].trim();
+    updated.brand = newBrand;
+    changedFields.push('brand');
+  }
+
   // 2. New requirement reset ("Now I need 20 safety helmets")
   if (/\b(?:now\s+i\s+need|another\s+requirement|new\s+enquiry|now\s+need)\b/i.test(lower)) {
     delete updated.product;
     delete updated.quantity;
     delete updated.specifications;
-    delete updated.thickness;
-    delete updated.dimensions;
-    delete updated.grade;
+    delete updated.brand;
+    delete updated.size;
+    delete updated.items;
   }
 
-  // 3. Product / Item extraction
-  if (!updated.product) {
+  // 3. Multi-Item / BOQ parsing (Test 5: "Need 100 helmets, 200 gloves and 20 fire extinguishers.")
+  const multiItems = parseMultiItemList(text);
+  if (multiItems) {
+    updated.items = multiItems;
+    updated.product = multiItems.map((m) => `${m.item} (${m.quantity})`).join(', ');
+    updated.quantity = multiItems.map((m) => m.quantity).join(', ');
+    changedFields.push('items');
+  }
+
+  // 4. Single Product / Item extraction
+  if (!updated.product && !updated.items) {
     const detectedItem = extractItemName(text);
     if (detectedItem) {
       updated.product = detectedItem;
@@ -160,17 +205,14 @@ function extractEntities(
     }
   }
 
-  // 4. Quantity extraction
-  // Pattern A: Number with explicit unit ("50 pcs", "500 kg", "100 pieces", "50 meters")
+  // 5. Quantity extraction
   const plainQtyMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(kg|kgs|pieces|piece|pcs|nos|meters|mtr|m|tons|ton|bundles|boxes|pairs|sets|rolls)\b/i);
-  // Pattern B: Number qualifying product count ("50 paint brushes", "10 fire extinguishers", "3 cylinders", "20 pressure gauges", "100 helmets")
   const countWithProductMatch = text.match(/\b(\d+(?:\.\d+)?)\s*(?:(?:pieces|piece|pcs|nos)\s*(?:of\s+)?)?(?:paint\s*brushes?|brushes?|fire\s+extinguishers?|extinguishers?|cylinders?|pressure\s+gauges?|valves?|welding\s+machines?|safety\s+helmets?|helmets?|safety\s+shoes?|shoes?|gloves?)\b/i);
-  // Pattern C: Standalone number answering quantity prompt ("50", "30", "3", "100")
   const standaloneNum = text.match(/^\s*(\d+(?:\.\d+)?)\s*$/);
 
-  if (!updated.quantity || correctionMatch) {
-    if (correctionMatch) {
-      // already set above
+  if ((!updated.quantity || correctionQtyMatch) && !updated.items) {
+    if (correctionQtyMatch) {
+      // handled above
     } else if (plainQtyMatch) {
       const num = plainQtyMatch[1];
       const unit = plainQtyMatch[2];
@@ -186,7 +228,6 @@ function extractEntities(
       updated.unit = unit;
       changedFields.push('quantity');
     } else if (standaloneNum) {
-      // If AI asked "How many do you need?" or quantity is missing
       const askedQuantity = lastAiMessage.includes('how many') || lastAiMessage.includes('what quantity') || !updated.quantity;
       if (askedQuantity) {
         const num = standaloneNum[1];
@@ -197,8 +238,34 @@ function extractEntities(
     }
   }
 
-  // 5. Specification extraction
-  // Decline specification: "no", "none", "not sure", "i don't know", "no preference"
+  // 6. Brand extraction
+  const knownBrands = [
+    'Asian Paints', 'Berger', 'Nerolac', 'Dulux', 'Pidilite',
+    'Karam', '3M', 'Udyogi', 'Champion', 'Hitman', 'Tiger',
+    'Safari', 'Bosch', 'Dewalt', 'Esab', 'Ador', 'D&H', 'Venus'
+  ];
+  for (const b of knownBrands) {
+    if (lower.includes(b.toLowerCase())) {
+      updated.brand = b;
+      changedFields.push('brand');
+      break;
+    }
+  }
+  const brandRegex = /(?:brand[:\s]+)([a-zA-Z0-9\s]{2,20})/i;
+  const brandMatch = text.match(brandRegex);
+  if (brandMatch && !updated.brand) {
+    updated.brand = brandMatch[1].trim();
+    changedFields.push('brand');
+  }
+
+  // 7. Size extraction (e.g. "2 inch", "3 inch", "size 9", "medium size")
+  const sizeMatch = text.match(/(\d+(?:\.\d+)?\s*(?:inch|in|"|mm|cm)\b)/i);
+  if (sizeMatch && !updated.size) {
+    updated.size = sizeMatch[1].trim();
+    changedFields.push('size');
+  }
+
+  // 8. Specification extraction
   const isDeclineSpec =
     lower === 'no' ||
     lower === 'none' ||
@@ -212,20 +279,26 @@ function extractEntities(
 
   if (isDeclineSpec) {
     if (!updated.specifications || updated.specifications === 'Not provided') {
-      updated.specifications = 'No preference';
+      updated.specifications = 'Not provided';
       changedFields.push('specifications');
     }
   } else {
-    // Check specific specification attributes
     if (lower.includes('medium size') || lower.includes('medium')) {
+      updated.size = 'Medium size';
       updated.specifications = 'Medium size';
       changedFields.push('specifications');
     } else if (lower.includes('large size') || lower.includes('large')) {
+      updated.size = 'Large size';
       updated.specifications = 'Large size';
       changedFields.push('specifications');
     } else if (lower.includes('small size') || lower.includes('small')) {
+      updated.size = 'Small size';
       updated.specifications = 'Small size';
       changedFields.push('specifications');
+    }
+
+    if (updated.size && (!updated.specifications || updated.specifications === 'Not provided')) {
+      updated.specifications = updated.size;
     }
 
     // Extinguisher specs
@@ -233,7 +306,7 @@ function extractEntities(
       const typeMatch = text.match(/\b(ABC\s*(?:powder|dry\s*powder)?|CO2|Mechanical\s*Foam|Foam|Clean\s*Agent|DCP)\b/i);
       if (typeMatch) {
         const spec = typeMatch[0].trim();
-        updated.specifications = updated.specifications && updated.specifications !== 'No preference' ? `${updated.specifications}, ${spec}` : spec;
+        updated.specifications = updated.specifications && updated.specifications !== 'Not provided' ? `${updated.specifications}, ${spec}` : spec;
         changedFields.push('specifications');
       }
     }
@@ -241,7 +314,7 @@ function extractEntities(
     if (extCapMatch && (updated.product?.includes('Extinguisher') || lower.includes('extinguisher'))) {
       const cap = `${extCapMatch[1]} kg`;
       if (!updated.specifications?.includes(cap)) {
-        updated.specifications = updated.specifications && updated.specifications !== 'No preference' ? `${updated.specifications}, Capacity: ${cap}` : `Capacity: ${cap}`;
+        updated.specifications = updated.specifications && updated.specifications !== 'Not provided' ? `${updated.specifications}, Capacity: ${cap}` : `Capacity: ${cap}`;
         changedFields.push('specifications');
       }
     }
@@ -251,7 +324,7 @@ function extractEntities(
     if (gasMatch && (updated.product?.includes('Cylinder') || lower.includes('cylinder'))) {
       const gas = `${gasMatch[0].trim()} Gas`;
       if (!updated.specifications?.includes(gas)) {
-        updated.specifications = updated.specifications && updated.specifications !== 'No preference' ? `${updated.specifications}, ${gas}` : gas;
+        updated.specifications = updated.specifications && updated.specifications !== 'Not provided' ? `${updated.specifications}, ${gas}` : gas;
         changedFields.push('specifications');
       }
     }
@@ -262,19 +335,9 @@ function extractEntities(
       updated.specifications = `Range: ${gaugeRangeMatch[1].trim()}`;
       changedFields.push('specifications');
     }
-
-    // Steel grade & dimensions
-    const gradeMatch = text.match(/\b(SS\s*304L?|SS\s*316L?|304L?|316L?|E7018|E6013|ER70S-6|MS|GI)\b/i);
-    if (gradeMatch) {
-      let matchedGrade = gradeMatch[1].toUpperCase().trim();
-      if (matchedGrade === '304' || matchedGrade === '304L') matchedGrade = 'SS ' + matchedGrade;
-      if (matchedGrade === '316' || matchedGrade === '316L') matchedGrade = 'SS ' + matchedGrade;
-      updated.grade = matchedGrade;
-      changedFields.push('grade');
-    }
   }
 
-  // 6. Phone extraction
+  // 9. Phone extraction
   const phoneMatch = text.match(/(?:(?:\+|0{0,2})\d{1,4}[-.\s]?)?(?:\(?\d{2,5}\)?[-.\s]?)?\d{3,5}[-.\s]?\d{3,5}\b/);
   if (phoneMatch) {
     const rawNum = phoneMatch[0].trim();
@@ -286,7 +349,7 @@ function extractEntities(
     }
   }
 
-  // 7. Email extraction
+  // 10. Email extraction
   const emailMatch = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
   if (emailMatch) {
     const emailVal = emailMatch[0].trim();
@@ -298,10 +361,8 @@ function extractEntities(
     }
   }
 
-  // 8. Customer Name extraction
-  // Pattern A: "My name is Rahul", "I am Rahul", "name is Rahul"
+  // 11. Customer Name extraction
   const namePatternMatch = text.match(/(?:my name is|i am|name[:\s]+)\s*([a-zA-Z\s]{2,30})/i);
-  // Pattern B: "Rahul, 9876543210" or "Rahul 9876543210"
   const nameWithPhoneMatch = text.match(/^([a-zA-Z\s]{2,30})[,.\s]+(?:\+?\d{10,15})/);
 
   if (!updated.customerName) {
@@ -322,16 +383,20 @@ function extractEntities(
     }
   }
 
-  // 9. Company & Location extraction
-  const companyMatch = text.match(/(?:company[:\s]+|from\s+)([a-zA-Z0-9\s.,&-]{2,35}(?:ltd|limited|llp|pvt|corp|enterprises|infra|industries|steel))/i);
+  // 12. Company extraction
+  const companyMatch = text.match(/(?:company[:\s]+|from\s+)([a-zA-Z0-9\s.,&-]{2,35}(?:ltd|limited|llp|pvt|corp|enterprises|infra|industries|steel|engineering))/i);
   if (companyMatch && !updated.companyName) {
     updated.companyName = companyMatch[1].trim();
     changedFields.push('companyName');
   }
 
+  // 13. Delivery Location extraction
   const locMatch = text.match(/(?:delivery (?:in|to|at)|deliver to|location[:\s]+)\s*([a-zA-Z\s]{2,30})/i);
   if (locMatch && !updated.deliveryLocation) {
     updated.deliveryLocation = locMatch[1].trim();
+    changedFields.push('deliveryLocation');
+  } else if (lastAiMessage.includes('delivered') && /^[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?$/.test(trimmed)) {
+    updated.deliveryLocation = trimmed;
     changedFields.push('deliveryLocation');
   }
 
@@ -348,40 +413,70 @@ function generateDeterministicFallback(
   const text = message.trim();
   const lower = text.toLowerCase();
 
-  // 1. Explicit Action: Confirm & Send
-  if (action === 'confirm' || action === 'send' || lower === 'confirm & send' || lower === 'confirm rfq' || lower === 'confirm quotation') {
-    const readyRfq: StructuredRfqData = currentRfq
-      ? { ...currentRfq, status: 'ready_to_submit' }
-      : { status: 'ready_to_submit' };
-    return {
-      reply: `I've prepared your requirement.\n\nAll details have been structured and verified. Click **Confirm & Send** to transmit your requirement directly to the Rajdeep Enterprises team for official quotation processing.`,
-      intent: 'rfq_confirm',
-      rfq: readyRfq,
-    };
-  }
-
-  // 2. Explicit Action: Cancel
-  if (action === 'cancel' || lower.includes('cancel my quotation') || lower === 'cancel rfq' || lower === 'cancel' || lower === 'cancel my requirement') {
+  // 1. Cancel handling (TEST 8)
+  if (
+    action === 'cancel' ||
+    lower === 'cancel.' ||
+    lower === 'cancel' ||
+    lower === 'cancel my quotation' ||
+    lower === 'cancel requirement'
+  ) {
     const cancelledRfq: StructuredRfqData = currentRfq
       ? { ...currentRfq, status: 'cancelled' }
       : { status: 'cancelled' };
     return {
-      reply: `Your requirement enquiry has been cancelled. Please let me know if you would like to explore any other materials or products.`,
+      reply: `Okay, I haven't sent the requirement.`,
       intent: 'rfq_cancel',
       rfq: cancelledRfq,
     };
   }
 
+  // 2. Explicit Action: Confirm & Send (or TEST 7: "Send this requirement")
+  if (
+    action === 'confirm' ||
+    action === 'send' ||
+    lower === 'send this requirement.' ||
+    lower === 'send this requirement' ||
+    lower === 'confirm & send' ||
+    lower === 'confirm rfq' ||
+    lower === 'confirm'
+  ) {
+    const hasCoreInfo = Boolean(
+      (currentRfq?.product || currentRfq?.items) &&
+      (currentRfq?.quantity || currentRfq?.items) &&
+      currentRfq?.customerName &&
+      (currentRfq?.phone || currentRfq?.email)
+    );
+
+    if (hasCoreInfo) {
+      const readyRfq: StructuredRfqData = {
+        ...(currentRfq || { status: 'ready_to_submit' }),
+        status: 'ready_to_submit',
+      };
+      return {
+        reply: `Please check the details above. Would you like me to send this requirement to the Rajdeep Enterprises team for quotation?`,
+        intent: 'rfq_confirm',
+        rfq: readyRfq,
+      };
+    } else {
+      return {
+        reply: `To submit your requirement, please provide your name and phone/WhatsApp number.`,
+        intent: 'rfq_collection',
+        rfq: currentRfq,
+      };
+    }
+  }
+
   // 3. Explicit Action: Edit
   if (action === 'edit' || lower === 'edit' || lower === 'edit details' || lower === 'i would like to edit my requirement.') {
     return {
-      reply: `What details would you like to update? (For example: quantity, specification, delivery location, or contact details)`,
+      reply: `What details would you like to update? (For example: quantity, brand, specification, delivery location, or contact details)`,
       intent: 'rfq_edit',
       rfq: currentRfq,
     };
   }
 
-  // 4. Test E: "I need something that isn't on your website." / "Can't find your item?"
+  // 4. Test 3: "I need something that isn't on your website."
   if (
     lower.includes("isn't on your website") ||
     lower.includes("not on your website") ||
@@ -392,18 +487,17 @@ function generateDeterministicFallback(
     lower === "can't find your item?"
   ) {
     return {
-      reply: `No problem. Our online catalogue doesn't contain every item we can source or supply. Tell us what you need and the quantity, and we'll help with the requirement and quotation.`,
+      reply: `No problem. You can send us the requirement directly here. What item do you need?`,
       intent: 'product_enquiry',
       rfq: currentRfq,
     };
   }
 
-  // 5. Test 1: "Do you supply pressure gauges?"
+  // 5. Test 2: "I need 20 pressure gauges." / "Do you supply pressure gauges?"
   if (
     lower === 'do you supply pressure gauges?' ||
     lower === 'do you supply pressure gauges' ||
-    lower.includes('do you supply pressure gauge') ||
-    lower.includes('do you have pressure gauge')
+    lower.includes('do you supply pressure gauge')
   ) {
     const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
     baseRfq.product = 'Pressure Gauges';
@@ -414,88 +508,77 @@ function generateDeterministicFallback(
     };
   }
 
-  // 6. Test 6: Price inquiry "How much is 20 fire extinguishers?"
+  // 6. Test 6: "I don't know the specification."
+  if (
+    lower === "i don't know the specification." ||
+    lower === "i don't know the specification" ||
+    lower.includes("don't know the specification") ||
+    lower === "i don't know" ||
+    lower === "not sure" ||
+    lower === "no"
+  ) {
+    const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
+    baseRfq.specifications = 'Not provided';
+    return {
+      reply: `No problem. You can submit the requirement with the information you have. Our team can review the requirement and clarify any specifications needed for the quotation.\n\nPlease provide your name and phone/WhatsApp number so our team can assist you.`,
+      intent: 'rfq_collection',
+      rfq: baseRfq,
+    };
+  }
+
+  // 7. Price inquiry
   if (lower.includes('price') || lower.includes('cost') || lower.includes('how much')) {
     const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
     const { updated } = extractEntities(text, baseRfq, conversationHistory);
     return {
-      reply: `Pricing depends on the extinguisher type, capacity, quantity and delivery location. I can help prepare the quotation request. Please share the required type and capacity, and our team will check the requirement and provide the applicable quotation.`,
+      reply: `Pricing depends on the exact specifications, brand, quantity and delivery location. I can help prepare the quotation request. Please share any details you have, and our team will check the requirement and provide the applicable quotation.`,
       intent: 'price_enquiry',
       rfq: updated,
     };
   }
 
-  // 7. Extract all entities using multi-turn conversation context
+  // 8. Extract all entities using multi-turn context
   const baseRfq: StructuredRfqData = currentRfq ? { ...currentRfq } : { status: 'draft' };
   const { updated, changedFields } = extractEntities(text, baseRfq, conversationHistory);
-  const category = detectProductCategory(updated.product, text);
 
-  // Check for direct edit like "Actually make that 30" or "Change quantity to 50" (Test G)
-  if (lower.includes('actually make') || lower.includes('change quantity') || (changedFields.includes('quantity') && baseRfq.quantity)) {
-    const isAllCoreKnown = Boolean(
-      updated.product &&
-      updated.quantity &&
-      updated.customerName &&
-      (updated.phone || updated.email)
-    );
-    if (isAllCoreKnown) {
-      updated.status = 'ready_to_submit';
-      return {
-        reply: `I have updated your quantity to ${updated.quantity}. Here is your updated requirement summary:
-
-Here is your requirement:
-
-Item: ${updated.product}
-Quantity: ${updated.quantity}
-Specification: ${updated.specifications || 'No preference'}
-Name: ${updated.customerName}
-Phone: ${updated.phone || updated.email}${updated.companyName ? `\nCompany: ${updated.companyName}` : ''}${updated.deliveryLocation ? `\nDelivery Location: ${updated.deliveryLocation}` : ''}
-
-Would you like to send this requirement to the Rajdeep Enterprises team for a quotation?`,
-        intent: 'rfq_edit',
-        rfq: updated,
-      };
-    }
-
-    const cleanItemName = updated.product || 'item';
-    return {
-      reply: `I have updated your quantity to ${updated.quantity} ${cleanItemName}. ${
-        !updated.customerName || !updated.phone
-          ? 'Please provide your name and WhatsApp/phone number so we can prepare your requirement.'
-          : 'Would you like to confirm and send this requirement?'
-      }`,
-      intent: 'rfq_edit',
-      rfq: updated,
-    };
-  }
-
-  // ----------------------------------------------------
-  // 5-STAGE STATE MACHINE
-  // ----------------------------------------------------
-
-  // Check if ALL core information is already present (e.g. Test J: "I need 100 helmets. My name is Rahul. 9876543210.")
+  // Check if ALL core information is already present -> Requirement Summary!
   const isComplete = Boolean(
-    updated.product &&
-    updated.quantity &&
+    (updated.product || (updated.items && updated.items.length > 0)) &&
+    (updated.quantity || (updated.items && updated.items.length > 0)) &&
     updated.customerName &&
     (updated.phone || updated.email)
   );
 
   if (isComplete) {
     updated.status = 'ready_to_submit';
-    if (!updated.specifications) {
-      updated.specifications = 'No preference';
+
+    let summaryText = `REQUIREMENT SUMMARY\n\n`;
+
+    if (updated.items && updated.items.length > 0) {
+      updated.items.forEach((it, idx) => {
+        summaryText += `ITEM ${idx + 1}\n${it.item}\nQuantity: ${it.quantity}\n\n`;
+      });
+    } else {
+      summaryText += `Item:\n${updated.product}\n\nQuantity:\n${updated.quantity}\n\n`;
+      if (updated.size || updated.specifications) {
+        summaryText += `Specification:\n${updated.size || updated.specifications}\n\n`;
+      }
+      if (updated.brand) {
+        summaryText += `Brand:\n${updated.brand}\n\n`;
+      }
     }
 
-    const summaryText = `Here is your requirement:
+    if (updated.deliveryLocation) {
+      summaryText += `Delivery Location:\n${updated.deliveryLocation}\n\n`;
+    }
 
-Item: ${updated.product}
-Quantity: ${updated.quantity}
-Specification: ${updated.specifications}
-Name: ${updated.customerName}
-Phone: ${updated.phone || updated.email}${updated.companyName ? `\nCompany: ${updated.companyName}` : ''}${updated.deliveryLocation ? `\nDelivery Location: ${updated.deliveryLocation}` : ''}
-
-Would you like to send this requirement to the Rajdeep Enterprises team for a quotation?`;
+    summaryText += `Customer:\n${updated.customerName}\n\n`;
+    if (updated.companyName) {
+      summaryText += `Company:\n${updated.companyName}\n\n`;
+    }
+    summaryText += `Phone:\n${updated.phone || updated.email}\n\n`;
+    summaryText += `Additional Notes:\n${updated.additionalNotes || 'None'}\n\n`;
+    summaryText += `Please check the details above. Would you like me to send this requirement to the Rajdeep Enterprises team for quotation?`;
 
     return {
       reply: summaryText,
@@ -504,51 +587,61 @@ Would you like to send this requirement to the Rajdeep Enterprises team for a qu
     };
   }
 
-  // STAGE 1: Item is missing
-  if (!updated.product) {
+  // Edit quantity directly ("Actually make that 30", "Change quantity to 100")
+  if (lower.includes('actually make') || lower.includes('change quantity')) {
     return {
-      reply: `Sure, what item do you need? Tell us the product, quantity, and any specifications you have, and we'll help check the requirement.`,
+      reply: `Updated the quantity to ${updated.quantity}.`,
+      intent: 'rfq_edit',
+      rfq: updated,
+    };
+  }
+
+  // Edit brand directly ("Change the brand to Berger")
+  if (lower.includes('change the brand') || lower.includes('change brand') || lower.includes('update brand')) {
+    return {
+      reply: `Updated the brand to ${updated.brand}.`,
+      intent: 'rfq_edit',
+      rfq: updated,
+    };
+  }
+
+  // ----------------------------------------------------
+  // 5-STAGE CONVERSATIONAL STATE MACHINE
+  // ----------------------------------------------------
+
+  // STAGE 1: Item is missing
+  if (!updated.product && (!updated.items || updated.items.length === 0)) {
+    return {
+      reply: `No problem. You can send us the requirement directly here. What item do you need?`,
       intent: 'product_enquiry',
       rfq: updated,
     };
   }
 
-  // STAGE 2: Item known, Quantity is missing (Test A: "I need paint brushes.")
-  if (!updated.quantity) {
-    if (category === 'gauge') {
+  // Multi-item flow (TEST 5: "Need 100 helmets, 200 gloves and 20 fire extinguishers.")
+  if (updated.items && updated.items.length > 0) {
+    if (!updated.customerName || !updated.phone) {
+      const itemListStr = updated.items.map((it, idx) => `ITEM ${idx + 1}: ${it.item} (Quantity: ${it.quantity})`).join('\n');
       return {
-        reply: `Yes, we can help with pressure gauges. How many do you need? If you have a preferred range, size, brand or specification, you can share it, but it's okay if you don't have those details.`,
+        reply: `Got it! I have noted your requirements:\n\n${itemListStr}\n\nPlease provide your name and WhatsApp/phone number so our team can prepare the quotation.`,
         intent: 'rfq_collection',
         rfq: updated,
       };
     }
-    const cleanItem = updated.product.toLowerCase().endsWith('s')
-      ? updated.product.toLowerCase()
-      : `${updated.product.toLowerCase()}es`;
+  }
+
+  // STAGE 2: Item known, Quantity is missing
+  if (!updated.quantity) {
     return {
-      reply: `Yes, we can help with ${cleanItem}. How many do you need?`,
+      reply: `Sure, we can help with that. I have noted ${updated.product}. How many do you need?`,
       intent: 'rfq_collection',
       rfq: updated,
     };
   }
 
-  // STAGE 3: Item & Quantity known, Specification missing (Test B, Test D)
-  if (!updated.specifications) {
-    // Specific products
-    if (category === 'extinguisher') {
-      return {
-        reply: `Yes, we can help arrange fire extinguishers. I have noted the quantity as ${updated.quantity}. If you have a preferred type or capacity, you can share it; otherwise, you can send us your requirement and our team can help with the appropriate option and quotation.`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
-    if (category === 'cylinder') {
-      return {
-        reply: `Yes, we can help with cylinders. I have noted the quantity as ${updated.quantity}. Please tell me the cylinder/gas type if known. If you're not sure, you can send us the requirement and our team can help clarify it.`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
+  // STAGE 3: Item & Quantity known, Specification missing (Test 1, Test 2)
+  if (!updated.specifications && !updated.size && !updated.brand) {
+    const category = detectProductCategory(updated.product, text);
     if (category === 'gauge') {
       return {
         reply: `Yes, we can help with pressure gauges. I've noted ${updated.quantity} pressure gauges. If you have a preferred range, size or specification, please share it. Otherwise, you can send us your requirement and our team can check it and provide a quotation.`,
@@ -556,49 +649,25 @@ Would you like to send this requirement to the Rajdeep Enterprises team for a qu
         rfq: updated,
       };
     }
-    if (category === 'valve') {
-      return {
-        reply: `Yes, we can help arrange industrial valves. I've noted the quantity as ${updated.quantity}. If you know the valve type, size, material or specification, please share it. Otherwise, you can send us your requirement and our team can help with the quotation.`,
-        intent: 'rfq_collection',
-        rfq: updated,
-      };
-    }
-
-    const cleanItem = updated.product.toLowerCase().endsWith('s')
-      ? updated.product.toLowerCase()
-      : `${updated.product.toLowerCase()}es`;
-
     return {
-      reply: `Got it — ${updated.quantity} ${cleanItem}. Do you have a preferred size, type or brand?`,
+      reply: `Sure, we can help with that. I have noted ${updated.quantity} ${updated.product}. Do you have any preferred size, type or brand?`,
       intent: 'rfq_collection',
       rfq: updated,
     };
   }
 
-  // STAGE 4: Item, Quantity & Specification known, Customer Contact missing (Test C, Test H, Turn 3 of Paint Brush)
+  // STAGE 4: Customer Contact missing (Name or Phone)
   if (!updated.customerName || !updated.phone) {
     return {
-      reply: `No problem. We can check the requirement for you. Please provide your name and WhatsApp/phone number so our team can assist you.`,
+      reply: `Got it — ${updated.quantity} ${updated.product}${updated.size ? `, ${updated.size}` : ''}${updated.brand ? `, ${updated.brand}` : ''}. Please provide your name and WhatsApp/phone number so our team can assist you.`,
       intent: 'rfq_collection',
       rfq: updated,
     };
   }
 
-  // STAGE 5: Summary
-  updated.status = 'ready_to_submit';
-  const summaryText = `Here is your requirement:
-
-Item: ${updated.product}
-Quantity: ${updated.quantity}
-Specification: ${updated.specifications || 'No preference'}
-Name: ${updated.customerName}
-Phone: ${updated.phone || updated.email}${updated.companyName ? `\nCompany: ${updated.companyName}` : ''}${updated.deliveryLocation ? `\nDelivery Location: ${updated.deliveryLocation}` : ''}
-
-Would you like to send this requirement to the Rajdeep Enterprises team for a quotation?`;
-
   return {
-    reply: summaryText,
-    intent: 'rfq_request',
+    reply: `I have recorded your requirement. Would you like me to send this requirement to the Rajdeep Enterprises team for quotation?`,
+    intent: 'rfq_collection',
     rfq: updated,
   };
 }
@@ -640,9 +709,8 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // Extract conversation history for multi-turn context
     const conversationHistory: IncomingChatMessage[] = Array.isArray(body.conversation)
-      ? body.conversation.slice(-10) // Limit to the last 10 messages for token safety
+      ? body.conversation.slice(-10)
       : [];
 
     // Direct actions handled instantly
@@ -668,7 +736,7 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // 5. Build conversation turns for multi-turn context for Gemini
+    // 5. Build conversation turns for multi-turn context
     const contents: Array<{ role: 'user' | 'model'; parts: Array<{ text: string }> }> = [];
 
     for (const item of conversationHistory) {
@@ -690,7 +758,6 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // Include the current RFQ state in the prompt context so Gemini knows what is already filled
     const rfqContextPrompt = currentRfq
       ? `[CURRENT REQUIREMENT STATE]: ${JSON.stringify(currentRfq)}\n[USER INPUT]: ${trimmedMessage}`
       : `[CURRENT REQUIREMENT STATE]: None\n[USER INPUT]: ${trimmedMessage}`;
@@ -745,8 +812,8 @@ export default async function handler(req: any, res: any) {
         };
 
         const hasCoreRequirements = Boolean(
-          (mergedRfq.product || mergedRfq.material) &&
-          (mergedRfq.quantity || mergedRfq.specifications) &&
+          (mergedRfq.product || mergedRfq.items) &&
+          (mergedRfq.quantity || mergedRfq.items) &&
           mergedRfq.customerName &&
           (mergedRfq.phone || mergedRfq.email)
         );
@@ -773,7 +840,6 @@ export default async function handler(req: any, res: any) {
       });
     }
 
-    // Default fallback if parsing fails
     const fallback = generateDeterministicFallback(trimmedMessage, currentRfq, action, conversationHistory);
     return res.status(200).json({
       success: true,

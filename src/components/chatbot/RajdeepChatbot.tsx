@@ -190,7 +190,9 @@ export const RajdeepChatbot: React.FC = () => {
         const successMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `Your requirement has been sent to the Rajdeep Enterprises team.\n\nReference: ${result.rfqReference || 'RE-RFQ'}\nOur sales team will check the requirement and reach out with an official quotation.`,
+          text: `Your requirement has been successfully sent to the Rajdeep Enterprises team. Our team will review the details and get back to you regarding the quotation.${
+            result.rfqReference ? `\n\nReference: ${result.rfqReference}` : ''
+          }`,
           timestamp: formatCurrentTime(),
           rfq: submittedRfq,
         };
@@ -208,7 +210,7 @@ export const RajdeepChatbot: React.FC = () => {
         const failMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `We couldn't submit your requirement right now: ${result.error || 'Connection error'}. You can click "Retry Send" or call our team directly at +91 99979 93895.`,
+          text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises directly using the WhatsApp or Call option.`,
           timestamp: formatCurrentTime(),
           isError: true,
           rfq: failedRfq,
@@ -228,7 +230,7 @@ export const RajdeepChatbot: React.FC = () => {
       const errorMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: 'Failed to connect to the quotation service. Please call our team directly at +91 99979 93895.',
+        text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises directly using the WhatsApp or Call option.`,
         timestamp: formatCurrentTime(),
         isError: true,
         rfq: failedRfq,

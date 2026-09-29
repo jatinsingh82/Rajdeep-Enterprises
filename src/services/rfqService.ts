@@ -28,7 +28,11 @@ export async function submitAiRfq(params: SubmitAiRfqParams): Promise<SubmitAiRf
   }
 
   // Basic client pre-check
-  const hasProduct = Boolean((rfq.product && rfq.product.trim()) || (rfq.material && rfq.material.trim()));
+  const hasProduct = Boolean(
+    (rfq.product && rfq.product.trim()) ||
+    (rfq.material && rfq.material.trim()) ||
+    (Array.isArray(rfq.items) && rfq.items.length > 0)
+  );
   if (!hasProduct) {
     return {
       success: false,
@@ -57,8 +61,35 @@ export async function submitAiRfq(params: SubmitAiRfqParams): Promise<SubmitAiRf
   const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
+    const combinedSpecs = [
+      rfq.size ? `Size: ${rfq.size}` : '',
+      rfq.brand ? `Brand: ${rfq.brand}` : '',
+      rfq.specifications || '',
+    ]
+      .filter(Boolean)
+      .join(', ');
+
     const payload = {
-      source: 'Rajdeep AI Chatbot',
+      source: 'rajdeep-ai-chat',
+      type: 'custom_requirement',
+      customer: {
+        name: rfq.customerName,
+        company: rfq.companyName || '',
+        phone: rfq.phone,
+        email: rfq.email || '',
+      },
+      requirements: rfq.items && rfq.items.length > 0
+        ? rfq.items
+        : [
+            {
+              item: rfq.product || rfq.material,
+              quantity: rfq.quantity,
+              specification: combinedSpecs,
+              brand: rfq.brand || '',
+              size: rfq.size || '',
+              notes: rfq.additionalNotes || '',
+            },
+          ],
       contractorName: rfq.customerName,
       customerName: rfq.customerName,
       companyName: rfq.companyName,
@@ -66,14 +97,16 @@ export async function submitAiRfq(params: SubmitAiRfqParams): Promise<SubmitAiRf
       phone: rfq.phone,
       emailAddress: rfq.email,
       email: rfq.email,
-      product: rfq.product,
+      product: rfq.product || (rfq.items ? rfq.items.map(i => `${i.item} (Qty: ${i.quantity})`).join(', ') : ''),
       material: rfq.material,
       grade: rfq.grade,
       quantity: rfq.quantity,
       unit: rfq.unit,
       thickness: rfq.thickness,
       dimensions: rfq.dimensions,
-      specifications: rfq.specifications,
+      specifications: combinedSpecs,
+      brand: rfq.brand,
+      size: rfq.size,
       application: rfq.application,
       siteLocation: rfq.deliveryLocation,
       deliveryLocation: rfq.deliveryLocation,
@@ -81,7 +114,7 @@ export async function submitAiRfq(params: SubmitAiRfqParams): Promise<SubmitAiRf
       notes: rfq.additionalNotes,
       additionalNotes: rfq.additionalNotes,
       website_hp: honeypot || '',
-      status: 'confirmed',
+      status: 'ready_to_submit',
     };
 
     const response = await fetch('/api/rfq', {

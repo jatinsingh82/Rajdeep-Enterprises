@@ -9,6 +9,16 @@ export type RfqStatus =
   | 'cancelled'
   | 'failed';
 
+export interface RfqRequirementItem {
+  item: string;
+  quantity: string;
+  unit?: string;
+  specification?: string;
+  brand?: string;
+  size?: string;
+  notes?: string;
+}
+
 export interface StructuredRfq {
   customerName?: string;
   companyName?: string;
@@ -22,11 +32,14 @@ export interface StructuredRfq {
   thickness?: string;
   dimensions?: string;
   specifications?: string;
+  brand?: string;
+  size?: string;
   application?: string;
   deliveryLocation?: string;
   requiredBy?: string;
   additionalNotes?: string;
   boqProvided?: boolean;
+  items?: RfqRequirementItem[];
   status: RfqStatus;
   rfqReference?: string;
   submissionError?: string;

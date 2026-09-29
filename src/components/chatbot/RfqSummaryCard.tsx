@@ -15,6 +15,7 @@ import {
   MessageCircle,
   PhoneCall,
   AlertTriangle,
+  Tag,
 } from 'lucide-react';
 
 interface RfqSummaryCardProps {
@@ -37,20 +38,25 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
   const isFailed = rfq.status === 'failed';
   const isActionable = !isSubmitted && !isCancelled;
 
-  // Prepare display items
+  // Single or primary item display values
   const itemValue = rfq.product || rfq.material || 'Industrial Requirement';
   const quantityValue = rfq.quantity ? `${rfq.quantity}${rfq.unit && !rfq.quantity.includes(rfq.unit) ? ` ${rfq.unit}` : ''}` : 'As required';
-  const specValue = rfq.specifications || (rfq.grade ? `Grade: ${rfq.grade}` : 'Not provided');
+  const specValue = rfq.size || rfq.specifications || (rfq.grade ? `Grade: ${rfq.grade}` : 'Not provided');
 
   const fields = [
-    { label: 'Item', value: itemValue, icon: Package },
-    { label: 'Quantity', value: quantityValue, icon: Package },
-    { label: 'Specification', value: specValue, icon: FileText },
-    { label: 'Customer', value: rfq.customerName, icon: User },
-    { label: 'Phone', value: rfq.phone, icon: Phone },
-    { label: 'Company', value: rfq.companyName || 'None', icon: Building2 },
-    { label: 'Delivery Location', value: rfq.deliveryLocation || 'Mathura Depot / As discussed', icon: MapPin },
-    { label: 'Additional notes', value: rfq.additionalNotes || 'None', icon: FileText },
+    ...(rfq.items && rfq.items.length > 0
+      ? []
+      : [
+          { label: 'Item', value: itemValue, icon: Package },
+          { label: 'Quantity', value: quantityValue, icon: Package },
+          { label: 'Specification', value: specValue, icon: FileText },
+          ...(rfq.brand ? [{ label: 'Brand', value: rfq.brand, icon: Tag }] : []),
+        ]),
+    ...(rfq.deliveryLocation ? [{ label: 'Delivery Location', value: rfq.deliveryLocation, icon: MapPin }] : []),
+    { label: 'Customer', value: rfq.customerName || 'Pending', icon: User },
+    ...(rfq.companyName ? [{ label: 'Company', value: rfq.companyName, icon: Building2 }] : []),
+    { label: 'Phone', value: rfq.phone || 'Pending', icon: Phone },
+    ...(rfq.additionalNotes && rfq.additionalNotes !== 'None' ? [{ label: 'Additional Notes', value: rfq.additionalNotes, icon: FileText }] : []),
   ].filter((item) => Boolean(item.value && item.value.trim()));
 
   const whatsappMessage = encodeURIComponent(
@@ -92,6 +98,42 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Multi-item List if provided */}
+      {rfq.items && rfq.items.length > 0 && (
+        <div className="p-3 bg-slate-950/70 border-b border-slate-800 space-y-2">
+          <div className="text-[11px] font-bold text-orange-400 uppercase tracking-wide">
+            Requirement Items ({rfq.items.length}):
+          </div>
+          <div className="space-y-1.5">
+            {rfq.items.map((it, idx) => (
+              <div
+                key={idx}
+                className="bg-slate-900/90 p-2 rounded-lg border border-slate-800 flex justify-between items-start gap-2 text-xs"
+              >
+                <div>
+                  <span className="font-semibold text-white">
+                    ITEM {idx + 1}: {it.item}
+                  </span>
+                  {it.specification && (
+                    <span className="block text-[11px] text-slate-400">
+                      Spec: {it.specification}
+                    </span>
+                  )}
+                  {it.brand && (
+                    <span className="block text-[11px] text-slate-400">
+                      Brand: {it.brand}
+                    </span>
+                  )}
+                </div>
+                <span className="font-bold text-orange-400 shrink-0">
+                  Qty: {it.quantity}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Fields List */}
       <div className="p-3 space-y-1.5 text-xs bg-slate-900/90 divide-y divide-slate-800/60">
@@ -165,7 +207,7 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
             <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-emerald-300">
-                Your requirement has been sent to the Rajdeep Enterprises team.
+                Your requirement has been successfully sent to the Rajdeep Enterprises team.
               </p>
               {rfq.rfqReference && (
                 <p className="text-[11px] font-mono text-emerald-300/90 mt-0.5">
@@ -173,7 +215,7 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
                 </p>
               )}
               <p className="text-[11px] text-emerald-400/90 leading-tight mt-1">
-                Our sales team will check the requirement and reach out with an official quotation.
+                Our team will review the details and get back to you regarding the quotation.
               </p>
             </div>
           </div>
@@ -207,10 +249,10 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
             <AlertTriangle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
             <div>
               <p className="font-semibold text-rose-300">
-                Could not connect to backend submission right now.
+                I couldn't send the requirement right now.
               </p>
               <p className="text-[11px] text-rose-300/80 leading-tight mt-0.5">
-                {rfq.submissionError || 'Please try clicking Confirm & Send again or contact Rajdeep Enterprises directly.'}
+                {rfq.submissionError || 'Please try again or contact Rajdeep Enterprises directly using the WhatsApp or Call option.'}
               </p>
             </div>
           </div>
@@ -225,10 +267,18 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
               </button>
             )}
             <a
+              href="https://wa.me/919997993895"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 text-center py-1 px-2.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-[11px] font-medium transition"
+            >
+              WhatsApp
+            </a>
+            <a
               href="tel:+919997993895"
               className="flex-1 text-center py-1 px-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-[11px] font-medium transition"
             >
-              Call Directly
+              Call
             </a>
           </div>
         </div>
@@ -238,7 +288,7 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
       {isCancelled && (
         <div className="bg-slate-950/60 p-2.5 border-t border-slate-800 text-center">
           <p className="text-[11px] text-slate-400">
-            This requirement enquiry has been cancelled.
+            Okay, I haven't sent the requirement.
           </p>
         </div>
       )}

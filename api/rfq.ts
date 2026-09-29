@@ -99,17 +99,45 @@ export default async function handler(req: any, res: any) {
     const isAiChatbot = source === 'Rajdeep AI Chatbot' || Boolean(rawBody.product || rawBody.material);
 
     // 2. Extract common and AI-specific fields
-    const contractorName = sanitizeText(rawBody.customerName || rawBody.contractorName || rawBody.name || '', 100);
-    const companyName = sanitizeText(rawBody.companyName || rawBody.company || '', 120);
-    const phoneNumber = sanitizeText(rawBody.phoneNumber || rawBody.phone || '', 30);
-    const emailAddress = sanitizeText(rawBody.emailAddress || rawBody.email || '', 100);
-    const siteLocation = sanitizeText(rawBody.deliveryLocation || rawBody.siteLocation || rawBody.location || '', 200);
-    const notes = sanitizeText(rawBody.additionalNotes || rawBody.notes || rawBody.message || '', 2000);
+    const contractorName = sanitizeText(
+      rawBody.customerName || rawBody.contractorName || rawBody.name || rawBody.customer?.name || '',
+      100
+    );
+    const companyName = sanitizeText(
+      rawBody.companyName || rawBody.company || rawBody.customer?.company || '',
+      120
+    );
+    const phoneNumber = sanitizeText(
+      rawBody.phoneNumber || rawBody.phone || rawBody.customer?.phone || '',
+      30
+    );
+    const emailAddress = sanitizeText(
+      rawBody.emailAddress || rawBody.email || rawBody.customer?.email || '',
+      100
+    );
+    const siteLocation = sanitizeText(
+      rawBody.deliveryLocation || rawBody.siteLocation || rawBody.location || '',
+      200
+    );
+    const notes = sanitizeText(
+      rawBody.additionalNotes || rawBody.notes || rawBody.message || '',
+      2000
+    );
     const requestMtc = Boolean(rawBody.requestMtc);
-    const rfqItems = Array.isArray(rawBody.rfqItems) ? rawBody.rfqItems : [];
+    const rfqItems = Array.isArray(rawBody.rfqItems)
+      ? rawBody.rfqItems
+      : Array.isArray(rawBody.requirements)
+      ? rawBody.requirements
+      : Array.isArray(rawBody.items)
+      ? rawBody.items
+      : [];
 
     // AI RFQ specific attributes
-    const product = sanitizeText(rawBody.product || '', 150);
+    const product = sanitizeText(
+      rawBody.product ||
+      (rfqItems.length > 0 ? rfqItems.map((it: any) => `${it.item || it.product || ''} (Qty: ${it.quantity || ''})`).join(', ') : ''),
+      250
+    );
     const material = sanitizeText(rawBody.material || '', 100);
     const grade = sanitizeText(rawBody.grade || '', 50);
     const quantity = sanitizeText(rawBody.quantity || '', 50);
@@ -148,7 +176,7 @@ export default async function handler(req: any, res: any) {
 
     // Ensure requirement is not empty
     const hasRequirement = isAiChatbot
-      ? Boolean(product || material || notes)
+      ? Boolean(product || material || notes || rfqItems.length > 0)
       : rfqItems.length > 0 || Boolean(notes);
 
     if (!hasRequirement) {
