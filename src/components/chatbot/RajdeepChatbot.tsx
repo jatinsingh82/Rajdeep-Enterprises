@@ -130,6 +130,7 @@ export const RajdeepChatbot: React.FC = () => {
 
     // 1. Missing item check
     if (!targetRfq || (!targetRfq.product && (!targetRfq.items || targetRfq.items.length === 0))) {
+      updateRfqState({ status: 'draft' });
       const promptMsg: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
@@ -277,16 +278,18 @@ export const RajdeepChatbot: React.FC = () => {
 
   // UI Action: Cancel button clicked
   const handleCancelRfq = () => {
-    if (currentRfqRef.current) {
-      updateRfqState({ ...currentRfqRef.current, status: 'cancelled' });
-    }
-    const cancelMsg: ChatMessage = {
-      id: `ai-${Date.now()}`,
-      sender: 'ai',
-      text: "Okay, I haven't sent the requirement.",
-      timestamp: formatCurrentTime(),
-    };
-    setMessages((prev) => [...prev, cancelMsg]);
+    updateRfqState(null);
+    setMessages((prev) =>
+      prev
+        .map((m) => (m.rfq ? { ...m, rfq: undefined } : m))
+        .concat({
+          id: `ai-${Date.now()}`,
+          sender: 'ai',
+          text: "Okay, I haven't sent the requirement.",
+          timestamp: formatCurrentTime(),
+        })
+    );
+    setStatus('idle');
   };
 
   const handleSendMessage = async (
@@ -426,7 +429,21 @@ export const RajdeepChatbot: React.FC = () => {
   };
 
   const hasInput = inputVal.trim().length > 0;
-  const isBusy = status === 'loading' || status === 'submitting';
+  const isSubmitting = status === 'submitting' || isSubmittingRef.current;
+  const isLoading = status === 'loading';
+
+  // Requirement flow is active if:
+  // 1. Current RFQ draft/review/summary/submitted/failed exists and is not cancelled
+  // 2. Any active RFQ card exists in the conversation history
+  // 3. Chatbot is actively loading a response or transmitting an RFQ submission
+  const isRequirementFlowActive = Boolean(
+    (currentRfq && currentRfq.status !== 'cancelled') ||
+    messages.some((m) => m.rfq && m.rfq.status !== 'cancelled') ||
+    isLoading ||
+    isSubmitting
+  );
+
+  const showQuickActions = !hasInput && !isRequirementFlowActive;
 
   return (
     <>
@@ -575,8 +592,8 @@ export const RajdeepChatbot: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Suggested Questions Area: hidden while user is typing or during submission */}
-          {!hasInput && !isBusy && (
+          {/* Suggested Questions Area: hidden when typing or when an RFQ/requirement flow is active */}
+          {showQuickActions && (
             <ChatSuggestions
               onSelectSuggestion={(q) => {
                 if (q === 'Send Requirement') {
@@ -585,7 +602,7 @@ export const RajdeepChatbot: React.FC = () => {
                   handleSendMessage(q);
                 }
               }}
-              disabled={isBusy}
+              disabled={isLoading || isSubmitting}
             />
           )}
 
