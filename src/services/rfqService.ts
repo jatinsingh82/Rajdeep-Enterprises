@@ -145,8 +145,8 @@ export async function submitAiRfq(params: SubmitAiRfqParams): Promise<SubmitAiRf
 
     return {
       success: true,
-      rfqReference: data.rfqReference,
-      message: data.message || 'Your enquiry has been submitted successfully.',
+      rfqReference: data.reference || data.rfqReference,
+      message: data.message || 'Your requirement has been successfully sent to the Rajdeep Enterprises team.',
     };
   } catch (err: any) {
     clearTimeout(timeoutId);

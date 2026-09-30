@@ -32,11 +32,12 @@ export function getValidatedOrigin(req: any): string | null {
     return trimmedOrigin;
   }
 
-  // 3. Localhost & development origins (strictly non-production / preview)
+  // 3. Localhost & development & preview origins (strictly non-production / preview)
   const isDevOrPreview =
     trimmedOrigin.startsWith('http://localhost:') ||
     trimmedOrigin.startsWith('http://127.0.0.1:') ||
     trimmedOrigin.startsWith('http://0.0.0.0:') ||
+    trimmedOrigin.endsWith('.vercel.app') ||
     trimmedOrigin.endsWith('.run.app') ||
     trimmedOrigin.endsWith('.googleusercontent.com');
 

@@ -251,19 +251,19 @@ export default async function handler(req: any, res: any) {
     // 6. SMTP Configuration (Server-Side Only)
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
     const smtpPort = Number(process.env.SMTP_PORT || 587);
-    const smtpUser = process.env.SMTP_USER || 'rajdeepenterprises0047@gmail.com';
+    const smtpUser = process.env.SMTP_USER;
     const smtpPass = process.env.SMTP_PASS;
     const alertEmailTo = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
 
-    // Diagnostic logging requested in Part 11
-    console.log('[CHATBOT RFQ] submission received');
-    console.log(`[CHATBOT RFQ] SMTP_HOST configured: ${Boolean(smtpHost)}`);
-    console.log(`[CHATBOT RFQ] SMTP_PORT configured: ${Boolean(smtpPort)}`);
-    console.log(`[CHATBOT RFQ] SMTP_USER configured: ${Boolean(smtpUser)}`);
-    console.log(`[CHATBOT RFQ] SMTP_PASS configured: ${Boolean(smtpPass)}`);
-    console.log(`[CHATBOT RFQ] ALERT_EMAIL_TO configured: ${Boolean(alertEmailTo)}`);
+    // Step 11: Safe server-side diagnostics
+    console.log('[CHATBOT RFQ] Request received');
+    console.log(`[CHATBOT RFQ] Recipient configured: ${Boolean(alertEmailTo)}`);
+    console.log(`[CHATBOT RFQ] SMTP host: ${smtpHost}`);
+    console.log(`[CHATBOT RFQ] SMTP port: ${smtpPort}`);
+    console.log(`[CHATBOT RFQ] SMTP user configured: ${Boolean(smtpUser)}`);
+    console.log(`[CHATBOT RFQ] SMTP password configured: ${Boolean(smtpPass)}`);
 
-    // Verify SMTP credentials - never return fake success if email cannot be sent (Part 6 & 12)
+    // Step 3: Validate environment variables
     if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
       console.warn('[CHATBOT RFQ] SMTP credentials not configured on server (SMTP_PASS missing)');
       return res.status(500).json({
@@ -276,7 +276,7 @@ export default async function handler(req: any, res: any) {
       console.warn('[CHATBOT RFQ] ALERT_EMAIL_TO recipient is missing');
       return res.status(500).json({
         success: false,
-        error: 'Email recipient is not configured.',
+        error: 'Email service is not configured on the server.',
       });
     }
 
@@ -302,9 +302,9 @@ export default async function handler(req: any, res: any) {
 
     if (isAiChatbot) {
       // ----------------------------------------------------
-      // PART 8 COMPLIANT FORMAT: RAJDEEP AI CHATBOT
+      // STEP 5 COMPLIANT FORMAT: RAJDEEP AI CHATBOT
       // ----------------------------------------------------
-      subject = `New Rajdeep Enterprises Chatbot Requirement - ${displayProduct}`;
+      subject = `Rajdeep Enterprises Chatbot Requirement - ${displayProduct}`;
 
       textContent = [
         'RAJDEEP ENTERPRISES',
@@ -316,13 +316,13 @@ export default async function handler(req: any, res: any) {
         'Customer Name:',
         contractorName,
         '',
-        'Phone:',
+        'Phone / WhatsApp:',
         phoneNumber,
         '',
         'Email:',
         emailAddress || 'Not Provided',
         '',
-        'Requested Item:',
+        'Product / Item:',
         displayProduct,
         '',
         'Quantity:',
@@ -331,7 +331,7 @@ export default async function handler(req: any, res: any) {
         'Unit:',
         unit || 'Not Specified',
         '',
-        'Type/Grade:',
+        'Grade / Type:',
         grade || 'Not Specified',
         '',
         'Thickness:',
@@ -340,8 +340,11 @@ export default async function handler(req: any, res: any) {
         'Dimensions:',
         dimensions || 'Not Specified',
         '',
+        'Brand:',
+        brand || 'Not Specified',
+        '',
         'Specification:',
-        specifications || sizeModel || (brand ? `Brand: ${brand}` : 'None'),
+        specifications || sizeModel || 'None',
         '',
         'Delivery Location:',
         siteLocation || 'Not Provided',
@@ -349,8 +352,11 @@ export default async function handler(req: any, res: any) {
         'Catalogue Status:',
         catalogueStatus,
         '',
-        'Additional Customer Message:',
-        notes || conversationSummary || 'None',
+        'Additional Requirements:',
+        notes || 'None',
+        '',
+        'Original User Requirement / Message:',
+        conversationSummary || 'Submitted via Rajdeep AI Chatbot',
         '',
         'Submitted:',
         timestamp,
@@ -548,24 +554,34 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
     }
 
     const transporter = nodemailer.createTransport({
-      host: process.env.SMTP_HOST || smtpHost,
-      port: Number(process.env.SMTP_PORT || smtpPort),
+      host: smtpHost,
+      port: smtpPort,
       secure: false,
       requireTLS: true,
       auth: {
-        user: process.env.SMTP_USER || smtpUser,
-        pass: process.env.SMTP_PASS || smtpPass,
+        user: smtpUser,
+        pass: smtpPass,
       },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
       socketTimeout: 20000,
     });
 
-    console.log('[CHATBOT RFQ] attempting email send');
+    try {
+      await transporter.verify();
+      console.log('[CHATBOT RFQ] SMTP verification successful');
+    } catch (verifyError: any) {
+      console.warn(`[CHATBOT RFQ] SMTP verification failed: ${verifyError?.message || verifyError}`);
+      return res.status(500).json({
+        success: false,
+        error: 'Unable to send the requirement right now.',
+      });
+    }
+
     try {
       const info = await transporter.sendMail({
-        from: `"Rajdeep Enterprises Website" <${process.env.SMTP_USER || smtpUser}>`,
-        to: process.env.ALERT_EMAIL_TO || alertEmailTo,
+        from: `"Rajdeep Enterprises Website" <${smtpUser}>`,
+        to: alertEmailTo,
         replyTo: emailAddress ? `"${contractorName}" <${emailAddress}>` : undefined,
         subject,
         text: textContent,
@@ -575,30 +591,13 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
           'X-Submission-Type': isAiChatbot ? 'Rajdeep AI RFQ' : 'Bulk RFQ',
         },
       });
-      console.log(`[CHATBOT RFQ] email send successful (messageId: ${info?.messageId || 'sent'})`);
+      console.log('[CHATBOT RFQ] Email sent successfully');
+      console.log(`[CHATBOT RFQ] Message ID: ${info?.messageId || 'sent'}`);
     } catch (sendError: any) {
-      console.warn('[CHATBOT RFQ] email delivery failed');
-      console.warn(`[CHATBOT RFQ] error code: ${sendError?.code || 'UNKNOWN'}`);
-      console.warn(`[CHATBOT RFQ] error message: ${sendError?.message || sendError}`);
-
-      let clientErrorMessage = "I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.";
-      if (
-        sendError?.code === 'EAUTH' ||
-        sendError?.responseCode === 535 ||
-        (sendError?.message && sendError.message.includes('Invalid login'))
-      ) {
-        clientErrorMessage = 'Email authentication failed. Please check the Gmail App Password.';
-      } else if (
-        sendError?.code === 'ESOCKET' ||
-        sendError?.code === 'ETIMEDOUT' ||
-        sendError?.code === 'ECONNREFUSED'
-      ) {
-        clientErrorMessage = 'Could not connect to the email service.';
-      }
-
+      console.warn(`[CHATBOT RFQ] Email send failed: ${sendError?.message || sendError}`);
       return res.status(500).json({
         success: false,
-        error: clientErrorMessage,
+        error: 'Unable to send the requirement right now.',
       });
     }
 
@@ -608,10 +607,9 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
       referenceId,
     });
 
-    console.info(`[RFQ] Email delivered successfully to ${alertEmailTo} with ref ${referenceId}`);
-
     return res.status(200).json({
       success: true,
+      reference: referenceId,
       rfqReference: referenceId,
       message: 'Your requirement has been successfully sent to the Rajdeep Enterprises team.',
       timestamp: new Date().toISOString(),
@@ -620,7 +618,7 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
     console.error('[RFQ] ERROR_STAGE=REQUEST_PROCESSING_FAILED', err?.message || err);
     return res.status(500).json({
       success: false,
-      error: "I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.",
+      error: 'Unable to send the requirement right now.',
     });
   }
 }

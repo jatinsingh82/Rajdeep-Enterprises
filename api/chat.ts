@@ -228,6 +228,12 @@ function extractQuantityFromText(text: string, isAnsweringQuantity: boolean): st
     }
   }
 
+  // 3b. Standalone isolated number (e.g. user just replies "20", "20 nos", "20 pcs")
+  const cleanNumeric = trimmed.match(/^\s*(?:(?:i\s+need|need|want|quantity|qty|order)\s+)?(\d+(?:\.\d+)?)\s*(?:pcs|pieces|piece|nos|units)?\s*$/i);
+  if (cleanNumeric && !['304', '316', '7018', '6013'].includes(cleanNumeric[1])) {
+    return cleanNumeric[1];
+  }
+
   // 4. Natural sentence pattern: "I need 20 XYZ-900 components", "Need 100 safety helmets"
   const sentenceNumMatch = trimmed.match(/(?:need|want|require|quantity|qty|order)\s+(?:a\s+|an\s+|some\s+)?(\d+(?:\.\d+)?)\b/i);
   if (sentenceNumMatch && !['304', '316', '7018', '6013'].includes(sentenceNumMatch[1])) {
@@ -483,6 +489,7 @@ function extractEntities(
   // 11. Customer Name extraction
   const namePatternMatch = text.match(/(?:my name is|i am|name[:\s]+)\s*([a-zA-Z\s]{2,30})/i);
   const nameWithPhoneMatch = text.match(/^([a-zA-Z\s]{2,30})[,.\s]+(?:\+?\d{10,15})/);
+  const nameBeforePhoneAnywhere = text.match(/(?:,\s*|\s+)([A-Z][a-z]+(?:\s+[A-Z][a-z]+)?)\s*[,.\s]+\+?(?:91[\s-]?)?[6-9]\d{9}\b/);
 
   if (!updated.customerName) {
     if (namePatternMatch) {
@@ -490,6 +497,9 @@ function extractEntities(
       changedFields.push('customerName');
     } else if (nameWithPhoneMatch) {
       updated.customerName = nameWithPhoneMatch[1].trim();
+      changedFields.push('customerName');
+    } else if (nameBeforePhoneAnywhere) {
+      updated.customerName = nameBeforePhoneAnywhere[1].trim();
       changedFields.push('customerName');
     } else if (
       lastAiMessage.includes('name') &&
@@ -784,7 +794,7 @@ function generateDeterministicFallback(
     const isStandard = isCatalogueOrStandardItem(updated.product);
     if (!isStandard) {
       return {
-        reply: `This item is not currently listed in our online catalogue, but we can take your requirement as a special sourcing request. I will send your requirement to the Rajdeep Enterprises team for confirmation. How many do you need?`,
+        reply: `We don't currently have this item listed in our online catalogue, but Rajdeep Enterprises can check whether it can be sourced. I can send your requirement to the team. How many do you need?`,
         intent: 'rfq_collection',
         rfq: updated,
       };

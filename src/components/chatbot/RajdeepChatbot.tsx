@@ -198,11 +198,11 @@ export const RajdeepChatbot: React.FC = () => {
         };
         updateRfqState(submittedRfq);
 
-        const refText = result.rfqReference ? `\n\nReference:\n${result.rfqReference}` : '';
+        const refText = result.rfqReference ? `\n\nReference: ${result.rfqReference}` : '';
         const successMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `Your requirement has been successfully sent to the Rajdeep Enterprises team. Our team will review it and contact you regarding the quotation.${refText}`,
+          text: `Your requirement has been successfully sent to the Rajdeep Enterprises team.${refText}`,
           timestamp: formatCurrentTime(),
           rfq: submittedRfq,
         };
@@ -221,9 +221,7 @@ export const RajdeepChatbot: React.FC = () => {
         const failMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text:
-            result.error ||
-            `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.`,
+          text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises at +91 99979 93895.`,
           timestamp: formatCurrentTime(),
           isError: true,
           rfq: failedRfq,
@@ -244,7 +242,7 @@ export const RajdeepChatbot: React.FC = () => {
       const errorMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: `Could not connect to the email service. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.`,
+        text: `I couldn't send the requirement right now. Please try again or contact Rajdeep Enterprises at +91 99979 93895.`,
         timestamp: formatCurrentTime(),
         isError: true,
         rfq: failedRfq,
