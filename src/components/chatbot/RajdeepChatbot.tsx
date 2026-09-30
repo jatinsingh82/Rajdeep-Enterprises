@@ -425,6 +425,9 @@ export const RajdeepChatbot: React.FC = () => {
     }
   };
 
+  const hasInput = inputVal.trim().length > 0;
+  const isBusy = status === 'loading' || status === 'submitting';
+
   return (
     <>
       {/* 1. Floating Launch Button in Bottom-Right Corner */}
@@ -572,17 +575,19 @@ export const RajdeepChatbot: React.FC = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Suggested Questions Area */}
-          <ChatSuggestions
-            onSelectSuggestion={(q) => {
-              if (q === 'Send Requirement') {
-                handleSendRequirement();
-              } else {
-                handleSendMessage(q);
-              }
-            }}
-            disabled={status === 'loading' || status === 'submitting'}
-          />
+          {/* Suggested Questions Area: hidden while user is typing or during submission */}
+          {!hasInput && !isBusy && (
+            <ChatSuggestions
+              onSelectSuggestion={(q) => {
+                if (q === 'Send Requirement') {
+                  handleSendRequirement();
+                } else {
+                  handleSendMessage(q);
+                }
+              }}
+              disabled={isBusy}
+            />
+          )}
 
           {/* Message Input Area */}
           <div className="p-3 bg-slate-950 border-t border-slate-800">
