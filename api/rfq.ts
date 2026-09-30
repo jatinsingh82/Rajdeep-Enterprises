@@ -265,7 +265,7 @@ export default async function handler(req: any, res: any) {
 
     // Verify SMTP credentials - never return fake success if email cannot be sent (Part 6 & 12)
     if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
-      console.error('[CHATBOT RFQ] email send failed: SMTP credentials missing');
+      console.warn('[CHATBOT RFQ] SMTP credentials not configured on server (SMTP_PASS missing)');
       return res.status(500).json({
         success: false,
         error: 'Email service is not configured on the server.',
@@ -273,7 +273,7 @@ export default async function handler(req: any, res: any) {
     }
 
     if (!alertEmailTo) {
-      console.error('[CHATBOT RFQ] email send failed: ALERT_EMAIL_TO missing');
+      console.warn('[CHATBOT RFQ] ALERT_EMAIL_TO recipient is missing');
       return res.status(500).json({
         success: false,
         error: 'Email recipient is not configured.',
@@ -577,9 +577,9 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
       });
       console.log(`[CHATBOT RFQ] email send successful (messageId: ${info?.messageId || 'sent'})`);
     } catch (sendError: any) {
-      console.error('[CHATBOT RFQ] email send failed');
-      console.error(`[CHATBOT RFQ] error code: ${sendError?.code || 'UNKNOWN'}`);
-      console.error(`[CHATBOT RFQ] error message: ${sendError?.message || sendError}`);
+      console.warn('[CHATBOT RFQ] email delivery failed');
+      console.warn(`[CHATBOT RFQ] error code: ${sendError?.code || 'UNKNOWN'}`);
+      console.warn(`[CHATBOT RFQ] error message: ${sendError?.message || sendError}`);
 
       let clientErrorMessage = "I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.";
       if (

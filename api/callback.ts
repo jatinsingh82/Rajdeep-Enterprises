@@ -105,8 +105,8 @@ export default async function handler(req: any, res: any) {
     const alertEmailTo = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
 
     if (!smtpUser || !smtpPass) {
-      console.error(
-        `[Callback] ERROR_STAGE=SMTP_CREDENTIALS_MISSING (hasUser=${Boolean(smtpUser)}, hasPass=${Boolean(smtpPass)}). Email cannot be delivered.`
+      console.warn(
+        `[Callback] SMTP_CREDENTIALS_MISSING (hasUser=${Boolean(smtpUser)}, hasPass=${Boolean(smtpPass)}). Email cannot be delivered.`
       );
       return res.status(500).json({
         success: false,

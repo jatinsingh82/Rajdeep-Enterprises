@@ -172,8 +172,8 @@ export default async function handler(req: any, res: any) {
     const hasPass = Boolean(smtpPass);
 
     if (!hasUser || !hasPass) {
-      console.error(
-        `[Enquiry] ERROR_STAGE=SMTP_CREDENTIALS_MISSING (hasUser=${hasUser}, hasPass=${hasPass}). Email cannot be delivered.`
+      console.warn(
+        `[Enquiry] SMTP_CREDENTIALS_MISSING (hasUser=${hasUser}, hasPass=${hasPass}). Email cannot be delivered.`
       );
       return res.status(500).json({
         success: false,
