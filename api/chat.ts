@@ -4,8 +4,8 @@ import path from 'path';
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 import { GoogleGenAI } from '@google/genai';
-import { handleCors } from './lib/cors';
-import { GEMINI_MODEL, RAJDEEP_AI_SYSTEM_INSTRUCTION, StructuredRfqData, RfqRequirementItem } from './lib/geminiConfig';
+import { handleCors } from './lib/cors.js';
+import { GEMINI_MODEL, RAJDEEP_AI_SYSTEM_INSTRUCTION, StructuredRfqData, RfqRequirementItem } from './lib/geminiConfig.js';
 
 interface IncomingChatMessage {
   sender?: string;
