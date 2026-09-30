@@ -255,8 +255,9 @@ export default async function handler(req: any, res: any) {
     const smtpPass = process.env.SMTP_PASS;
     const alertEmailTo = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
 
-    // Step 11: Safe server-side diagnostics
-    console.log('[CHATBOT RFQ] Request received');
+    // Step 14: Safe server-side diagnostics
+    const hasSmtpConfig = Boolean(smtpHost && smtpPort && smtpUser && smtpPass && alertEmailTo);
+    console.log(`[CHATBOT RFQ] SMTP configuration present: ${hasSmtpConfig}`);
     console.log(`[CHATBOT RFQ] Recipient configured: ${Boolean(alertEmailTo)}`);
     console.log(`[CHATBOT RFQ] SMTP host: ${smtpHost}`);
     console.log(`[CHATBOT RFQ] SMTP port: ${smtpPort}`);
@@ -571,7 +572,7 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
       await transporter.verify();
       console.log('[CHATBOT RFQ] SMTP verification successful');
     } catch (verifyError: any) {
-      console.warn(`[CHATBOT RFQ] SMTP verification failed: ${verifyError?.message || verifyError}`);
+      console.warn(`[CHATBOT RFQ] SMTP error: Verification failed - ${verifyError?.message || verifyError}`);
       return res.status(500).json({
         success: false,
         error: 'Unable to send the requirement right now.',
@@ -579,6 +580,7 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
     }
 
     try {
+      console.log('[CHATBOT RFQ] Sending requirement...');
       const info = await transporter.sendMail({
         from: `"Rajdeep Enterprises Website" <${smtpUser}>`,
         to: alertEmailTo,
@@ -591,10 +593,10 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
           'X-Submission-Type': isAiChatbot ? 'Rajdeep AI RFQ' : 'Bulk RFQ',
         },
       });
-      console.log('[CHATBOT RFQ] Email sent successfully');
+      console.log('[CHATBOT RFQ] SMTP send successful');
       console.log(`[CHATBOT RFQ] Message ID: ${info?.messageId || 'sent'}`);
     } catch (sendError: any) {
-      console.warn(`[CHATBOT RFQ] Email send failed: ${sendError?.message || sendError}`);
+      console.warn(`[CHATBOT RFQ] SMTP error: ${sendError?.message || sendError}`);
       return res.status(500).json({
         success: false,
         error: 'Unable to send the requirement right now.',

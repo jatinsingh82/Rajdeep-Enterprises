@@ -202,7 +202,7 @@ export const RajdeepChatbot: React.FC = () => {
         const successMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `Your requirement has been successfully sent to the Rajdeep Enterprises team.${refText}`,
+          text: `Your requirement has been successfully sent to the Rajdeep Enterprises team. Our team will review it and contact you regarding the quotation.${refText}`,
           timestamp: formatCurrentTime(),
           rfq: submittedRfq,
         };
