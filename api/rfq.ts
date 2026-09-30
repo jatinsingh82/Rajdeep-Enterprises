@@ -250,7 +250,7 @@ export default async function handler(req: any, res: any) {
 
     // 6. SMTP Configuration (Server-Side Only)
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10);
+    const smtpPort = Number(process.env.SMTP_PORT || 587);
     const smtpUser = process.env.SMTP_USER || 'rajdeepenterprises0047@gmail.com';
     const smtpPass = process.env.SMTP_PASS;
     const alertEmailTo = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
@@ -547,14 +547,14 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
 </html>`.trim();
     }
 
-    const isSecure = smtpPort === 465;
     const transporter = nodemailer.createTransport({
-      host: smtpHost,
-      port: smtpPort,
-      secure: isSecure,
+      host: process.env.SMTP_HOST || smtpHost,
+      port: Number(process.env.SMTP_PORT || smtpPort),
+      secure: false,
+      requireTLS: true,
       auth: {
-        user: smtpUser,
-        pass: smtpPass,
+        user: process.env.SMTP_USER || smtpUser,
+        pass: process.env.SMTP_PASS || smtpPass,
       },
       connectionTimeout: 15000,
       greetingTimeout: 15000,
@@ -564,8 +564,8 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
     console.log('[CHATBOT RFQ] attempting email send');
     try {
       const info = await transporter.sendMail({
-        from: `"Rajdeep Enterprises Website" <${smtpUser}>`,
-        to: alertEmailTo,
+        from: `"Rajdeep Enterprises Website" <${process.env.SMTP_USER || smtpUser}>`,
+        to: process.env.ALERT_EMAIL_TO || alertEmailTo,
         replyTo: emailAddress ? `"${contractorName}" <${emailAddress}>` : undefined,
         subject,
         text: textContent,
