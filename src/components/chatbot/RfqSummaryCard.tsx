@@ -172,7 +172,7 @@ export const RfqSummaryCard: React.FC<RfqSummaryCardProps> = ({
               ) : (
                 <>
                   <Send className="w-3.5 h-3.5" />
-                  <span>Send Requirement</span>
+                  <span>Confirm & Send</span>
                 </>
               )}
             </button>

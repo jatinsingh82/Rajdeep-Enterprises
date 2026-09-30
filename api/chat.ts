@@ -809,7 +809,7 @@ function generateDeterministicFallback(
     const category = detectProductCategory(updated.product, text);
     if (category === 'gauge') {
       return {
-        reply: `Yes, we can help with pressure gauges. I've noted ${updated.quantity} pressure gauges. If you have a preferred range, size or specification, please share it. Otherwise, you can send us your requirement and our team can check it and provide a quotation.`,
+        reply: `Yes, we can take this requirement and our team can check sourcing. I have noted ${updated.quantity} pressure gauges. Please provide your name and phone number so I can send the requirement to our team.`,
         intent: 'rfq_collection',
         rfq: updated,
       };

@@ -221,7 +221,9 @@ export const RajdeepChatbot: React.FC = () => {
         const failMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           sender: 'ai',
-          text: `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.`,
+          text:
+            result.error ||
+            `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.`,
           timestamp: formatCurrentTime(),
           isError: true,
           rfq: failedRfq,
@@ -230,19 +232,19 @@ export const RajdeepChatbot: React.FC = () => {
         setMessages((prev) => [...prev, failMessage]);
         setStatus('idle');
       }
-    } catch {
+    } catch (err: any) {
       isSubmittingRef.current = false;
       const failedRfq: StructuredRfq = {
         ...targetRfq,
         status: 'failed',
-        submissionError: 'Network connection error',
+        submissionError: err?.message || 'Network connection error',
       };
       updateRfqState(failedRfq);
 
       const errorMessage: ChatMessage = {
         id: `ai-${Date.now()}`,
         sender: 'ai',
-        text: `I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.`,
+        text: `Could not connect to the email service. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.`,
         timestamp: formatCurrentTime(),
         isError: true,
         rfq: failedRfq,

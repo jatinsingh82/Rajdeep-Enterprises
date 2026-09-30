@@ -1,4 +1,10 @@
+import dotenv from 'dotenv';
+import path from 'path';
 import nodemailer from 'nodemailer';
+
+// Ensure environment variables are loaded in local development / serverless runtimes
+dotenv.config();
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 const ALLOWED_ORIGINS: readonly string[] = [
   'https://rajdeep-enterprises.vercel.app',
@@ -18,10 +24,12 @@ function handleCors(req: any, res: any): boolean {
   const isAllowed =
     ALLOWED_ORIGINS.includes(trimmedOrigin) ||
     (process.env.SITE_URL && trimmedOrigin === process.env.SITE_URL.trim().replace(/\/$/, '')) ||
+    (process.env.VITE_SITE_URL && trimmedOrigin === process.env.VITE_SITE_URL.trim().replace(/\/$/, '')) ||
     trimmedOrigin.startsWith('http://localhost:') ||
     trimmedOrigin.startsWith('http://127.0.0.1:') ||
     trimmedOrigin.startsWith('http://0.0.0.0:') ||
     trimmedOrigin.endsWith('.run.app') ||
+    trimmedOrigin.endsWith('.vercel.app') ||
     trimmedOrigin.endsWith('.googleusercontent.com');
 
   if (isAllowed) {
@@ -242,19 +250,33 @@ export default async function handler(req: any, res: any) {
 
     // 6. SMTP Configuration (Server-Side Only)
     const smtpHost = process.env.SMTP_HOST || 'smtp.gmail.com';
-    const smtpPort = parseInt(process.env.SMTP_PORT || '587', 10);
+    const smtpPort = parseInt(process.env.SMTP_PORT || '465', 10);
     const smtpUser = process.env.SMTP_USER || 'rajdeepenterprises0047@gmail.com';
     const smtpPass = process.env.SMTP_PASS;
     const alertEmailTo = process.env.ALERT_EMAIL_TO || 'rajdeepenterprises0047@gmail.com';
 
-    // Verify SMTP credentials - never return fake success if email cannot be sent
-    if (!smtpUser || !smtpPass) {
-      console.error(
-        `[RFQ] ERROR_STAGE=SMTP_CREDENTIALS_MISSING (hasUser=${Boolean(smtpUser)}, hasPass=${Boolean(smtpPass)}). Email delivery failed.`
-      );
+    // Diagnostic logging requested in Part 11
+    console.log('[CHATBOT RFQ] submission received');
+    console.log(`[CHATBOT RFQ] SMTP_HOST configured: ${Boolean(smtpHost)}`);
+    console.log(`[CHATBOT RFQ] SMTP_PORT configured: ${Boolean(smtpPort)}`);
+    console.log(`[CHATBOT RFQ] SMTP_USER configured: ${Boolean(smtpUser)}`);
+    console.log(`[CHATBOT RFQ] SMTP_PASS configured: ${Boolean(smtpPass)}`);
+    console.log(`[CHATBOT RFQ] ALERT_EMAIL_TO configured: ${Boolean(alertEmailTo)}`);
+
+    // Verify SMTP credentials - never return fake success if email cannot be sent (Part 6 & 12)
+    if (!smtpHost || !smtpPort || !smtpUser || !smtpPass) {
+      console.error('[CHATBOT RFQ] email send failed: SMTP credentials missing');
       return res.status(500).json({
         success: false,
-        error: "I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.",
+        error: 'Email service is not configured on the server.',
+      });
+    }
+
+    if (!alertEmailTo) {
+      console.error('[CHATBOT RFQ] email send failed: ALERT_EMAIL_TO missing');
+      return res.status(500).json({
+        success: false,
+        error: 'Email recipient is not configured.',
       });
     }
 
@@ -268,87 +290,71 @@ export default async function handler(req: any, res: any) {
     let textContent = '';
     let htmlContent = '';
 
+    const displayProduct =
+      product ||
+      material ||
+      (rfqItems.length > 0
+        ? rfqItems.map((it: any) => it.item || it.product).join(', ')
+        : 'Industrial Requirement');
+    const isStandardCatalogueItem = isCatalogueOrStandardItem(displayProduct);
+    const catalogueStatus = isStandardCatalogueItem ? 'Catalogue' : 'Non-Catalogue';
+    const sizeModel = size || thickness || dimensions || '';
+
     if (isAiChatbot) {
       // ----------------------------------------------------
-      // SECTION 2 & 3 COMPLIANT FORMAT: RAJDEEP AI CHATBOT
+      // PART 8 COMPLIANT FORMAT: RAJDEEP AI CHATBOT
       // ----------------------------------------------------
-      subject = 'New Chatbot Requirement — Rajdeep AI';
+      subject = `New Rajdeep Enterprises Chatbot Requirement - ${displayProduct}`;
 
-      const isStandardCatalogueItem = isCatalogueOrStandardItem(product);
-      const productStatus = isStandardCatalogueItem
-        ? 'Standard Catalogue Product'
-        : 'Non-catalogue / Special sourcing requirement';
-
-      const sizeModel = size || thickness || dimensions || '';
-
-      textContent = `
-NEW REQUIREMENT FROM RAJDEEP AI CHATBOT
-
-Reference:
-${referenceId}
-
-Date/Time:
-${timestamp}
-
-Customer Name:
-${contractorName}
-
-Company:
-${companyName || 'Not Provided'}
-
-Phone:
-${phoneNumber}
-
-Email:
-${emailAddress || 'Not Provided'}
-
-Requested Item:
-${product || material || 'Not Specified'}
-
-Quantity:
-${quantity ? `${quantity}${unit ? ` ${unit}` : ''}` : 'Not Specified'}
-
-Unit:
-${unit || 'Not Specified'}
-
-Grade / Type:
-${grade || 'Not Specified'}
-
-Thickness:
-${thickness || 'Not Specified'}
-
-Dimensions:
-${dimensions || 'Not Specified'}
-
-Specification:
-${specifications || 'None'}
-
-Brand:
-${brand || 'None'}
-
-Size / Model:
-${sizeModel || 'None'}
-
-Delivery Location:
-${siteLocation || 'Not Provided'}
-
-Additional Notes:
-${notes || 'None'}
-
-Source:
-Website AI Chatbot
-
-Product Status:
-${productStatus}
-
-Conversation Summary:
-${conversationSummary || 'Customer submitted requirement via AI chatbot interface.'}
-
-==================================================
-Reply-To is configured directly to customer's email (${emailAddress || 'N/A'}).
-Rajdeep Enterprises | 15/1, U.P. S.I.D.C. Complex, Refinery Main Gate, Mathura
-Phone: +91 99979 93895 | Email: rajdeepenterprises0047@gmail.com
-      `.trim();
+      textContent = [
+        'RAJDEEP ENTERPRISES',
+        'CHATBOT REQUIREMENT',
+        '',
+        'Reference Number:',
+        referenceId,
+        '',
+        'Customer Name:',
+        contractorName,
+        '',
+        'Phone:',
+        phoneNumber,
+        '',
+        'Email:',
+        emailAddress || 'Not Provided',
+        '',
+        'Requested Item:',
+        displayProduct,
+        '',
+        'Quantity:',
+        quantity ? `${quantity}${unit ? ` ${unit}` : ''}` : 'Not Specified',
+        '',
+        'Unit:',
+        unit || 'Not Specified',
+        '',
+        'Type/Grade:',
+        grade || 'Not Specified',
+        '',
+        'Thickness:',
+        thickness || 'Not Specified',
+        '',
+        'Dimensions:',
+        dimensions || 'Not Specified',
+        '',
+        'Specification:',
+        specifications || sizeModel || (brand ? `Brand: ${brand}` : 'None'),
+        '',
+        'Delivery Location:',
+        siteLocation || 'Not Provided',
+        '',
+        'Catalogue Status:',
+        catalogueStatus,
+        '',
+        'Additional Customer Message:',
+        notes || conversationSummary || 'None',
+        '',
+        'Submitted:',
+        timestamp,
+      ].join('\n');
 
       // Helper function for HTML table rows
       const htmlRow = (label: string, val: string | undefined) => {
@@ -546,28 +552,55 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
       host: smtpHost,
       port: smtpPort,
       secure: isSecure,
-      requireTLS: !isSecure,
       auth: {
         user: smtpUser,
         pass: smtpPass,
       },
-      connectionTimeout: 10000,
-      greetingTimeout: 10000,
-      socketTimeout: 15000,
+      connectionTimeout: 15000,
+      greetingTimeout: 15000,
+      socketTimeout: 20000,
     });
 
-    await transporter.sendMail({
-      from: `"Rajdeep Enterprises Website" <${smtpUser}>`,
-      to: alertEmailTo,
-      replyTo: emailAddress ? `"${contractorName}" <${emailAddress}>` : undefined,
-      subject,
-      text: textContent,
-      html: htmlContent,
-      headers: {
-        'X-Entity-Ref-ID': referenceId,
-        'X-Submission-Type': isAiChatbot ? 'Rajdeep AI RFQ' : 'Bulk RFQ',
-      },
-    });
+    console.log('[CHATBOT RFQ] attempting email send');
+    try {
+      const info = await transporter.sendMail({
+        from: `"Rajdeep Enterprises Website" <${smtpUser}>`,
+        to: alertEmailTo,
+        replyTo: emailAddress ? `"${contractorName}" <${emailAddress}>` : undefined,
+        subject,
+        text: textContent,
+        html: htmlContent,
+        headers: {
+          'X-Entity-Ref-ID': referenceId,
+          'X-Submission-Type': isAiChatbot ? 'Rajdeep AI RFQ' : 'Bulk RFQ',
+        },
+      });
+      console.log(`[CHATBOT RFQ] email send successful (messageId: ${info?.messageId || 'sent'})`);
+    } catch (sendError: any) {
+      console.error('[CHATBOT RFQ] email send failed');
+      console.error(`[CHATBOT RFQ] error code: ${sendError?.code || 'UNKNOWN'}`);
+      console.error(`[CHATBOT RFQ] error message: ${sendError?.message || sendError}`);
+
+      let clientErrorMessage = "I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.";
+      if (
+        sendError?.code === 'EAUTH' ||
+        sendError?.responseCode === 535 ||
+        (sendError?.message && sendError.message.includes('Invalid login'))
+      ) {
+        clientErrorMessage = 'Email authentication failed. Please check the Gmail App Password.';
+      } else if (
+        sendError?.code === 'ESOCKET' ||
+        sendError?.code === 'ETIMEDOUT' ||
+        sendError?.code === 'ECONNREFUSED'
+      ) {
+        clientErrorMessage = 'Could not connect to the email service.';
+      }
+
+      return res.status(500).json({
+        success: false,
+        error: clientErrorMessage,
+      });
+    }
 
     // Register fingerprint only after email delivery succeeds
     recentSubmissions.set(dedupeKey, {
@@ -584,7 +617,7 @@ Rajdeep Enterprises • Refinery Road, Near Indian Oil Refinery, Mathura, UP - 2
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
-    console.error('[RFQ] ERROR_STAGE=EMAIL_DELIVERY_FAILED', err?.message || err);
+    console.error('[RFQ] ERROR_STAGE=REQUEST_PROCESSING_FAILED', err?.message || err);
     return res.status(500).json({
       success: false,
       error: "I couldn't send your requirement right now. Please try again or contact Rajdeep Enterprises directly at +91 99979 93895.",
