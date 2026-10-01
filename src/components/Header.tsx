@@ -101,18 +101,18 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full transition-all duration-200">
-      {/* Top Bar - Displayed on desktop & tablet (>= md); on mobile, secondary information is housed inside the mobile menu drawer */}
-      <div className="hidden md:block bg-[#0B192C] text-slate-200 text-xs py-1.5 md:py-2 px-4 border-b border-[#1E3E62] overflow-x-hidden">
+    <header className={`sticky top-0 w-full transition-all duration-200 ${toolsDropdownOpen ? 'z-[70]' : 'z-40'}`}>
+      {/* Top Bar - Displayed with Guide button, language switch, and contact controls */}
+      <div className="bg-[#0B192C] text-slate-200 text-xs py-1.5 md:py-2 px-3 sm:px-4 border-b border-[#1E3E62] relative z-20">
         <div className="max-w-7xl mx-auto flex justify-between items-center gap-2">
           
-          {/* Desktop Top View: Verified physical location & Pan-India capability */}
-          <div className="flex items-center gap-3">
+          {/* Desktop & Tablet Top View: Verified physical location & Pan-India capability */}
+          <div className="hidden sm:flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-slate-300">
               <MapPin className="w-3.5 h-3.5 text-sky-400 shrink-0" />
-              <span className="font-medium">Refinery Main Gate, UP SIDC Complex, Mathura</span>
+              <span className="font-medium truncate max-w-[200px] md:max-w-none">Refinery Main Gate, UP SIDC Complex, Mathura</span>
             </div>
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-sky-300 bg-[#1E3E62]/60 px-2.5 py-0.5 rounded-full border border-sky-500/30">
+            <div className="hidden md:inline-flex items-center gap-1.5 text-[11px] font-bold text-sky-300 bg-[#1E3E62]/60 px-2.5 py-0.5 rounded-full border border-sky-500/30">
               <Truck className="w-3 h-3 text-sky-400 shrink-0" />
               <span>Pan-India Supply & Sourcing</span>
             </div>
@@ -122,12 +122,18 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
+          {/* Mobile view compact location label */}
+          <div className="flex sm:hidden items-center gap-1 text-[11px] text-slate-300 min-w-0">
+            <MapPin className="w-3 h-3 text-sky-400 shrink-0" />
+            <span className="font-medium truncate">Mathura Refinery</span>
+          </div>
+
           {/* Right Action Controls: Language, Phone, Visiting Card, and Tools & Guides */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 ml-auto">
             {/* Language Switcher */}
             <button
               onClick={onToggleLang}
-              className="flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#1E3E62]/80 hover:bg-[#1E3E62] text-sky-300 font-bold border border-sky-500/30 transition text-[11px] min-h-[30px]"
+              className="flex items-center gap-1 px-2 sm:px-2.5 py-1 rounded-md bg-[#1E3E62]/80 hover:bg-[#1E3E62] text-sky-300 font-bold border border-sky-500/30 transition text-[11px] min-h-[30px]"
               title="Switch Language / भाषा बदलें"
             >
               <Languages className="w-3 h-3 text-sky-400" />
@@ -139,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
               id="topbar-phone-link"
               href={`tel:${COMPANY_INFO.phone}`}
               onClick={() => trackPhoneClick({ phoneNumber: COMPANY_INFO.phone, source: 'header_topbar' })}
-              className="flex items-center gap-1.5 text-sky-300 hover:text-white font-semibold transition-colors px-2.5 py-1 rounded-md hover:bg-[#1E3E62] text-xs min-h-[30px]"
+              className="hidden sm:flex items-center gap-1.5 text-sky-300 hover:text-white font-semibold transition-colors px-2.5 py-1 rounded-md hover:bg-[#1E3E62] text-xs min-h-[30px]"
               title="Call Proprietor Directly"
             >
               <Phone className="w-3 h-3 text-sky-400" />
@@ -150,7 +156,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               id="topbar-visiting-card-btn"
               onClick={onOpenVisitingCard}
-              className="flex items-center gap-1 bg-[#1E3E62] hover:bg-sky-700 text-white px-2.5 py-1 rounded-md text-xs font-semibold border border-sky-400/40 shadow-2xs transition min-h-[30px]"
+              className="hidden xs:flex items-center gap-1 bg-[#1E3E62] hover:bg-sky-700 text-white px-2 sm:px-2.5 py-1 rounded-md text-xs font-semibold border border-sky-400/40 shadow-2xs transition min-h-[30px]"
               title="View Business Visiting Card"
             >
               <FileText className="w-3 h-3 text-sky-300" />
@@ -158,7 +164,7 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             {/* Tools & Guides Dropdown */}
-            <div className="relative" ref={toolsMenuRef}>
+            <div className={`relative ${toolsDropdownOpen ? 'z-[70]' : ''}`} ref={toolsMenuRef}>
               <button
                 id="topbar-tools-guides-btn"
                 onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
@@ -171,7 +177,7 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
 
               {toolsDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150 max-h-[85vh] overflow-y-auto">
+                <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-1.5rem)] bg-slate-900 border border-slate-700 rounded-xl shadow-2xl py-2 z-[70] animate-in fade-in slide-in-from-top-2 duration-150 max-h-[85vh] overflow-y-auto">
                   
                   {/* Category 1: Collapsible Guides */}
                   <div className="px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-sky-400 border-b border-slate-800 flex items-center justify-between">
@@ -301,7 +307,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Main Navbar - Clean, breathable, compact height on mobile */}
       <nav
-        className={`w-full bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all duration-200 overflow-x-hidden ${
+        className={`w-full bg-white/95 backdrop-blur-md border-b border-slate-100 transition-all duration-200 relative z-10 overflow-x-hidden ${
           isScrolled ? 'shadow-md py-1.5 sm:py-2.5' : 'shadow-xs py-1.5 sm:py-2.5'
         }`}
       >
